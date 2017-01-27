@@ -4,19 +4,20 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 
+import edu.uchicago.cs.encsel.model.StringEncoding;
+
 public class Main {
 
 	public static void main(String[] args) throws IOException {
 
-		String file = "/home/harper/enc_workspace/crime_data/crime_11";
-		String input = MessageFormat.format("{0}.data", file);
+		for (int i = 1; i <= 4; i++) {
+			String file = MessageFormat.format("/home/harper/enc_workspace/crime_data/crime_{0}.data", i);
 
-		HardcodedValuesWriterFactory.INSTANCE.setIntBitLength(14);
-		
-		ToParquet.singleColumnCSV(new File(input), new File(file + ".pid"), true, 0);
-		ToParquet.singleColumnCSV(new File(input), new File(file + ".rle"), false, 0);
-		ToParquet.singleColumnCSV(new File(input), new File(file + ".bp"), false, 1);
-		ToParquet.singleColumnCSV(new File(input), new File(file + ".dbpi"), false, 2);
-		ToParquet.singleColumnCSV(new File(input), new File(file + ".pln"), false, 3);
+			HardcodedValuesWriterFactory.INSTANCE.setIntBitLength(14);
+
+			ParquetWriterHelper.singleColumnString(new File(file), true, StringEncoding.DICT);
+			ParquetWriterHelper.singleColumnString(new File(file), false, StringEncoding.DELTAL);
+			ParquetWriterHelper.singleColumnString(new File(file), false, StringEncoding.PLAIN);
+		}
 	}
 }
