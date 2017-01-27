@@ -13,15 +13,15 @@ import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.schema.MessageType;
 
-public class CSVParquetWriterBuilder extends Builder<List<String>, CSVParquetWriterBuilder> {
+public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBuilder> {
 
 	private WriteSupport<List<String>> writeSupport = null;
 
 	private Field field = null;
 
-	public CSVParquetWriterBuilder(Path file, MessageType schema) {
+	public ParquetWriterBuilder(Path file, MessageType schema) {
 		super(file);
-		writeSupport = new CSVWriteSupport(schema);
+		writeSupport = new StringWriteSupport(schema);
 		try {
 			field = Builder.class.getDeclaredField("encodingPropsBuilder");
 			field.setAccessible(true);
@@ -32,7 +32,7 @@ public class CSVParquetWriterBuilder extends Builder<List<String>, CSVParquetWri
 	}
 
 	@Override
-	protected CSVParquetWriterBuilder self() {
+	protected ParquetWriterBuilder self() {
 		return this;
 	}
 
@@ -51,10 +51,11 @@ public class CSVParquetWriterBuilder extends Builder<List<String>, CSVParquetWri
 
 	public static ParquetWriter<List<String>> buildDefault(Path file, MessageType schema, boolean useDictionary)
 			throws IOException {
-		CSVParquetWriterBuilder builder = new CSVParquetWriterBuilder(file, schema);
+		ParquetWriterBuilder builder = new ParquetWriterBuilder(file, schema);
 
 		return builder.withValidation(false).withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
 				.withDictionaryEncoding(useDictionary).withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)
-				.withDictionaryPageSize(ParquetWriter.DEFAULT_PAGE_SIZE).build();
+				.withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
+				.withDictionaryPageSize(100 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
 	}
 }

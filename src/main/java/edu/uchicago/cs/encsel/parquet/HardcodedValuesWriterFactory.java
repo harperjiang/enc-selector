@@ -10,6 +10,7 @@ import org.apache.parquet.column.values.ValuesWriter;
 import org.apache.parquet.column.values.bitpacking.BitPackingValuesWriter;
 import org.apache.parquet.column.values.delta.DeltaBinaryPackingValuesWriterForInteger;
 import org.apache.parquet.column.values.delta.DeltaBinaryPackingValuesWriterForLong;
+import org.apache.parquet.column.values.deltalengthbytearray.DeltaLengthByteArrayValuesWriter;
 import org.apache.parquet.column.values.deltastrings.DeltaByteArrayWriter;
 import org.apache.parquet.column.values.dictionary.DictionaryValuesWriter;
 import org.apache.parquet.column.values.factory.ValuesWriterFactory;
@@ -17,15 +18,23 @@ import org.apache.parquet.column.values.plain.FixedLenByteArrayPlainValuesWriter
 import org.apache.parquet.column.values.plain.PlainValuesWriter;
 import org.apache.parquet.column.values.rle.RunLengthBitPackingHybridValuesWriter;
 
+import edu.uchicago.cs.encsel.model.FloatEncoding;
+import edu.uchicago.cs.encsel.model.IntEncoding;
+import edu.uchicago.cs.encsel.model.StringEncoding;
+
 public class HardcodedValuesWriterFactory implements ValuesWriterFactory {
 
 	public static HardcodedValuesWriterFactory INSTANCE = new HardcodedValuesWriterFactory();
 
 	private ParquetProperties parquetProperties;
 
-	private int intEncoderType = 0;
+	private IntEncoding intEncoding = IntEncoding.PLAIN;
 
 	private int intBitLength = 0;
+
+	private StringEncoding stringEncoding = StringEncoding.PLAIN;
+
+	private FloatEncoding floatEncoding = FloatEncoding.PLAIN;
 
 	@Override
 	public void initialize(ParquetProperties parquetProperties) {
@@ -40,12 +49,20 @@ public class HardcodedValuesWriterFactory implements ValuesWriterFactory {
 		return PLAIN;
 	}
 
-	public void setIntEncoderType(int iet) {
-		this.intEncoderType = iet;
+	public void setIntEncoding(IntEncoding ie) {
+		this.intEncoding = ie;
 	}
 
 	public void setIntBitLength(int intBitLength) {
 		this.intBitLength = intBitLength;
+	}
+
+	public void setStringEncoding(StringEncoding se) {
+		this.stringEncoding = se;
+	}
+
+	public void setFloatEncoding(FloatEncoding fe) {
+		this.floatEncoding = fe;
 	}
 
 	@Override
@@ -88,22 +105,34 @@ public class HardcodedValuesWriterFactory implements ValuesWriterFactory {
 	}
 
 	private ValuesWriter getBinaryValuesWriter(ColumnDescriptor path) {
-		return new DeltaByteArrayWriter(parquetProperties.getInitialSlabSize(),
-				parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		switch (stringEncoding) {
+		case DELTA:
+			return new DeltaByteArrayWriter(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		case DELTAL:
+			return new DeltaLengthByteArrayValuesWriter(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		case PLAIN:
+			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		default:
+			return null;
+		}
+
 	}
 
 	private ValuesWriter getInt32ValuesWriter(ColumnDescriptor path) {
-		switch (intEncoderType) {
-		case 0:
+		switch (intEncoding) {
+		case RLE:
 			return new RunLengthBitPackingHybridValuesWriter(intBitLength, parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
-		case 1:
+		case BP:
 			return new BitPackingValuesWriter(intBitLength, parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
-		case 2:
+		case DELTABP:
 			return new DeltaBinaryPackingValuesWriterForInteger(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
-		case 3:
+		case PLAIN:
 			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		default:
@@ -112,8 +141,22 @@ public class HardcodedValuesWriterFactory implements ValuesWriterFactory {
 	}
 
 	private ValuesWriter getInt64ValuesWriter(ColumnDescriptor path) {
-		return new DeltaBinaryPackingValuesWriterForLong(parquetProperties.getInitialSlabSize(),
-				parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		switch (intEncoding) {
+		case RLE:
+			return new RunLengthBitPackingHybridValuesWriter(intBitLength, parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		case BP:
+			return new BitPackingValuesWriter(intBitLength, parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		case DELTABP:
+			return new DeltaBinaryPackingValuesWriterForLong(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		case PLAIN:
+			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		default:
+			return null;
+		}
 	}
 
 	private ValuesWriter getInt96ValuesWriter(ColumnDescriptor path) {
@@ -122,13 +165,23 @@ public class HardcodedValuesWriterFactory implements ValuesWriterFactory {
 	}
 
 	private ValuesWriter getDoubleValuesWriter(ColumnDescriptor path) {
-		return new PlainValuesWriter(parquetProperties.getInitialSlabSize(), parquetProperties.getPageSizeThreshold(),
-				parquetProperties.getAllocator());
+		switch (floatEncoding) {
+		case PLAIN:
+			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		default:
+			return null;
+		}
 	}
 
 	private ValuesWriter getFloatValuesWriter(ColumnDescriptor path) {
-		return new PlainValuesWriter(parquetProperties.getInitialSlabSize(), parquetProperties.getPageSizeThreshold(),
-				parquetProperties.getAllocator());
+		switch (floatEncoding) {
+		case PLAIN:
+			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
+					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+		default:
+			return null;
+		}
 	}
 
 	static DictionaryValuesWriter dictionaryWriter(ColumnDescriptor path, ParquetProperties properties,

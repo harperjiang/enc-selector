@@ -11,12 +11,12 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.MessageType;
 
-public class CSVWriteSupport extends WriteSupport<List<String>> {
+public class StringWriteSupport extends WriteSupport<List<String>> {
 	MessageType schema;
 	RecordConsumer recordConsumer;
 	List<ColumnDescriptor> cols;
 
-	public CSVWriteSupport(MessageType schema) {
+	public StringWriteSupport(MessageType schema) {
 		this.schema = schema;
 		this.cols = schema.getColumns();
 	}
@@ -33,8 +33,6 @@ public class CSVWriteSupport extends WriteSupport<List<String>> {
 
 	@Override
 	public void write(List<String> values) {
-		// System.out.println(cols.size());
-		// System.out.println(values.size());
 		if (values.size() != cols.size()) {
 			throw new ParquetEncodingException("Invalid input data. Expecting " + cols.size() + " columns. Input had "
 					+ values.size() + " columns (" + cols + ") : " + values);
