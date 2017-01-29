@@ -1,17 +1,15 @@
 package edu.uchicago.cs.encsel.model
 
-
-object DataType extends Enumeration {
-  type DataType = Value
-  val INTEGER, FLOAT, STRING = Value
-}
+import java.net.URI
+import edu.uchicago.cs.encsel.feature.Feature
 
 class Data {
 
-  var origin: String = null
+  var origin: URI = null
   var originCol: Int = -1
+  var name: String = null;
 
-  var dataType = DataType.INTEGER;
-  var encoded = Map[String, Int]()
-
+  var dataType = DataType.STRING;
+  var encoding: String = null
+  var features = Iterable[Feature]()
 }

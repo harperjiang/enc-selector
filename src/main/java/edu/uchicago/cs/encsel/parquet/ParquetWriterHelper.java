@@ -27,7 +27,7 @@ public class ParquetWriterHelper {
 		return new File(input.getAbsolutePath() + "." + suffix);
 	}
 
-	public static void singleColumnInt(File input, boolean useDictionary, IntEncoding encoding) throws IOException {
+	public static File singleColumnInt(File input, IntEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
@@ -38,7 +38,7 @@ public class ParquetWriterHelper {
 
 		HardcodedValuesWriterFactory.INSTANCE.setIntEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				useDictionary);
+				encoding == IntEncoding.DICT);
 
 		String line = null;
 		List<String> holder = new ArrayList<String>();
@@ -50,10 +50,38 @@ public class ParquetWriterHelper {
 
 		reader.close();
 		writer.close();
+
+		return output;
 	}
 
-	public static void singleColumnString(File input, boolean useDictionary, StringEncoding encoding)
-			throws IOException {
+	public static File singleColumnLong(File input, IntEncoding encoding) throws IOException {
+		File output = genOutput(input, encoding.name());
+		if (output.exists())
+			output.delete();
+		BufferedReader reader = new BufferedReader(new FileReader(input));
+
+		MessageType schema = new MessageType("record",
+				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT64, "value"));
+
+		HardcodedValuesWriterFactory.INSTANCE.setIntEncoding(encoding);
+		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+				encoding == IntEncoding.DICT);
+
+		String line = null;
+		List<String> holder = new ArrayList<String>();
+		while ((line = reader.readLine()) != null) {
+			holder.add(line.trim());
+			writer.write(holder);
+			holder.clear();
+		}
+
+		reader.close();
+		writer.close();
+
+		return output;
+	}
+
+	public static File singleColumnString(File input, StringEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
@@ -64,7 +92,7 @@ public class ParquetWriterHelper {
 
 		HardcodedValuesWriterFactory.INSTANCE.setStringEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				useDictionary);
+				encoding == StringEncoding.DICT);
 
 		String line = null;
 		List<String> holder = new ArrayList<String>();
@@ -76,10 +104,11 @@ public class ParquetWriterHelper {
 
 		reader.close();
 		writer.close();
+
+		return output;
 	}
 
-	public static void singleColumnDouble(File input, boolean useDictionary, FloatEncoding encoding)
-			throws IOException {
+	public static File singleColumnDouble(File input, FloatEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
@@ -90,7 +119,7 @@ public class ParquetWriterHelper {
 
 		HardcodedValuesWriterFactory.INSTANCE.setFloatEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				useDictionary);
+				encoding == FloatEncoding.DICT);
 
 		String line = null;
 		List<String> holder = new ArrayList<String>();
@@ -102,5 +131,34 @@ public class ParquetWriterHelper {
 
 		reader.close();
 		writer.close();
+
+		return output;
+	}
+
+	public static File singleColumnFloat(File input, FloatEncoding encoding) throws IOException {
+		File output = genOutput(input, encoding.name());
+		if (output.exists())
+			output.delete();
+		BufferedReader reader = new BufferedReader(new FileReader(input));
+
+		MessageType schema = new MessageType("record",
+				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.FLOAT, "value"));
+
+		HardcodedValuesWriterFactory.INSTANCE.setFloatEncoding(encoding);
+		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+				encoding == FloatEncoding.DICT);
+
+		String line = null;
+		List<String> holder = new ArrayList<String>();
+		while ((line = reader.readLine()) != null) {
+			holder.add(line.trim());
+			writer.write(holder);
+			holder.clear();
+		}
+
+		reader.close();
+		writer.close();
+
+		return output;
 	}
 }
