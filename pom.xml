@@ -6,22 +6,24 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Encoding Selector</name>
 	<build>
-		<sourceDirectory>src/main/scala</sourceDirectory>
+		<sourceDirectory>src/main/java</sourceDirectory>
 		<resources>
 			<resource>
-				<directory>src/main/java</directory>
+				<directory>src/main/scala</directory>
 				<includes>
-					<include>**/*.java</include>
+					<include>**/*.scala</include>
 				</includes>
 			</resource>
 		</resources>
-		<testSourceDirectory>src/test/scala</testSourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<testResources>
 			<testResource>
 				<directory>src/test/scala</directory>
 				<includes>
 					<include>**/*.scala</include>
 				</includes>
+				<excludes>
+				</excludes>
 			</testResource>
 			<testResource>
 				<directory>test/config</directory>
