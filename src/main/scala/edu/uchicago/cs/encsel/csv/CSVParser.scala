@@ -5,10 +5,11 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import java.io.File
+import java.net.URI
 
 class CSVParser {
 
-  def parse(inputFile: File): Iterator[Array[String]] = {
+  def parse(inputFile: URI): Iterator[Array[String]] = {
     return Source.fromFile(inputFile).getLines().map { parseLine(_) }
   }
 
