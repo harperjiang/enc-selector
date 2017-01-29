@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,18 +22,22 @@ import edu.uchicago.cs.encsel.model.StringEncoding;
 
 public class ParquetWriterHelper {
 
-	protected static File genOutput(File input, String suffix) {
-		if (input.getAbsolutePath().endsWith("\\.data")) {
-			return new File(input.getAbsolutePath().replaceFirst("data$", suffix));
+	protected static File genOutput(URI input, String suffix) {
+		try {
+			if (input.getPath().endsWith("\\.data")) {
+				return new File(new URI(input.toString().replaceFirst("data$", suffix)));
+			}
+			return new File(new URI(input.toString() + "." + suffix));
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
 		}
-		return new File(input.getAbsolutePath() + "." + suffix);
 	}
 
-	public static File singleColumnInt(File input, IntEncoding encoding) throws IOException {
+	public static URI singleColumnInt(URI input, IntEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(input));
+		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
 				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT32, "value"));
@@ -51,14 +57,14 @@ public class ParquetWriterHelper {
 		reader.close();
 		writer.close();
 
-		return output;
+		return output.toURI();
 	}
 
-	public static File singleColumnLong(File input, IntEncoding encoding) throws IOException {
+	public static URI singleColumnLong(URI input, IntEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(input));
+		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
 				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT64, "value"));
@@ -78,14 +84,14 @@ public class ParquetWriterHelper {
 		reader.close();
 		writer.close();
 
-		return output;
+		return output.toURI();
 	}
 
-	public static File singleColumnString(File input, StringEncoding encoding) throws IOException {
+	public static URI singleColumnString(URI input, StringEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(input));
+		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
 				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "value"));
@@ -105,14 +111,14 @@ public class ParquetWriterHelper {
 		reader.close();
 		writer.close();
 
-		return output;
+		return output.toURI();
 	}
 
-	public static File singleColumnDouble(File input, FloatEncoding encoding) throws IOException {
+	public static URI singleColumnDouble(URI input, FloatEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(input));
+		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
 				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.DOUBLE, "value"));
@@ -132,14 +138,14 @@ public class ParquetWriterHelper {
 		reader.close();
 		writer.close();
 
-		return output;
+		return output.toURI();
 	}
 
-	public static File singleColumnFloat(File input, FloatEncoding encoding) throws IOException {
+	public static URI singleColumnFloat(URI input, FloatEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(input));
+		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
 				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.FLOAT, "value"));
@@ -159,6 +165,6 @@ public class ParquetWriterHelper {
 		reader.close();
 		writer.close();
 
-		return output;
+		return output.toURI();
 	}
 }

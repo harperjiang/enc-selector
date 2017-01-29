@@ -11,8 +11,10 @@ trait ColumnReader {
   def readColumn(source: URI, schema: Schema): Iterable[Column]
 
   protected def allocTempFolder(source: URI): Path = {
-    var tempRoot = Paths.get(System.getProperty("java.temp.dir"))
-    if (!Files.exists(tempRoot, null))
+    var tempRoot: Path = null;
+    if (!System.getProperty("java.io.tmpdir").isEmpty())
+      tempRoot = Paths.get(System.getProperty("java.io.tmpdir"))
+    if (!Files.exists(tempRoot))
       tempRoot = Paths.get("./")
     var tempFolder = Files.createTempDirectory(tempRoot, "colreader")
     tempFolder

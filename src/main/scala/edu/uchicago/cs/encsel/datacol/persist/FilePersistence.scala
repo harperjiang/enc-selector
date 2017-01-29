@@ -25,9 +25,11 @@ class FilePersistence extends DataPersistence {
 
   def load(): Iterable[Data] = {
     try {
-      var objreader = new ObjectInputStream(new FileInputStream(storage))
-      datalist = objreader.readObject().asInstanceOf[Iterable[Data]]
-      objreader.close()
+      if (null == datalist) {
+        var objreader = new ObjectInputStream(new FileInputStream(storage))
+        datalist = objreader.readObject().asInstanceOf[Iterable[Data]]
+        objreader.close()
+      }
       return datalist
     } catch {
       case e: Exception => {

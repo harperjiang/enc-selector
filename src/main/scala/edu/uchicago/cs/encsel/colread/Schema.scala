@@ -22,7 +22,7 @@ object Schema {
     return new Schema(Source.fromFile(file).getLines().collect(parseParquetLine()).toArray)
   }
 
-  private val pattern = "required|optional\\s+([\\d\\w]+)\\s+([\\d\\w]+)\\s*,?".r
+  private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([\\d\\w_]+)\\s*;\\s*$".r
 
   private def parseParquetLine(): PartialFunction[String, (DataType, String)] = {
     case pattern(a, b) => (dataType(a), b)
@@ -35,6 +35,7 @@ object Schema {
       case "binary" => DataType.STRING
       case "double" => DataType.FLOAT
       case "float" => DataType.FLOAT
+      case "boolean" => DataType.BOOLEAN
       case _ => throw new IllegalArgumentException(parquetType)
     }
   }
