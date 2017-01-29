@@ -10,7 +10,7 @@ import java.net.URI
 class CSVParser {
 
   def parse(inputFile: URI): Iterator[Array[String]] = {
-    return Source.fromFile(inputFile).getLines().map { parseLine(_) }
+    return Source.fromFile(inputFile).getLines().filter(!_.trim().isEmpty()).map { parseLine(_) }
   }
 
   def parse(inputString: String): Iterator[Array[String]] = {
@@ -53,7 +53,7 @@ class CSVParser {
         }
       }
     }
-    if (state == 2 || state == 3) {
+    if (state == 0 || state == 2 || state == 3) {
       content += buffer.toString()
     }
     return content.toArray

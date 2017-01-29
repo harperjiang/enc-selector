@@ -1,6 +1,6 @@
 package edu.uchicago.cs.encsel.feature
 
-trait Feature {
+trait Feature extends Serializable {
   def name: String
   def value: Double
 }

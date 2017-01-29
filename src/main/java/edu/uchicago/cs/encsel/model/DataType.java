@@ -16,5 +16,5 @@ package edu.uchicago.cs.encsel.model;
  *
  */
 public enum DataType {
-	INTEGER, LONG, FLOAT, DOUBLE, STRING
+	INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN
 }

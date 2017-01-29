@@ -19,5 +19,15 @@ class CSVParserTest {
     output = parser.parseLine(input)
 
     assertEquals(4, output.length)
+    
+    input = """a,b,"5,23.24",53.4149,132"""
+    output = parser.parseLine(input)
+
+    assertEquals(5, output.length)
+    
+    input = """,,,,,"""
+    output = parser.parseLine(input)
+
+    assertEquals(6, output.length)
   }
 }
