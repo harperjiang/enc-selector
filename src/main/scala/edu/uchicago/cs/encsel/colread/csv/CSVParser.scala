@@ -1,21 +1,13 @@
-package edu.uchicago.cs.encsel.csv
+package edu.uchicago.cs.encsel.colread.csv
 
 import scala.io.Source
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
-import java.io.File
 import java.net.URI
+import edu.uchicago.cs.encsel.colread.Parser
 
-class CSVParser {
-
-  def parse(inputFile: URI): Iterator[Array[String]] = {
-    return Source.fromFile(inputFile).getLines().filter(!_.trim().isEmpty()).map { parseLine(_) }
-  }
-
-  def parse(inputString: String): Iterator[Array[String]] = {
-    return inputString.split("[\r\n]+").map { parseLine(_) }.toIterator
-  }
+class CSVParser extends Parser {
 
   def parseLine(line: String): Array[String] = {
     var content = new ArrayBuffer[String]();
