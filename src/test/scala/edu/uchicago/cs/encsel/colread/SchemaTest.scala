@@ -14,8 +14,28 @@ class SchemaTest {
     assertEquals(22, schema.columns.length)
     assertTrue(schema.hasHeader)
 
-    assertEquals(DataType.STRING, schema.columns(3)._1) 
-    assertEquals ("Block", schema.columns(3)._2)
+    assertEquals(DataType.STRING, schema.columns(3)._1)
+    assertEquals("Block", schema.columns(3)._2)
+  }
+
+  @Test
+  def testFromParquetFile2(): Unit = {
+    var schema = Schema.fromParquetFile(new File("resource/test2.schema").toURI())
+    assertEquals(22, schema.columns.length)
+    assertTrue(schema.hasHeader)
+
+    assertEquals(DataType.STRING, schema.columns(3)._1)
+    assertEquals("Block", schema.columns(3)._2)
+  }
+
+  @Test
+  def testFromParquetFile3(): Unit = {
+    var schema = Schema.fromParquetFile(new File("resource/test3.schema").toURI())
+    assertEquals(22, schema.columns.length)
+    assertFalse(schema.hasHeader)
+
+    assertEquals(DataType.STRING, schema.columns(3)._1)
+    assertEquals("Block", schema.columns(3)._2)
   }
 
 }

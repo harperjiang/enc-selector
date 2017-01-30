@@ -13,7 +13,7 @@ class Schema {
 
   var columns: Array[(DataType, String)] = null;
 
-  def this(columns: Array[(DataType, String)], hasheader: Boolean = false) {
+  def this(columns: Array[(DataType, String)], hasheader: Boolean = true) {
     this()
     this.columns = columns
     this.hasHeader = hasheader
@@ -23,11 +23,12 @@ class Schema {
 
 object Schema {
   def fromParquetFile(file: URI): Schema = {
-    var hasheader = false
+    var hasheader = true
     var cols = new ArrayBuffer[(DataType, String)]()
     Source.fromFile(file).getLines().foreach {
       _ match {
         case hasheaderp(_*) => { hasheader = true }
+        case noheaderp(_*) => { hasheader = false }
         case pattern(a, b) => { cols += ((dataType(a), b)) }
         case _ => {}
       }
@@ -38,6 +39,7 @@ object Schema {
 
   private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([\\d\\w_]+)\\s*;\\s*$".r
   private val hasheaderp = "^\\s*has_header\\s*$".r
+  private val noheaderp = "^\\s*no_header\\s*$".r
 
   private def dataType(parquetType: String): DataType = {
     parquetType match {
