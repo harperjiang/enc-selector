@@ -14,6 +14,12 @@
 					<include>**/*.scala</include>
 				</includes>
 			</resource>
+			<resource>
+				<directory>config</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
 		</resources>
 		<testSourceDirectory>src/test/java</testSourceDirectory>
 		<testResources>
