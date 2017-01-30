@@ -1,11 +1,12 @@
 package edu.uchicago.cs.encsel.datacol
 
 import java.io.File
+
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import scala.collection.JavaConversions.asScalaIterator
+import scala.collection.JavaConversions._
 
 import org.slf4j.LoggerFactory
 
@@ -31,7 +32,7 @@ class DataCollector {
         logger.debug("Scanning " + source.toString())
       var target = Paths.get(source)
       if (Files.isDirectory(target)) {
-        target.iterator().foreach { p => collect(p.toUri()) }
+        Files.walk(target).iterator.foreach { p => collect(p.toUri()) }
         return
       }
       if (isDone(source)) {
@@ -85,16 +86,33 @@ class DataCollector {
   }
 
   protected def getSchema(source: URI): Schema = {
+    // file_name + .schema
     var schemaUri = new URI(source.getScheme, source.getHost,
       "%s.schema".format(source.getPath), null)
     if (new File(schemaUri).exists) {
       return Schema.fromParquetFile(schemaUri)
     }
+    // file_name.abc => file_name.schema
     schemaUri = new URI(source.getScheme, source.getHost,
       source.getPath.replaceAll("\\.[\\d\\w]+$", ".schema"), null)
     if (new File(schemaUri).exists) {
       return Schema.fromParquetFile(schemaUri)
     }
+    // file_name starts with schema
+    var path = Paths.get(source)
+    var pathname = path.getFileName.toString
+    var schemas = Files.list(path.getParent).iterator().filter {
+      p =>
+        {
+          var pname = p.getFileName.toString
+          pname.endsWith(".schema") && pathname.startsWith(pname.replace(".schema", ""))
+        }
+    }
+    if (!schemas.isEmpty) {
+      schemaUri = schemas.next().toUri()
+      return Schema.fromParquetFile(schemaUri)
+    }
     return null
+
   }
 }
