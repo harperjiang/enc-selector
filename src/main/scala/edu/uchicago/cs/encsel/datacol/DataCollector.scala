@@ -5,8 +5,9 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import scala.Iterable
 import scala.collection.JavaConversions.asScalaIterator
+
+import org.slf4j.LoggerFactory
 
 import edu.uchicago.cs.encsel.colread.ColumnReader
 import edu.uchicago.cs.encsel.colread.ColumnReaderFactory
@@ -16,37 +17,53 @@ import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 import edu.uchicago.cs.encsel.feature.Features
 import edu.uchicago.cs.encsel.model.Column
 import edu.uchicago.cs.encsel.model.Data
-import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.model.FloatEncoding
-import edu.uchicago.cs.encsel.model.IntEncoding
-import edu.uchicago.cs.encsel.model.StringEncoding
-import edu.uchicago.cs.encsel.parquet.ParquetWriterHelper
 
 class DataCollector {
   val colReaderFactory = new ColumnReaderFactory()
 
   var persistence = new FilePersistence
 
+  var logger = LoggerFactory.getLogger(this.getClass)
+
   def collect(source: URI): Unit = {
-    var target = Paths.get(source)
-    if (Files.isDirectory(target)) {
-      target.iterator().foreach { p => collect(p.toUri()) }
-      return
+    try {
+      if (logger.isDebugEnabled())
+        logger.debug("Scanning " + source.toString())
+      var target = Paths.get(source)
+      if (Files.isDirectory(target)) {
+        target.iterator().foreach { p => collect(p.toUri()) }
+        return
+      }
+      if (isDone(source)) {
+        if (logger.isDebugEnabled())
+          logger.debug("Scanned mark found, skip")
+        return
+      }
+
+      var colreader: ColumnReader = getColumnReader(source)
+      if (colreader == null) {
+        if (logger.isDebugEnabled())
+          logger.debug("No available reader found, skip")
+        return
+      }
+      val defaultSchema = getSchema(source)
+      if (null == defaultSchema) {
+        if (logger.isDebugEnabled())
+          logger.debug("Schema not found, skip")
+        return
+      }
+      val columns = colreader.readColumn(source, defaultSchema)
+
+      var datalist = columns.map(mapData(_))
+
+      persistence.save(datalist)
+
+      markDone(source)
+    } catch {
+      case e: Exception => {
+        logger.error("Exception while scanning " + source.toString, e)
+      }
     }
-    if (isDone(source))
-      return
-    val defaultSchema = getSchema(source)
-    if (null == defaultSchema)
-      throw new IllegalArgumentException("Schema not found:" + source)
-    var colreader: ColumnReader = getColumnReader(source)
-
-    val columns = colreader.readColumn(source, defaultSchema)
-
-    var datalist = columns.map(mapData(_))
-
-    persistence.save(datalist)
-
-    markDone(source)
   }
 
   protected def getColumnReader(source: URI) = {
@@ -56,10 +73,10 @@ class DataCollector {
           case x if x.endsWith("csv") => {
             colReaderFactory.getColumnReader(DataSource.CSV)
           }
-          case _ => throw new IllegalArgumentException("Unrecognized source:" + source)
+          case _ => null
         }
       }
-      case _ => throw new IllegalArgumentException("Unrecognized source:" + source)
+      case _ => null
     }
   }
 
