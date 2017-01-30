@@ -3,6 +3,7 @@ package edu.uchicago.cs.encsel.colread
 import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader
 import java.net.URI
 import edu.uchicago.cs.encsel.colread.tsv.TSVColumnReader
+import edu.uchicago.cs.encsel.colread.json.JsonColumnReader
 
 object ColumnReaderFactory {
 
@@ -15,6 +16,9 @@ object ColumnReaderFactory {
           }
           case x if x.toLowerCase().endsWith("tsv") => {
             new TSVColumnReader
+          }
+          case x if x.toLowerCase().endsWith("json") => {
+            new JsonColumnReader
           }
           case _ =>
             throw new UnsupportedOperationException();
