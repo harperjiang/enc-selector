@@ -17,9 +17,9 @@ import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 import edu.uchicago.cs.encsel.feature.Features
 import edu.uchicago.cs.encsel.model.Column
 import edu.uchicago.cs.encsel.model.Data
+import edu.uchicago.cs.encsel.colread.ColumnReaderFactory
 
 class DataCollector {
-  val colReaderFactory = new ColumnReaderFactory()
 
   var persistence = new FilePersistence
 
@@ -40,7 +40,7 @@ class DataCollector {
         return
       }
 
-      var colreader: ColumnReader = getColumnReader(source)
+      var colreader: ColumnReader = ColumnReaderFactory.getColumnReader(source)
       if (colreader == null) {
         if (logger.isDebugEnabled())
           logger.debug("No available reader found, skip")
@@ -63,20 +63,6 @@ class DataCollector {
       case e: Exception => {
         logger.error("Exception while scanning " + source.toString, e)
       }
-    }
-  }
-
-  protected def getColumnReader(source: URI) = {
-    source.getScheme match {
-      case "file" => {
-        source.getPath match {
-          case x if x.endsWith("csv") => {
-            colReaderFactory.getColumnReader(DataSource.CSV)
-          }
-          case _ => null
-        }
-      }
-      case _ => null
     }
   }
 

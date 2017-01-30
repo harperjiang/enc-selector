@@ -6,13 +6,11 @@ import java.net.URI
 import org.junit.Assert._
 import org.junit.Test
 
-import edu.uchicago.cs.encsel.colread.CSVColumnReader
+import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader
 import java.nio.file.Files
 
 class DataCollectorForTest extends DataCollector {
-  def getColumnReaderForTest(source: URI) = {
-    getColumnReader(source)
-  }
+
   def getSchemaForTest(source: URI) = {
     getSchema(source)
   }
@@ -25,13 +23,6 @@ class DataCollectorForTest extends DataCollector {
 }
 
 class DataCollectorTest {
-
-  @Test
-  def testGetColumnReader(): Unit = {
-    var dc = new DataCollectorForTest()
-    var cr = dc.getColumnReaderForTest(new File("resource/test_colreader.csv").toURI())
-    assertTrue(cr.isInstanceOf[CSVColumnReader])
-  }
 
   @Test
   def testGetSchema(): Unit = {

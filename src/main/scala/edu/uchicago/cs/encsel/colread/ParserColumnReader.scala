@@ -1,15 +1,13 @@
 package edu.uchicago.cs.encsel.colread
 
-import java.io.File
-import java.io.FileOutputStream
 import java.io.PrintWriter
+import java.io.FileOutputStream
+import java.io.File
+import edu.uchicago.cs.encsel.model.Column
 import java.net.URI
 
-import edu.uchicago.cs.encsel.csv.CSVParser
-import edu.uchicago.cs.encsel.model.Column
-
-class CSVColumnReader extends ColumnReader {
-  var csvParser = new CSVParser
+class ParserColumnReader(p: Parser) extends ColumnReader {
+  var parser = p
 
   def readColumn(source: URI, schema: Schema): Iterable[Column] = {
     var tempFolder = allocTempFolder(source)
@@ -20,7 +18,7 @@ class CSVColumnReader extends ColumnReader {
       (col, writer)
     }).toArray
 
-    csvParser.parse(source).foreach { row =>
+    parser.parse(source).foreach { row =>
       {
         row.zipWithIndex.foreach(col => {
           colWithWriter(col._2)._2.println(col._1)
