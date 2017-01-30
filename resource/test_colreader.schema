@@ -1,4 +1,5 @@
 message m {
+	has_header
 	required int32 id;
 	required boolean c1;
 	required float	c2;

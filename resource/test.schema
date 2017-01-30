@@ -1,4 +1,5 @@
 message m {
+	has_header
 	required int32 ID;
 	required binary Case_number;
 	required binary Date;
