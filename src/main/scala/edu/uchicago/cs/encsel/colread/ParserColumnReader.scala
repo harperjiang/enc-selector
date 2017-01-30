@@ -18,7 +18,11 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       (col, writer)
     }).toArray
 
-    parser.parse(source).foreach { row =>
+    var parsed = parser.parse(source);
+
+    if (schema.hasHeader)
+      parsed = parsed.drop(1)
+    parsed.foreach { row =>
       {
         row.zipWithIndex.foreach(col => {
           colWithWriter(col._2)._2.println(col._1)

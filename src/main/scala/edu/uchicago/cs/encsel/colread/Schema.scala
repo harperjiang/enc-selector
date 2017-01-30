@@ -5,28 +5,39 @@ import java.net.URI
 import scala.io.Source
 import java.util.regex.Pattern
 import java.util.regex.Matcher
+import scala.collection.mutable.ArrayBuffer
 
 class Schema {
 
+  var hasHeader = false
+
   var columns: Array[(DataType, String)] = null;
 
-  def this(columns: Array[(DataType, String)]) {
+  def this(columns: Array[(DataType, String)], hasheader: Boolean = false) {
     this()
     this.columns = columns
+    this.hasHeader = hasheader
   }
 
 }
 
 object Schema {
   def fromParquetFile(file: URI): Schema = {
-    return new Schema(Source.fromFile(file).getLines().collect(parseParquetLine()).toArray)
+    var hasheader = false
+    var cols = new ArrayBuffer[(DataType, String)]()
+    Source.fromFile(file).getLines().foreach {
+      _ match {
+        case hasheaderp(_*) => { hasheader = true }
+        case pattern(a, b) => { cols += ((dataType(a), b)) }
+        case _ => {}
+      }
+    }
+
+    return new Schema(cols.toArray, hasheader)
   }
 
   private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([\\d\\w_]+)\\s*;\\s*$".r
-
-  private def parseParquetLine(): PartialFunction[String, (DataType, String)] = {
-    case pattern(a, b) => (dataType(a), b)
-  }
+  private val hasheaderp = "^\\s*has_header\\s*$".r
 
   private def dataType(parquetType: String): DataType = {
     parquetType match {

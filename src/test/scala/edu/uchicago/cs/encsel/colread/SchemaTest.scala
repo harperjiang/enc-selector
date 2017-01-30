@@ -12,6 +12,7 @@ class SchemaTest {
   def testFromParquetFile(): Unit = {
     var schema = Schema.fromParquetFile(new File("resource/test.schema").toURI())
     assertEquals(22, schema.columns.length)
+    assertTrue(schema.hasHeader)
 
     assertEquals(DataType.STRING, schema.columns(3)._1) 
     assertEquals ("Block", schema.columns(3)._2)
