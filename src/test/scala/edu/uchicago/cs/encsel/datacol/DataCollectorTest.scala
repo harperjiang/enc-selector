@@ -27,7 +27,13 @@ class DataCollectorTest {
   @Test
   def testGetSchema(): Unit = {
     var dc = new DataCollectorForTest()
-    var schema = dc.getSchemaForTest(new File("resource/test_colreader.csv").toURI())
+    var schema = dc.getSchemaForTest(new File("resource/find_schema.csv").toURI())
+    assertEquals(3, schema.columns.length)
+
+    schema = dc.getSchemaForTest(new File("resource/find_schema2.tsv").toURI())
+    assertEquals(6, schema.columns.length)
+
+    schema = dc.getSchemaForTest(new File("resource/fuzzy_find_schema_3.csv").toURI())
     assertEquals(5, schema.columns.length)
   }
 
