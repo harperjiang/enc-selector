@@ -18,7 +18,7 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       (col, writer)
     }).toArray
 
-    var parsed = parser.parse(source);
+    var parsed = parser.parse(source, schema);
 
     if (schema.hasHeader)
       parsed = parsed.drop(1)
