@@ -10,9 +10,8 @@ class Data extends Serializable {
 
   var origin: URI = null
   var originCol: Int = -1
-  var name: String = null;
+  var name: String = null
 
-  var dataType = DataType.STRING;
-  var encoding: String = null
+  var dataType = DataType.STRING
   var features = Iterable[Feature]()
 }

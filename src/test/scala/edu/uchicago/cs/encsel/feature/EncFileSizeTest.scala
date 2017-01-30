@@ -1,22 +1,22 @@
 package edu.uchicago.cs.encsel.feature
 
-import java.io.File
-
-import org.junit.Assert._
 import org.junit.Test
-
+import org.junit.Assert._
+import java.io.File
+import ch.qos.logback.core.util.FileSize
 import edu.uchicago.cs.encsel.model.Column
 import edu.uchicago.cs.encsel.model.DataType
 
-class FeaturesTest {
+class EncFileSizeTest {
 
   @Test
-  def testFeatures: Unit = {
+  def testExtract: Unit = {
     var col = new Column(new File("resource/test_colreader.csv").toURI(), 0, "id", DataType.INTEGER)
     col.colFile = new File("resource/test_col_int.data").toURI()
 
-    var features = Features.extract(col)
-    var fa = features.toArray
+    var feature = EncFileSize.extract(col)
+    assertEquals(5, feature.size)
+    var fa = feature.toArray
 
     assertTrue(fa(0).isInstanceOf[EncFileSize])
     assertEquals("PLAIN_file_size", fa(0).name)

@@ -41,7 +41,8 @@ class DataCollector {
     var colreader: ColumnReader = getColumnReader(source)
 
     val columns = colreader.readColumn(source, defaultSchema)
-    var datalist = columns.map(analyzeColumn(source, _)).flatten
+
+    var datalist = columns.map(mapData(_))
 
     persistence.save(datalist)
 
@@ -70,56 +71,13 @@ class DataCollector {
     Files.createFile(Paths.get(new URI("%s.done".format(file.toString()))))
   }
 
-  private def analyzeColumn(source: URI, col: Column): Iterable[Data] = {
-    col.dataType match {
-      case DataType.STRING => {
-        StringEncoding.values().map { e =>
-          {
-            mapData(source, col, e.name, ParquetWriterHelper.singleColumnString(col.colFile, e))
-          }
-        }
-      }
-      case DataType.LONG => {
-        IntEncoding.values().map { e =>
-          {
-            mapData(source, col, e.name, ParquetWriterHelper.singleColumnLong(col.colFile, e))
-          }
-        }
-      }
-      case DataType.INTEGER => {
-        IntEncoding.values().map { e =>
-          {
-            mapData(source, col, e.name, ParquetWriterHelper.singleColumnInt(col.colFile, e))
-          }
-        }
-      }
-      case DataType.FLOAT => {
-        FloatEncoding.values().map { e =>
-          {
-            mapData(source, col, e.name, ParquetWriterHelper.singleColumnFloat(col.colFile, e))
-          }
-        }
-      }
-      case DataType.DOUBLE => {
-        FloatEncoding.values().map { e =>
-          {
-            mapData(source, col, e.name, ParquetWriterHelper.singleColumnDouble(col.colFile, e))
-          }
-        }
-      }
-      case DataType.BOOLEAN => Iterable[Data]() // Ignore BOOLEAN type
-    }
-  }
-
-  private def mapData(source: URI, col: Column, enc: String, encResult: URI): Data = {
+  private def mapData(col: Column): Data = {
     var data = new Data()
     data.dataType = col.dataType
-    data.origin = source
+    data.origin = col.origin
     data.originCol = col.colIndex
     data.name = col.colName
-    data.encoding = enc;
-    data.features = Features.extract(encResult)
-
+    data.features = Features.extract(col)
     data
   }
 
