@@ -12,10 +12,10 @@ trait ColumnReader {
 
   protected def allocTempFolder(source: URI): Path = {
     var tempRoot: Path = null;
-    if (!System.getProperty("java.io.tmpdir").isEmpty())
-      tempRoot = Paths.get(System.getProperty("java.io.tmpdir"))
-    if (!Files.exists(tempRoot))
-      tempRoot = Paths.get("./")
+    //    if (!System.getProperty("java.io.tmpdir").isEmpty())
+    //      tempRoot = Paths.get(System.getProperty("java.io.tmpdir"))
+    //    if (!Files.exists(tempRoot))
+    tempRoot = Paths.get("./")
     var tempFolder = Files.createTempDirectory(tempRoot, "colreader")
     tempFolder
   }
