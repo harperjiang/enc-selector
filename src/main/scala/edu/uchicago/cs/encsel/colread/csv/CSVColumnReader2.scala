@@ -1,18 +1,19 @@
 package edu.uchicago.cs.encsel.colread.csv
 
-import scala.collection.JavaConversions._
+import java.io.File
+import java.io.FileOutputStream
+import java.io.FileReader
+import java.io.PrintWriter
+import java.net.URI
+
+import scala.collection.JavaConversions.asScalaIterator
+
+import org.apache.commons.csv.CSVFormat
+import org.slf4j.LoggerFactory
 
 import edu.uchicago.cs.encsel.colread.ColumnReader
 import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.model.Column
-import java.net.URI
-import java.io.File
-import java.io.FileOutputStream
-import java.io.PrintWriter
-import java.nio.charset.Charset
-import org.apache.commons.csv.CSVFormat
-import java.io.FileReader
-import org.slf4j.LoggerFactory
 
 /**
  * This Column Reader use Apache Commons CSV Parser
@@ -30,10 +31,11 @@ class CSVColumnReader2 extends ColumnReader {
       (col, writer)
     }).toArray
 
-    var parser = CSVFormat.EXCEL.parse(new FileReader(new File(source)))
+    var parseFormat = CSVFormat.EXCEL
+    if (schema.hasHeader)
+      parseFormat = parseFormat.withFirstRecordAsHeader()
+    var parser = parseFormat.parse(new FileReader(new File(source)))
 
-    //    if (schema.hasHeader)
-    //      parsed = parsed.drop(1)
     parser.iterator().foreach { record =>
       {
         if (record.size() != colWithWriter.size) {
