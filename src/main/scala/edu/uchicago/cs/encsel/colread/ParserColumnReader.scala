@@ -5,9 +5,11 @@ import java.io.FileOutputStream
 import java.io.File
 import edu.uchicago.cs.encsel.model.Column
 import java.net.URI
+import org.slf4j.LoggerFactory
 
 class ParserColumnReader(p: Parser) extends ColumnReader {
   var parser = p
+  var logger = LoggerFactory.getLogger(getClass())
 
   def readColumn(source: URI, schema: Schema): Iterable[Column] = {
     var tempFolder = allocTempFolder(source)
@@ -24,11 +26,13 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       parsed = parsed.drop(1)
     parsed.foreach { row =>
       {
-        if (row.length > colWithWriter.size)
-          throw new IllegalArgumentException("Row size exceed schema length: " + row.mkString("$$"))
-        row.zipWithIndex.foreach(col => {
-          colWithWriter(col._2)._2.println(col._1)
-        })
+        if (row.length != colWithWriter.size) {
+          logger.warn("Malformated line found, ignoring:" + row.mkString("$$$$$"))
+        } else {
+          row.zipWithIndex.foreach(col => {
+            colWithWriter(col._2)._2.println(col._1)
+          })
+        }
       }
     }
     colWithWriter.foreach(t => { t._2.close })
