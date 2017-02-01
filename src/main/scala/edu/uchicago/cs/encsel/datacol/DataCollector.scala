@@ -1,24 +1,21 @@
 package edu.uchicago.cs.encsel.datacol
 
 import java.io.File
-
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConversions.asScalaIterator
 
 import org.slf4j.LoggerFactory
 
 import edu.uchicago.cs.encsel.colread.ColumnReader
 import edu.uchicago.cs.encsel.colread.ColumnReaderFactory
-import edu.uchicago.cs.encsel.colread.DataSource
 import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 import edu.uchicago.cs.encsel.feature.Features
 import edu.uchicago.cs.encsel.model.Column
 import edu.uchicago.cs.encsel.model.Data
-import edu.uchicago.cs.encsel.colread.ColumnReaderFactory
 
 class DataCollector {
 
@@ -32,7 +29,7 @@ class DataCollector {
         logger.debug("Scanning " + source.toString())
       var target = Paths.get(source)
       if (Files.isDirectory(target)) {
-        Files.walk(target).iterator.foreach { p => collect(p.toUri()) }
+        Files.list(target).iterator.foreach { p => collect(p.toUri()) }
         return
       }
       if (isDone(source)) {
