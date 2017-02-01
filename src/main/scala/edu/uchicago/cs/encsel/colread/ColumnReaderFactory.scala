@@ -21,11 +21,11 @@ object ColumnReaderFactory {
             new JsonColumnReader
           }
           case _ =>
-            throw new UnsupportedOperationException();
+            return null
         }
       }
       case _ =>
-        throw new UnsupportedOperationException();
+        return null
     }
   }
 }

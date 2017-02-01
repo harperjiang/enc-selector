@@ -24,6 +24,8 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       parsed = parsed.drop(1)
     parsed.foreach { row =>
       {
+        if (row.length > colWithWriter.size)
+          throw new IllegalArgumentException("Row size exceed schema length: " + row.mkString("$$"))
         row.zipWithIndex.foreach(col => {
           colWithWriter(col._2)._2.println(col._1)
         })
