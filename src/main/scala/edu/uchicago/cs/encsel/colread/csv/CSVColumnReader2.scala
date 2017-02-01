@@ -36,7 +36,11 @@ class CSVColumnReader2 extends ColumnReader {
       parseFormat = parseFormat.withFirstRecordAsHeader()
     var parser = parseFormat.parse(new FileReader(new File(source)))
 
-    parser.iterator().foreach { record =>
+    var iterator = parser.iterator()
+    if (schema.hasHeader) {
+      iterator.next()
+    }
+    iterator.foreach { record =>
       {
         if (record.size() != colWithWriter.size) {
           logger.warn("Malformated record at " + record.getRecordNumber + " found, ignoring:" + record.toString)
