@@ -12,7 +12,7 @@ class CSVParser extends Parser {
   def parseLine(line: String): Array[String] = {
     var content = new ArrayBuffer[String]();
     var buffer = new StringBuffer();
-    var state = 0 // 0 is field start, 1 is in string, 2 is in field, 3 is string end
+    var state = 0 // 0 is field start, 1 is in string, 2 is in field, 3 is string end, 4 is waiting double quote ""
     line.foreach { c =>
       {
         state match {
@@ -37,8 +37,9 @@ class CSVParser extends Parser {
           }
           case 3 => {
             c match {
+              case '\"' => { buffer.append(c); state = 1 }
               case ',' => { content += buffer.toString(); buffer.delete(0, buffer.length()); state = 0 }
-              case _ => throw new IllegalArgumentException()
+              case _ => throw new IllegalArgumentException("" + c)
             }
           }
           case _ => throw new IllegalArgumentException()

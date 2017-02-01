@@ -73,13 +73,20 @@ class DataCollector {
   }
 
   private def mapData(col: Column): Data = {
-    var data = new Data()
-    data.dataType = col.dataType
-    data.origin = col.origin
-    data.originCol = col.colIndex
-    data.name = col.colName
-    data.features = Features.extract(col)
-    data
+    try {
+      var data = new Data()
+      data.dataType = col.dataType
+      data.origin = col.origin
+      data.originCol = col.colIndex
+      data.name = col.colName
+      data.features = Features.extract(col)
+      data
+    } catch {
+      case e: Exception => {
+        logger.warn("Exception while processing column:%s@%s".format(col.colName, col.origin), e)
+        new Data()
+      }
+    }
   }
 
   protected def getSchema(source: URI): Schema = {
