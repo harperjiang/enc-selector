@@ -40,7 +40,7 @@ public class ParquetWriterHelper {
 		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT32, "value"));
+				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT32, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setIntEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
@@ -67,7 +67,7 @@ public class ParquetWriterHelper {
 		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT64, "value"));
+				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT64, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setIntEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
@@ -94,7 +94,7 @@ public class ParquetWriterHelper {
 		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "value"));
+				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BINARY, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setStringEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
@@ -121,7 +121,7 @@ public class ParquetWriterHelper {
 		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.DOUBLE, "value"));
+				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.DOUBLE, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setFloatEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
@@ -148,7 +148,7 @@ public class ParquetWriterHelper {
 		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
 		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.FLOAT, "value"));
+				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.FLOAT, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setFloatEncoding(encoding);
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
