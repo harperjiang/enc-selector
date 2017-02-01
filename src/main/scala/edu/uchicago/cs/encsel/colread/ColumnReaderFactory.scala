@@ -4,6 +4,7 @@ import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader
 import java.net.URI
 import edu.uchicago.cs.encsel.colread.tsv.TSVColumnReader
 import edu.uchicago.cs.encsel.colread.json.JsonColumnReader
+import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader2
 
 object ColumnReaderFactory {
 
@@ -12,7 +13,7 @@ object ColumnReaderFactory {
       case "file" => {
         source.getPath match {
           case x if x.toLowerCase().endsWith("csv") => {
-            new CSVColumnReader
+            new CSVColumnReader2
           }
           case x if x.toLowerCase().endsWith("tsv") => {
             new TSVColumnReader
