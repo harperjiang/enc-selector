@@ -1,4 +1,4 @@
-package edu.uchicago.cs.encsel.colread.csv
+package edu.uchicago.cs.encsel.colread.json
 
 import java.io.File
 
@@ -7,15 +7,14 @@ import org.junit.Test
 
 import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.colread.json.JsonColumnReader
 
-class CSVColumnReaderTest {
+class JsonColumnReaderTest {
 
   @Test
   def testReadColumn(): Unit = {
     
     
-    var sourceFile = new File("resource/test_json_parser.csv").toURI()
+    var sourceFile = new File("resource/test_json_parser.json").toURI()
     var ccr = new JsonColumnReader()
     var schema = Schema.fromParquetFile(new File("resource/test_json_parser.schema").toURI())
     var cols = ccr.readColumn(sourceFile, schema)
