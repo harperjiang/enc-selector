@@ -15,7 +15,7 @@ trait ColumnReader {
     //    if (!System.getProperty("java.io.tmpdir").isEmpty())
     //      tempRoot = Paths.get(System.getProperty("java.io.tmpdir"))
     //    if (!Files.exists(tempRoot))
-    tempRoot = Paths.get("./")
+    tempRoot = Paths.get("./columns")
     var tempFolder = Files.createTempDirectory(tempRoot, "colreader")
     tempFolder
   }
