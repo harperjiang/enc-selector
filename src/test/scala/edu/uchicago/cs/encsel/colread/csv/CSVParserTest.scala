@@ -1,8 +1,7 @@
 package edu.uchicago.cs.encsel.colread.csv
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.junit.Assert._
-import edu.uchicago.cs.encsel.colread.csv.CSVParser
 
 class CSVParserTest {
 
