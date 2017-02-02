@@ -33,6 +33,32 @@ public class ParquetWriterHelper {
 		}
 	}
 
+	/**
+	 * Scan the file containing integer/long and determine the bit length
+	 * 
+	 * @param input
+	 * @return
+	 */
+	public static int scanIntBitLength(URI input) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(new File(input)));
+			int maxBitLength = 0;
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				if (line.isEmpty())
+					continue;
+				Long number = Long.parseLong(line);
+				int bitLength = 64 - Long.numberOfLeadingZeros(number);
+				if (bitLength > maxBitLength)
+					maxBitLength = bitLength;
+			}
+			br.close();
+			return maxBitLength;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static URI singleColumnInt(URI input, IntEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
@@ -43,6 +69,7 @@ public class ParquetWriterHelper {
 				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT32, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setIntEncoding(encoding);
+		HardcodedValuesWriterFactory.INSTANCE.setIntBitLength(scanIntBitLength(input));
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == IntEncoding.DICT);
 
@@ -70,6 +97,7 @@ public class ParquetWriterHelper {
 				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT64, "value"));
 
 		HardcodedValuesWriterFactory.INSTANCE.setIntEncoding(encoding);
+		HardcodedValuesWriterFactory.INSTANCE.setIntBitLength(scanIntBitLength(input));
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == IntEncoding.DICT);
 

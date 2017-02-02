@@ -1,5 +1,8 @@
 package edu.uchicago.cs.encsel.parquet;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,7 +10,6 @@ import java.nio.file.Paths;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import edu.uchicago.cs.encsel.model.IntEncoding;
 import edu.uchicago.cs.encsel.model.StringEncoding;
@@ -59,5 +61,10 @@ public class ParquetWriterHelperTest {
 		assertTrue(Files.exists(Paths.get("resource/test_col_int.data.DELTABP")));
 		assertTrue(Files.exists(Paths.get("resource/test_col_int.data.RLE")));
 		assertTrue(Files.exists(Paths.get("resource/test_col_int.data.PLAIN")));
+	}
+	
+	@Test
+	public void testDetermineBitLength() {
+		assertEquals(13,ParquetWriterHelper.scanIntBitLength(new File("resource/bitlength_test").toURI()));
 	}
 }

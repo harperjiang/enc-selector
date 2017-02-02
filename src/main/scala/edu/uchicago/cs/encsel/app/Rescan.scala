@@ -15,9 +15,11 @@ object Rescan extends App {
   var target = new File(args(0)).toURI()
 
   var datas = Persistence.get.load()
-  datas = datas.filter { !_.origin.equals(target) }
+  var filtered = datas.filter { !_.origin.equals(target) }.toList
+
+  System.out.println("Found and remove %d entries".format(datas.size - filtered.size))
   Persistence.get.clean()
-  Persistence.get.save(datas)
+  Persistence.get.save(filtered)
 
   new DataCollector().collect(target)
 }

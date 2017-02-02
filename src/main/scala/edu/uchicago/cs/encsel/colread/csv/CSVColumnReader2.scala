@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory
 import edu.uchicago.cs.encsel.colread.ColumnReader
 import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.model.Column
+import org.apache.commons.csv.CSVRecord
 
 /**
  * This Column Reader use Apache Commons CSV Parser
@@ -42,11 +43,11 @@ class CSVColumnReader2 extends ColumnReader {
     }
     iterator.foreach { record =>
       {
-        if (record.size() > colWithWriter.size) {
-          logger.warn("Malformated record at " + record.getRecordNumber + " found, ignoring:" + record.toString)
+        if (!validate(record, schema)) {
+          logger.warn("Malformated record at " + record.getRecordNumber + " found, skipping:" + record.toString)
         } else {
-          record.iterator().zipWithIndex.foreach(col => {
-            colWithWriter(col._2)._2.println(col._1)
+          record.iterator().zipWithIndex.foreach(rec => {
+            colWithWriter(rec._2)._2.println(rec._1)
           })
         }
       }
@@ -55,4 +56,21 @@ class CSVColumnReader2 extends ColumnReader {
     return colWithWriter.map(_._1)
   }
 
+  def validate(record: CSVRecord, schema: Schema): Boolean = {
+    if (record.size() > schema.columns.size) {
+      return false
+    }
+    if (schema.hasHeader) {
+      schema.columns.foreach(col => {
+        if (!col._1.check(record.get(col._2)))
+          return false
+      })
+    } else {
+      schema.columns.zipWithIndex.foreach(col => {
+        if (!col._1._1.check(record.get(col._2)))
+          return false
+      })
+    }
+    return true
+  }
 }

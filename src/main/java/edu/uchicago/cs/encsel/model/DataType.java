@@ -16,5 +16,32 @@ package edu.uchicago.cs.encsel.model;
  *
  */
 public enum DataType {
-	INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN
+	INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN;
+
+	public boolean check(String input) {
+		try {
+			switch (this) {
+			case INTEGER:
+				Integer.parseInt(input);
+				break;
+			case LONG:
+				Long.parseLong(input);
+				break;
+			case FLOAT:
+				Float.parseFloat(input);
+				break;
+			case DOUBLE:
+				Double.parseDouble(input);
+				break;
+			case STRING:
+				break;
+			case BOOLEAN:
+				Boolean.parseBoolean(input);
+				break;
+			}
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
 }
