@@ -24,6 +24,14 @@ class FilePersistence extends Persistence {
     objwriter.close()
   }
 
+  def clean() = {
+    this.datalist = Iterable[Column]()
+
+    var objwriter = new ObjectOutputStream(new FileOutputStream(storage))
+    objwriter.writeObject(this.datalist)
+    objwriter.close()
+  }
+
   def load(): Iterable[Column] = {
     try {
       if (null == datalist) {
