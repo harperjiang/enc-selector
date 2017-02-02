@@ -56,6 +56,6 @@ public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBui
 		return builder.withValidation(false).withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
 				.withDictionaryEncoding(useDictionary).withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)
 				.withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-				.withDictionaryPageSize(100 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
+				.withDictionaryPageSize(150 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
 	}
 }

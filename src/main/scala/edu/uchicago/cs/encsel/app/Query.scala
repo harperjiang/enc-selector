@@ -4,15 +4,17 @@ import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 
 object Query extends App {
 
-  var name = args(0)
+  var name = "trip_data"
 
   var fp = new FilePersistence()
   fp.load().foreach { col =>
     {
-      if (col.origin.toString().contains(name)) {
-        System.out.println(col.colFile.toString())
-        System.exit(0)
-      }
+      System.out.println(col.origin.toString())
+      //      
+      //      if (col.origin.toString().contains(name)) {
+      //        System.out.println(col.colFile.toString())
+      //        System.exit(0)
+      //      }
     }
   }
 }

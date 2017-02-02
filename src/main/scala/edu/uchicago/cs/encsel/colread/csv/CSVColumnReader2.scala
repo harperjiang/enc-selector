@@ -42,7 +42,7 @@ class CSVColumnReader2 extends ColumnReader {
     }
     iterator.foreach { record =>
       {
-        if (record.size() != colWithWriter.size) {
+        if (record.size() > colWithWriter.size) {
           logger.warn("Malformated record at " + record.getRecordNumber + " found, ignoring:" + record.toString)
         } else {
           record.iterator().zipWithIndex.foreach(col => {
