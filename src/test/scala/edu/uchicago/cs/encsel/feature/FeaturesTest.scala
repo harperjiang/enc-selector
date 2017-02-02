@@ -20,23 +20,23 @@ class FeaturesTest {
 
     assertTrue(fa(0).isInstanceOf[EncFileSize])
     assertEquals("PLAIN_file_size", fa(0).name)
-    assertEquals(268.0, fa(0).value, 0.001)
+    assertEquals(275.0, fa(0).value, 0.001)
 
     assertTrue(fa(1).isInstanceOf[EncFileSize])
     assertEquals("DICT_file_size", fa(1).name)
-    assertEquals(295.0, fa(1).value, 0.001)
+    assertEquals(302.0, fa(1).value, 0.001)
 
     assertTrue(fa(2).isInstanceOf[EncFileSize])
     assertEquals("BP_file_size", fa(2).name)
-    assertEquals(212.0, fa(2).value, 0.001)
+    assertEquals(219.0, fa(2).value, 0.001)
 
     assertTrue(fa(3).isInstanceOf[EncFileSize])
     assertEquals("RLE_file_size", fa(3).name)
-    assertEquals(218.0, fa(3).value, 0.001)
+    assertEquals(224.0, fa(3).value, 0.001)
 
     assertTrue(fa(4).isInstanceOf[EncFileSize])
     assertEquals("DELTABP_file_size", fa(4).name)
-    assertEquals(339.0, fa(4).value, 0.001)
+    assertEquals(346.0, fa(4).value, 0.001)
 
   }
 }

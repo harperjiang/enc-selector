@@ -6,34 +6,35 @@ import java.io.FileOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
-import edu.uchicago.cs.encsel.datacol.DataPersistence
-import edu.uchicago.cs.encsel.model.Data
-import java.io.IOException
+import scala.Iterable
 
-class FilePersistence extends DataPersistence {
+import edu.uchicago.cs.encsel.datacol.Persistence
+import edu.uchicago.cs.encsel.model.Column
+
+class FilePersistence extends Persistence {
 
   var storage = new File("storage.dat")
-  var datalist: Iterable[Data] = load()
+  var datalist: Iterable[Column] = load()
 
-  def save(datalist: Iterable[Data]) = {
-    this.datalist ++= datalist
+  def save(datalist: Iterable[Column]) = {
+    this.datalist = datalist
 
     var objwriter = new ObjectOutputStream(new FileOutputStream(storage))
     objwriter.writeObject(this.datalist)
     objwriter.close()
   }
 
-  def load(): Iterable[Data] = {
+  def load(): Iterable[Column] = {
     try {
       if (null == datalist) {
         var objreader = new ObjectInputStream(new FileInputStream(storage))
-        datalist = objreader.readObject().asInstanceOf[Iterable[Data]]
+        datalist = objreader.readObject().asInstanceOf[Iterable[Column]]
         objreader.close()
       }
       return datalist
     } catch {
       case e: Exception => {
-        return Iterable[Data]()
+        return Iterable[Column]()
       }
     }
   }

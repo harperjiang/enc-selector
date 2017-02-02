@@ -7,10 +7,10 @@ object Query extends App {
   var name = args(0)
 
   var fp = new FilePersistence()
-  fp.load().foreach { data =>
+  fp.load().foreach { col =>
     {
-      if (data.origin.toString().contains(name)) {
-        System.out.println(data.originCol.toString)
+      if (col.origin.toString().contains(name)) {
+        System.out.println(col.colFile.toString())
         System.exit(0)
       }
     }
