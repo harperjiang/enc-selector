@@ -14,6 +14,10 @@ class JsonParser extends Parser {
 
   def parseLine(line: String): Array[String] = {
     var jsonObject = jsonParser.parse(line).getAsJsonObject
-    schema.columns.map(f => { jsonObject.get(f._2).toString() }).toArray
+    schema.columns.map(f => {
+      if (jsonObject.has(f._2))
+        jsonObject.get(f._2).toString()
+      else ""
+    }).toArray
   }
 }

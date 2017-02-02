@@ -21,11 +21,20 @@ class SchemaTest {
   @Test
   def testFromParquetFile2(): Unit = {
     var schema = Schema.fromParquetFile(new File("resource/test2.schema").toURI())
-    assertEquals(22, schema.columns.length)
+    assertEquals(7, schema.columns.length)
     assertTrue(schema.hasHeader)
 
+    assertEquals(DataType.STRING, schema.columns(1)._1)
+    assertEquals("Case_number", schema.columns(1)._2)
+
     assertEquals(DataType.STRING, schema.columns(3)._1)
-    assertEquals("Block", schema.columns(3)._2)
+    assertEquals("Primary_type", schema.columns(3)._2)
+
+    assertEquals(DataType.STRING, schema.columns(5)._1)
+    assertEquals("Loc_description", schema.columns(5)._2)
+
+    assertEquals(DataType.STRING, schema.columns(6)._1)
+    assertEquals("update_on", schema.columns(6)._2)
   }
 
   @Test
