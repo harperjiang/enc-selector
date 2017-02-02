@@ -28,8 +28,9 @@ class ParserColumnReaderTest {
 
     assertEquals(5, cols.size)
 
+    // Header will be treated as malformated
     cols.foreach(col => {
-      assertEquals(2, Source.fromFile(col.colFile).getLines().size)
+      assertEquals(1, Source.fromFile(col.colFile).getLines().size)
     })
   }
 
