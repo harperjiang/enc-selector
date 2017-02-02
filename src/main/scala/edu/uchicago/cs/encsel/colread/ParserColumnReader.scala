@@ -26,8 +26,8 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       parsed = parsed.drop(1)
     parsed.foreach { row =>
       {
-        if (row.length != colWithWriter.size) {
-          logger.warn("Malformated line found, ignoring:" + row.mkString("$$$$$"))
+        if (!validate(row, schema)) {
+          logger.warn("Malformated line found, ignoring:" + row.mkString("$<>$"))
         } else {
           row.zipWithIndex.foreach(col => {
             colWithWriter(col._2)._2.println(col._1)
@@ -37,5 +37,17 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
     }
     colWithWriter.foreach(t => { t._2.close })
     return colWithWriter.map(_._1)
+  }
+
+  def validate(record: Array[String], schema: Schema): Boolean = {
+    if (record.length > schema.columns.size) {
+      return false
+    }
+    schema.columns.zipWithIndex.foreach(col => {
+      if (!col._1._1.check(record(col._2)))
+        return false
+    })
+
+    return true
   }
 }

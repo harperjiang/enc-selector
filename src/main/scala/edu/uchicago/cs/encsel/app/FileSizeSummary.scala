@@ -15,7 +15,7 @@ object FileSizeSummary extends App {
     {
       var res = "%s,%s".format(col.colName,
         col.features.filter { _.isInstanceOf[EncFileSize] }
-          .map { f => (f.name, f.value) }.toList.sorted.map(p => p._2).mkString(","))
+          .map { f => (f.name, f.value) }.toList.sorted.map(p => p._2.toInt.toString()).mkString(","))
       col.dataType match {
         case DataType.INTEGER => {
           intres += res
