@@ -11,6 +11,8 @@
 
 package edu.uchicago.cs.encsel.model;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * @author Cathy
  *
@@ -19,6 +21,9 @@ public enum DataType {
 	INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN;
 
 	public boolean check(String input) {
+		// Do not check empty
+		if (StringUtils.isEmpty(input))
+			return true;
 		try {
 			switch (this) {
 			case INTEGER:

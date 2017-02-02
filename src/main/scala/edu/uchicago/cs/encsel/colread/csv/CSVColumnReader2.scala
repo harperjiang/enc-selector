@@ -61,7 +61,7 @@ class CSVColumnReader2 extends ColumnReader {
       return false
     }
     schema.columns.zipWithIndex.foreach(col => {
-      if (!col._1._1.check(record.get(col._2)))
+      if (col._2 < record.size && !col._1._1.check(record.get(col._2)))
         return false
     })
 

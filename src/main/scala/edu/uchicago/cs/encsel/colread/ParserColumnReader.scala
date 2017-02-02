@@ -44,7 +44,7 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       return false
     }
     schema.columns.zipWithIndex.foreach(col => {
-      if (!col._1._1.check(record(col._2)))
+      if (col._2 < record.length && !col._1._1.check(record(col._2)))
         return false
     })
 
