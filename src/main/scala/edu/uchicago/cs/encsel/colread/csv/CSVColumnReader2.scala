@@ -60,17 +60,11 @@ class CSVColumnReader2 extends ColumnReader {
     if (record.size() > schema.columns.size) {
       return false
     }
-    if (schema.hasHeader) {
-      schema.columns.foreach(col => {
-        if (!col._1.check(record.get(col._2)))
-          return false
-      })
-    } else {
-      schema.columns.zipWithIndex.foreach(col => {
-        if (!col._1._1.check(record.get(col._2)))
-          return false
-      })
-    }
+    schema.columns.zipWithIndex.foreach(col => {
+      if (!col._1._1.check(record.get(col._2)))
+        return false
+    })
+
     return true
   }
 }
