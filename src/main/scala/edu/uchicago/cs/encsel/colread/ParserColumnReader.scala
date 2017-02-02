@@ -6,6 +6,7 @@ import java.io.File
 import edu.uchicago.cs.encsel.model.Column
 import java.net.URI
 import org.slf4j.LoggerFactory
+import edu.uchicago.cs.encsel.Config
 
 class ParserColumnReader(p: Parser) extends ColumnReader {
   var parser = p
@@ -40,6 +41,8 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
   }
 
   def validate(record: Array[String], schema: Schema): Boolean = {
+    if (!Config.columnReaderEnableCheck)
+      return true
     if (record.length > schema.columns.size) {
       return false
     }
