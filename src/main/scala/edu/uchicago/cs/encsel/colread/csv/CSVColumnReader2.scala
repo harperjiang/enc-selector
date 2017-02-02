@@ -9,12 +9,13 @@ import java.net.URI
 import scala.collection.JavaConversions.asScalaIterator
 
 import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.CSVRecord
 import org.slf4j.LoggerFactory
 
+import edu.uchicago.cs.encsel.Config
 import edu.uchicago.cs.encsel.colread.ColumnReader
 import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.model.Column
-import org.apache.commons.csv.CSVRecord
 
 /**
  * This Column Reader use Apache Commons CSV Parser
@@ -57,6 +58,8 @@ class CSVColumnReader2 extends ColumnReader {
   }
 
   def validate(record: CSVRecord, schema: Schema): Boolean = {
+    if (!Config.columnReaderEnableCheck)
+      return true
     if (record.size() > schema.columns.size) {
       return false
     }
