@@ -5,8 +5,9 @@ import java.nio.file.Files
 
 import org.junit.Before
 import org.junit.Test
-import edu.uchicago.cs.encsel.model.Data
 import scala.collection.mutable.ArrayBuffer
+import edu.uchicago.cs.encsel.model.Column
+import edu.uchicago.cs.encsel.model.DataType
 
 class FilePersistenceTest {
 
@@ -21,9 +22,9 @@ class FilePersistenceTest {
   def testSave(): Unit = {
     var fp = new FilePersistence
 
-    var dl = new ArrayBuffer[Data]()
-    dl += new Data()
-    dl += new Data()
+    var dl = new ArrayBuffer[Column]()
+    dl += new Column(null, 0, "", DataType.STRING)
+    dl += new Column(null, 1, "", DataType.STRING)
 
     fp.save(dl)
   }

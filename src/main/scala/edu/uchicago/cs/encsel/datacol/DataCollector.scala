@@ -15,7 +15,6 @@ import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 import edu.uchicago.cs.encsel.feature.Features
 import edu.uchicago.cs.encsel.model.Column
-import edu.uchicago.cs.encsel.model.Data
 
 class DataCollector {
 
@@ -52,9 +51,9 @@ class DataCollector {
       }
       val columns = colreader.readColumn(source, defaultSchema)
 
-      var datalist = columns.map(mapData(_))
+      columns.foreach(extractFeature(_))
 
-      persistence.save(datalist)
+      persistence.save(columns)
 
       markDone(source)
     } catch {
@@ -72,19 +71,12 @@ class DataCollector {
     Files.createFile(Paths.get(new URI("%s.done".format(file.toString()))))
   }
 
-  private def mapData(col: Column): Data = {
+  private def extractFeature(col: Column): Unit = {
     try {
-      var data = new Data()
-      data.dataType = col.dataType
-      data.origin = col.origin
-      data.originCol = col.colIndex
-      data.name = col.colName
-      data.features = Features.extract(col)
-      data
+      col.features = Features.extract(col)
     } catch {
       case e: Exception => {
         logger.warn("Exception while processing column:%s@%s".format(col.colName, col.origin), e)
-        new Data()
       }
     }
   }

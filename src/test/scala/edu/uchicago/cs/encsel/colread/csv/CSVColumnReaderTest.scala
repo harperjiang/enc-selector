@@ -8,6 +8,7 @@ import org.junit.Test
 import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader
+import scala.io.Source
 
 class CSVColumnReaderTest {
 
@@ -45,5 +46,11 @@ class CSVColumnReaderTest {
     assertEquals("c4", arrays(4).colName)
     assertEquals(DataType.INTEGER, arrays(4).dataType)
     assertEquals(sourceFile, arrays(4).origin)
+
+    arrays.foreach { col =>
+      {
+        assertEquals(1, Source.fromFile(col.colFile).getLines().size)
+      }
+    }
   }
 }
