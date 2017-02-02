@@ -37,7 +37,7 @@ object Schema {
     return new Schema(cols.toArray, hasheader)
   }
 
-  private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([\\d\\w_]+)\\s*;\\s*$".r
+  private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([\\d\\w_]+);\\s*$".r
   private val hasheaderp = "^\\s*has_header\\s*$".r
   private val noheaderp = "^\\s*no_header\\s*$".r
 
