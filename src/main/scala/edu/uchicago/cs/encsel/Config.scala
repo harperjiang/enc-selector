@@ -4,9 +4,9 @@ import java.util.Properties
 
 object Config {
 
-  var columnReaderEnableCheck = false
-
   load()
+
+  var columnReaderEnableCheck = true
 
   def load(): Unit = {
     var p = new Properties()
