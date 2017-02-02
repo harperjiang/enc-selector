@@ -17,7 +17,7 @@ class FilePersistence extends Persistence {
   var datalist: Iterable[Column] = load()
 
   def save(datalist: Iterable[Column]) = {
-    this.datalist = datalist
+    this.datalist ++= datalist
 
     var objwriter = new ObjectOutputStream(new FileOutputStream(storage))
     objwriter.writeObject(this.datalist)
