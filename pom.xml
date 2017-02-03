@@ -15,7 +15,7 @@
 				</includes>
 			</resource>
 			<resource>
-				<directory>config</directory>
+				<directory>src/main/config</directory>
 				<includes>
 					<include>**/*.xml</include>
 					<include>**/*.properties</include>
@@ -33,7 +33,7 @@
 				</excludes>
 			</testResource>
 			<testResource>
-				<directory>test/config</directory>
+				<directory>src/test/config</directory>
 				<includes>
 					<include>**/*.xml</include>
 				</includes>

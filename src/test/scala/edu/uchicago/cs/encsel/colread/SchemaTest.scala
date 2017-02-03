@@ -10,7 +10,7 @@ class SchemaTest {
 
   @Test
   def testFromParquetFile(): Unit = {
-    var schema = Schema.fromParquetFile(new File("resource/test.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test.schema").toURI())
     assertEquals(22, schema.columns.length)
     assertTrue(schema.hasHeader)
 
@@ -20,7 +20,7 @@ class SchemaTest {
 
   @Test
   def testFromParquetFile2(): Unit = {
-    var schema = Schema.fromParquetFile(new File("resource/test2.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test2.schema").toURI())
     assertEquals(7, schema.columns.length)
     assertTrue(schema.hasHeader)
 
@@ -39,7 +39,7 @@ class SchemaTest {
 
   @Test
   def testFromParquetFile3(): Unit = {
-    var schema = Schema.fromParquetFile(new File("resource/test3.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test3.schema").toURI())
     assertEquals(22, schema.columns.length)
     assertFalse(schema.hasHeader)
 
