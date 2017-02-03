@@ -16,7 +16,7 @@
 		</encoder>
 	</appender>
 
-	<logger name="edu.uchicago.cs.encsel" level="info" additivity="false">
+	<logger name="edu.uchicago.cs.encsel" level="debug" additivity="false">
 		<appender-ref ref="FILE" />
 	</logger>
 

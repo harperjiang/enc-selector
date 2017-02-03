@@ -5,6 +5,7 @@ import java.net.URI
 import edu.uchicago.cs.encsel.colread.tsv.TSVColumnReader
 import edu.uchicago.cs.encsel.colread.json.JsonColumnReader
 import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader2
+import edu.uchicago.cs.encsel.colread.excel.XLSXColumnReader
 
 object ColumnReaderFactory {
 
@@ -20,6 +21,9 @@ object ColumnReaderFactory {
           }
           case x if x.toLowerCase().endsWith("json") => {
             new JsonColumnReader
+          }
+          case x if x.toLowerCase().endsWith("xlsx") => {
+            new XLSXColumnReader
           }
           case _ =>
             return null

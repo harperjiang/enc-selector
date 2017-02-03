@@ -99,6 +99,9 @@ class DataCollector {
       persistence.save(columns)
 
       markDone(source)
+      if (logger.isDebugEnabled())
+        logger.debug("Scanned " + source.toString())
+
     } catch {
       case e: Exception => {
         logger.error("Exception while scanning " + source.toString, e)

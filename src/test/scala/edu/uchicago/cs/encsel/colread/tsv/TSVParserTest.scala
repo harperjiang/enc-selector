@@ -8,8 +8,8 @@ class TSVParserTest {
   @Test
   def testParseLine: Unit = {
     var parser = new TSVParser
-    var result = parser.parseLine("a b	ttt	dae_ma	afsew")
+    var result = parser.parseLine("a\t\tb\tttt\tdae_ma\tafsew")
     
-    assertEquals(5, result.length)
+    assertEquals(6, result.length)
   }
 }

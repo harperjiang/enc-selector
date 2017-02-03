@@ -10,9 +10,11 @@ import edu.uchicago.cs.encsel.Config
 
 class ParserColumnReader(p: Parser) extends ColumnReader {
   var parser = p
-  var logger = LoggerFactory.getLogger(getClass())
 
   def readColumn(source: URI, schema: Schema): Iterable[Column] = {
+
+    fireStart(source)
+
     var tempFolder = allocTempFolder(source)
     var colWithWriter = schema.columns.zipWithIndex.map(d => {
       var col = new Column(source, d._2, d._1._2, d._1._1)
@@ -27,7 +29,9 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       parsed = parsed.drop(1)
     parsed.foreach { row =>
       {
+        fireReadRecord(source)
         if (!validate(row, schema)) {
+          fireFailRecord(source)
           logger.warn("Malformated line found, ignoring:" + row.mkString("$<>$"))
         } else {
           row.zipWithIndex.foreach(col => {
@@ -37,6 +41,8 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       }
     }
     colWithWriter.foreach(t => { t._2.close })
+    fireDone(source)
+
     return colWithWriter.map(_._1)
   }
 
