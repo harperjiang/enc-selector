@@ -36,6 +36,7 @@
 				<directory>src/test/config</directory>
 				<includes>
 					<include>**/*.xml</include>
+					<include>**/*.properties</include>
 				</includes>
 			</testResource>
 		</testResources>

@@ -19,18 +19,17 @@
 package edu.uchicago.cs.encsel.datacol
 
 import edu.uchicago.cs.encsel.model.Column
-import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
+import scala.collection.mutable.ArrayBuffer
 
-/**
- * Interface for persisting columns and features
- */
-trait Persistence {
-  def save(datalist: Iterable[Column])
-  def load(): Iterable[Column]
-  def clean()
-}
-
-object Persistence {
-  private var impl = new FilePersistence
-  def get: Persistence = impl
+class DummyPersistence extends Persistence {
+  var storage = new ArrayBuffer[Column]()
+  def save(datalist: Iterable[Column]) = {
+    storage ++= datalist
+  }
+  def load(): Iterable[Column] = {
+    return storage.clone()
+  }
+  def clean() = {
+    storage.clear()
+  }
 }
