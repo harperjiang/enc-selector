@@ -27,20 +27,20 @@ class DataCollectorTest {
   @Test
   def testGetSchema(): Unit = {
     var dc = new DataCollectorForTest()
-    var schema = dc.getSchemaForTest(new File("resource/find_schema.csv").toURI())
+    var schema = dc.getSchemaForTest(new File("src/test/resource/find_schema.csv").toURI())
     assertEquals(3, schema.columns.length)
 
-    schema = dc.getSchemaForTest(new File("resource/find_schema2.tsv").toURI())
+    schema = dc.getSchemaForTest(new File("src/test/resource/find_schema2.tsv").toURI())
     assertEquals(6, schema.columns.length)
 
-    schema = dc.getSchemaForTest(new File("resource/fuzzy_find_schema_3.csv").toURI())
+    schema = dc.getSchemaForTest(new File("src/test/resource/fuzzy_find_schema_3.csv").toURI())
     assertEquals(5, schema.columns.length)
   }
 
   @Test
   def testDone(): Unit = {
-    var srcpath = new File("resource/test_colreader.csv").toPath()
-    var srcdone = new File("resource/test_colreader.csv.done").toPath()
+    var srcpath = new File("src/test/resource/test_colreader.csv").toPath()
+    var srcdone = new File("src/test/resource/test_colreader.csv.done").toPath()
     var srcuri = srcpath.toUri()
     Files.deleteIfExists(srcdone)
 

@@ -1,11 +1,12 @@
 package edu.uchicago.cs.encsel.datacol
 
 import java.io.File
+
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 
-import scala.collection.JavaConversions.asScalaIterator
+import scala.collection.JavaConversions._
 
 import org.slf4j.LoggerFactory
 
@@ -15,22 +16,39 @@ import edu.uchicago.cs.encsel.colread.Schema
 import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 import edu.uchicago.cs.encsel.feature.Features
 import edu.uchicago.cs.encsel.model.Column
+import java.nio.file.Path
 
 class DataCollector {
 
-  var persistence = new FilePersistence
+  var persistence = Persistence.get
 
   var logger = LoggerFactory.getLogger(this.getClass)
 
+  private def scanFunction: (Path => Iterable[Path]) = (p: Path) => {
+    p match {
+      case nofile if !Files.exists(nofile) => { Iterable[Path]() }
+      case dir if Files.isDirectory(dir) => {
+        Files.list(dir).iterator().toIterable.flatMap { scanFunction(_) }
+      }
+      case _ => { Iterable(p) }
+    }
+  }
+
+  def scan(source: URI): Unit = {
+    var target = Paths.get(source)
+    List(target).flatMap(scanFunction(_)).foreach(f => collect(f.toUri()))
+  }
+
   def collect(source: URI): Unit = {
     try {
-      if (logger.isDebugEnabled())
-        logger.debug("Scanning " + source.toString())
-      var target = Paths.get(source)
-      if (Files.isDirectory(target)) {
-        Files.list(target).iterator.foreach { p => collect(p.toUri()) }
+      var path = Paths.get(source)
+      if (Files.isDirectory(path)) {
+        logger.warn("Running on Directory is undefined")
         return
       }
+      if (logger.isDebugEnabled())
+        logger.debug("Scanning " + source.toString())
+
       if (isDone(source)) {
         if (logger.isDebugEnabled())
           logger.debug("Scanned mark found, skip")

@@ -12,10 +12,10 @@ class ParserColumnReaderTest {
 
   @Test
   def testParseColumnReader1: Unit = {
-    var schema = Schema.fromParquetFile(new File("resource/test_colreader.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test_colreader.schema").toURI())
 
     var cr = new CSVColumnReader
-    var cols = cr.readColumn(new File("resource/test_colreader.csv").toURI(), schema)
+    var cols = cr.readColumn(new File("src/test/resource/test_colreader.csv").toURI(), schema)
 
     assertEquals(5, cols.size)
 
@@ -24,7 +24,7 @@ class ParserColumnReaderTest {
     })
 
     schema.hasHeader = false
-    cols = cr.readColumn(new File("resource/test_colreader.csv").toURI(), schema)
+    cols = cr.readColumn(new File("src/test/resource/test_colreader.csv").toURI(), schema)
 
     assertEquals(5, cols.size)
 
@@ -36,10 +36,10 @@ class ParserColumnReaderTest {
 
   @Test
   def testParseColumnReader2: Unit = {
-    var schema = Schema.fromParquetFile(new File("resource/test_json_parser.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test_json_parser.schema").toURI())
 
     var cr = new JsonColumnReader
-    var cols = cr.readColumn(new File("resource/test_json_parser.json").toURI(), schema)
+    var cols = cr.readColumn(new File("src/test/resource/test_json_parser.json").toURI(), schema)
 
     assertEquals(3, cols.size)
 

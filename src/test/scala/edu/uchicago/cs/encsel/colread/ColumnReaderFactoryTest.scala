@@ -12,13 +12,13 @@ import edu.uchicago.cs.encsel.colread.csv.CSVColumnReader2
 class ColumnReaderFactoryTest {
   @Test
   def testGetColumnReader(): Unit = {
-    var cr = ColumnReaderFactory.getColumnReader(new File("resource/test_colreader.csv").toURI())
+    var cr = ColumnReaderFactory.getColumnReader(new File("src/test/resource/test_colreader.csv").toURI())
     assertTrue(cr.isInstanceOf[CSVColumnReader2])
 
-    cr = ColumnReaderFactory.getColumnReader(new File("resource/test_colreader.tsv").toURI())
+    cr = ColumnReaderFactory.getColumnReader(new File("src/test/resource/test_colreader.tsv").toURI())
     assertTrue(cr.isInstanceOf[TSVColumnReader])
     
-    cr = ColumnReaderFactory.getColumnReader(new File("resource/test_json_parser.json").toURI())
+    cr = ColumnReaderFactory.getColumnReader(new File("src/test/resource/test_json_parser.json").toURI())
     assertTrue(cr.isInstanceOf[JsonColumnReader])
   }
 }

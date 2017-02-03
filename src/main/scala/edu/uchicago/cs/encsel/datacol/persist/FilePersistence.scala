@@ -7,6 +7,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
 import scala.Iterable
+import scala.collection.mutable.ArrayBuffer
 
 import edu.uchicago.cs.encsel.datacol.Persistence
 import edu.uchicago.cs.encsel.model.Column
@@ -14,7 +15,7 @@ import edu.uchicago.cs.encsel.model.Column
 class FilePersistence extends Persistence {
 
   var storage = new File("storage.dat")
-  var datalist: Iterable[Column] = load()
+  var datalist: ArrayBuffer[Column] = new ArrayBuffer[Column]()
 
   def save(datalist: Iterable[Column]) = {
     this.datalist ++= datalist
@@ -25,7 +26,7 @@ class FilePersistence extends Persistence {
   }
 
   def clean() = {
-    this.datalist = Iterable[Column]()
+    this.datalist.clear()
 
     var objwriter = new ObjectOutputStream(new FileOutputStream(storage))
     objwriter.writeObject(this.datalist)
@@ -34,12 +35,12 @@ class FilePersistence extends Persistence {
 
   def load(): Iterable[Column] = {
     try {
-      if (null == datalist) {
+      if (null == datalist || datalist.isEmpty) {
         var objreader = new ObjectInputStream(new FileInputStream(storage))
-        datalist = objreader.readObject().asInstanceOf[Iterable[Column]]
+        datalist = objreader.readObject().asInstanceOf[ArrayBuffer[Column]]
         objreader.close()
       }
-      return datalist
+      return datalist.clone()
     } catch {
       case e: Exception => {
         return Iterable[Column]()

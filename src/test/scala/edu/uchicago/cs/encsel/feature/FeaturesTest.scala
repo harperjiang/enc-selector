@@ -12,8 +12,8 @@ class FeaturesTest {
 
   @Test
   def testFeatures: Unit = {
-    var col = new Column(new File("resource/test_colreader.csv").toURI(), 0, "id", DataType.INTEGER)
-    col.colFile = new File("resource/test_col_int.data").toURI()
+    var col = new Column(new File("src/test/resource/test_colreader.csv").toURI(), 0, "id", DataType.INTEGER)
+    col.colFile = new File("src/test/resource/test_col_int.data").toURI()
 
     var features = Features.extract(col)
     var fa = features.toArray

@@ -14,9 +14,9 @@ class JsonColumnReaderTest {
   def testReadColumn(): Unit = {
     
     
-    var sourceFile = new File("resource/test_json_parser.json").toURI()
+    var sourceFile = new File("src/test/resource/test_json_parser.json").toURI()
     var ccr = new JsonColumnReader()
-    var schema = Schema.fromParquetFile(new File("resource/test_json_parser.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test_json_parser.schema").toURI())
     var cols = ccr.readColumn(sourceFile, schema)
 
     assertEquals(3, cols.size)
