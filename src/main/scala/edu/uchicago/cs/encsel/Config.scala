@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory
 
 object Config {
 
+  var collectorThreadCount = 10
+  
   var columnReaderEnableCheck = true
   var columnFolder = "./columns"
 
@@ -17,7 +19,9 @@ object Config {
     try {
       var p = new Properties()
       p.load(Thread.currentThread().getContextClassLoader.getResourceAsStream("config.properties"))
-      columnReaderEnableCheck = "true".equals(p.getProperty("column.reader.enablecheck"))
+      
+      collectorThreadCount = Integer.parseInt(p.getProperty("collector.threadCount"))
+      columnReaderEnableCheck = "true".equals(p.getProperty("column.readerEnableCheck"))
       columnFolder = p.getProperty("column.folder")
     } catch {
       case e: Exception => {
