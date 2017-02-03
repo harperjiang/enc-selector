@@ -22,9 +22,8 @@ import edu.uchicago.cs.encsel.model.Column
  */
 class CSVColumnReader2 extends ColumnReader {
 
-  var logger = LoggerFactory.getLogger(getClass())
-
   def readColumn(source: URI, schema: Schema): Iterable[Column] = {
+    fireStart(source)
     var tempFolder = allocTempFolder(source)
     var colWithWriter = schema.columns.zipWithIndex.map(d => {
       var col = new Column(source, d._2, d._1._2, d._1._1)
@@ -39,12 +38,14 @@ class CSVColumnReader2 extends ColumnReader {
     var parser = parseFormat.parse(new FileReader(new File(source)))
 
     var iterator = parser.iterator()
-//    if (schema.hasHeader) {
-//      iterator.next()
-//    }
+    //    if (schema.hasHeader) {
+    //      iterator.next()
+    //    }
     iterator.foreach { record =>
       {
+        fireReadRecord(source)
         if (!validate(record, schema)) {
+          fireFailRecord(source)
           logger.warn("Malformated record at " + record.getRecordNumber + " found, skipping:" + record.toString)
         } else {
           record.iterator().zipWithIndex.foreach(rec => {
@@ -54,6 +55,7 @@ class CSVColumnReader2 extends ColumnReader {
       }
     }
     colWithWriter.foreach(t => { t._2.close })
+    fireDone(source)
     return colWithWriter.map(_._1)
   }
 

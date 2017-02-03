@@ -10,6 +10,6 @@ import edu.uchicago.cs.encsel.colread.Parser
 class TSVParser extends Parser {
 
   def parseLine(line: String): Array[String] = {
-    return line.split("\\s+")
+    return line.split("\t")
   }
 }
