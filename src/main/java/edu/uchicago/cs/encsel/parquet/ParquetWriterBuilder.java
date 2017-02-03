@@ -28,7 +28,7 @@ public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBui
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		getEncodingPropertiesBuilder().withValuesWriterFactory(HardcodedValuesWriterFactory.INSTANCE);
+		getEncodingPropertiesBuilder().withValuesWriterFactory(new AdaptiveValuesWriterFactory());
 	}
 
 	@Override
@@ -56,6 +56,6 @@ public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBui
 		return builder.withValidation(false).withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
 				.withDictionaryEncoding(useDictionary).withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)
 				.withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-				.withDictionaryPageSize(150 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
+				.withDictionaryPageSize(100 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
 	}
 }
