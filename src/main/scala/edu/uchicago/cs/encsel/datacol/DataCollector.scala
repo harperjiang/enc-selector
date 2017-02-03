@@ -147,7 +147,7 @@ class DataCollector {
       p =>
         {
           var pname = p.getFileName.toString
-          pname.endsWith(".schema") && pathname.startsWith(pname.replace(".schema", ""))
+          pname.endsWith(".schema") && pathname.contains(pname.replace(".schema", ""))
         }
     }
     if (!schemas.isEmpty) {

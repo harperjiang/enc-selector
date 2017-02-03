@@ -21,6 +21,7 @@ public enum DataType {
 	INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN;
 
 	public boolean check(String input) {
+		input = input.trim();
 		// Do not check empty
 		if (StringUtils.isEmpty(input))
 			return true;

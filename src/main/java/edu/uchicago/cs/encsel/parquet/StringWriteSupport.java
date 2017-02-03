@@ -43,7 +43,7 @@ public class StringWriteSupport extends WriteSupport<List<String>> {
 
 		recordConsumer.startMessage();
 		for (int i = 0; i < cols.size(); ++i) {
-			String val = values.get(i);
+			String val = values.get(i).trim();
 			// val.length() == 0 indicates a NULL value.
 			try {
 				if (val.length() > 0) {
