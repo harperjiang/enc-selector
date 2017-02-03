@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 import scala.collection.JavaConversions._
+import edu.uchicago.cs.encsel.common.Conversions._
 
 import org.slf4j.LoggerFactory
 
@@ -17,12 +18,15 @@ import edu.uchicago.cs.encsel.datacol.persist.FilePersistence
 import edu.uchicago.cs.encsel.feature.Features
 import edu.uchicago.cs.encsel.model.Column
 import java.nio.file.Path
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import edu.uchicago.cs.encsel.Config
 
 class DataCollector {
 
   var persistence = Persistence.get
-
   var logger = LoggerFactory.getLogger(this.getClass)
+  var threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
 
   private def scanFunction: (Path => Iterable[Path]) = (p: Path) => {
     p match {
@@ -36,7 +40,11 @@ class DataCollector {
 
   def scan(source: URI): Unit = {
     var target = Paths.get(source)
-    List(target).flatMap(scanFunction(_)).foreach(f => collect(f.toUri()))
+    var tasks = List(target).flatMap(scanFunction(_)).map {
+      f => (() => { collect(f.toUri()) })
+    }
+
+    threadPool.invokeAll(tasks)
   }
 
   def collect(source: URI): Unit = {
@@ -129,4 +137,5 @@ class DataCollector {
     return null
 
   }
+
 }
