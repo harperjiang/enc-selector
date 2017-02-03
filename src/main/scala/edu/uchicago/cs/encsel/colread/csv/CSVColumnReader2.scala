@@ -39,9 +39,9 @@ class CSVColumnReader2 extends ColumnReader {
     var parser = parseFormat.parse(new FileReader(new File(source)))
 
     var iterator = parser.iterator()
-    if (schema.hasHeader) {
-      iterator.next()
-    }
+//    if (schema.hasHeader) {
+//      iterator.next()
+//    }
     iterator.foreach { record =>
       {
         if (!validate(record, schema)) {
