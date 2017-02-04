@@ -58,9 +58,12 @@ class DataCollector {
 
   def scan(source: URI): Unit = {
     var target = Paths.get(source)
-    List(target).flatMap(scanFunction(_)).foreach { p => collect(p.toUri()) }
-    // threadPool.invokeAll(tasks)
-    //   tasks.foreach(collect(_))
+    var tasks = List(target).flatMap(scanFunction(_)).map { p =>
+      {
+        new Callable[Unit] { def call: Unit = { collect(p.toUri()) } }
+      }
+    }
+    threadPool.invokeAll(tasks)
   }
 
   def collect(source: URI): Unit = {

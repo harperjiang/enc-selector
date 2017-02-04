@@ -46,9 +46,31 @@ public class ParquetWriterHelper {
 			int maxBitLength = 0;
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				if (line.trim().isEmpty())
+				line = line.trim();
+				if (line.isEmpty())
 					continue;
-				Long number = Long.parseLong(line);
+				int number = Integer.parseInt(line);
+				int bitLength = 32 - Integer.numberOfLeadingZeros(number);
+				if (bitLength > maxBitLength)
+					maxBitLength = bitLength;
+			}
+			br.close();
+			return maxBitLength;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static int scanLongBitLength(URI input) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(new File(input)));
+			int maxBitLength = 0;
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
+				if (line.isEmpty())
+					continue;
+				long number = Long.parseLong(line);
 				int bitLength = 64 - Long.numberOfLeadingZeros(number);
 				if (bitLength > maxBitLength)
 					maxBitLength = bitLength;
@@ -72,6 +94,7 @@ public class ParquetWriterHelper {
 		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
 		es.intEncoding = encoding;
 		es.intBitLength = scanIntBitLength(input);
+
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == IntEncoding.DICT);
 
@@ -100,7 +123,8 @@ public class ParquetWriterHelper {
 
 		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
 		es.intEncoding = encoding;
-		es.intBitLength = scanIntBitLength(input);
+		es.longBitLength = scanLongBitLength(input);
+
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == IntEncoding.DICT);
 

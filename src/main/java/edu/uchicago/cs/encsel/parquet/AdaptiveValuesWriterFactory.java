@@ -8,6 +8,8 @@ import org.apache.parquet.column.Encoding;
 import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.column.values.ValuesWriter;
 import org.apache.parquet.column.values.bitpacking.BitPackingValuesWriter;
+import org.apache.parquet.column.values.bitpacking.ByteBitPackingValuesWriter;
+import org.apache.parquet.column.values.bitpacking.Packer;
 import org.apache.parquet.column.values.delta.DeltaBinaryPackingValuesWriterForInteger;
 import org.apache.parquet.column.values.delta.DeltaBinaryPackingValuesWriterForLong;
 import org.apache.parquet.column.values.deltalengthbytearray.DeltaLengthByteArrayValuesWriter;
@@ -98,7 +100,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		default:
-			return null;
+			throw new IllegalArgumentException("Unsupported type " + path.getType());
 		}
 
 	}
@@ -110,8 +112,12 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 			return new RunLengthBitPackingHybridValuesWriter(es.intBitLength, parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		case BP:
-			return new BitPackingValuesWriter(es.intBitLength, parquetProperties.getInitialSlabSize(),
-					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+			if (es.intBitLength <= 8) {
+				return new BitPackingValuesWriter(es.intBound(), parquetProperties.getInitialSlabSize(),
+						parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+			} else {
+				return new ByteBitPackingValuesWriter(es.intBound(), Packer.BIG_ENDIAN);
+			}
 		case DELTABP:
 			return new DeltaBinaryPackingValuesWriterForInteger(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
@@ -119,7 +125,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		default:
-			return null;
+			throw new IllegalArgumentException("Unsupported type " + path.getType());
 		}
 	}
 
@@ -127,11 +133,19 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 		EncodingSetting es = encodingSetting.get();
 		switch (es.intEncoding) {
 		case RLE:
-			return new RunLengthBitPackingHybridValuesWriter(es.intBitLength, parquetProperties.getInitialSlabSize(),
+			if (es.longBitLength > 32)
+				throw new IllegalArgumentException("RLE for long does not support over 32 bit length");
+			return new RunLengthBitPackingHybridValuesWriter(es.longBitLength, parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		case BP:
-			return new BitPackingValuesWriter(es.intBitLength, parquetProperties.getInitialSlabSize(),
-					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+			if (es.longBitLength <= 8) {
+				return new BitPackingValuesWriter((int) es.longBound(), parquetProperties.getInitialSlabSize(),
+						parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
+			} else if (es.longBitLength <= 32) {
+				return new ByteBitPackingValuesWriter((int) es.longBound(), Packer.BIG_ENDIAN);
+			} else {
+				throw new IllegalArgumentException("BP for long does not support over 32 bit length");
+			}
 		case DELTABP:
 			return new DeltaBinaryPackingValuesWriterForLong(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
@@ -139,7 +153,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		default:
-			return null;
+			throw new IllegalArgumentException("Unsupported type " + path.getType());
 		}
 	}
 
@@ -155,7 +169,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		default:
-			return null;
+			throw new IllegalArgumentException("Unsupported type " + path.getType());
 		}
 	}
 
@@ -166,7 +180,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 			return new PlainValuesWriter(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
 		default:
-			return null;
+			throw new IllegalArgumentException("Unsupported type " + path.getType());
 		}
 	}
 
@@ -211,8 +225,17 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 	public static class EncodingSetting {
 		public IntEncoding intEncoding = IntEncoding.PLAIN;
 		public int intBitLength = 0;
+		public int longBitLength = 0;
 		public StringEncoding stringEncoding = StringEncoding.PLAIN;
 		public FloatEncoding floatEncoding = FloatEncoding.PLAIN;
+
+		public int intBound() {
+			return 1 << (intBitLength - 1);
+		}
+
+		public long longBound() {
+			return Long.valueOf(1) << (longBitLength - 1);
+		}
 	}
 
 }

@@ -23,7 +23,8 @@ object Features {
         ex.extract(input)
       } catch {
         case e: Exception => {
-          logger.error("Exception while executing %s, skipping".format(ex.getClass.getName), e)
+          logger.error("Exception while executing %s on %s:%s, skipping"
+            .format(ex.getClass.getName, input.origin, input.colName), e)
           Iterable[Feature]()
         }
       }
