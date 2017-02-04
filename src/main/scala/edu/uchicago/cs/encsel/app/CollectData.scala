@@ -6,5 +6,6 @@ import edu.uchicago.cs.encsel.datacol.DataCollector
 
 object CollectData extends App {
   var f = new File(args(0))
+  //  var f = new File("/home/harper/dataset")
   new DataCollector().scan(f.toURI())
 }
