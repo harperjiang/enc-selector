@@ -4,14 +4,14 @@ import org.junit.Test
 import org.junit.Assert._
 import java.io.File
 import ch.qos.logback.core.util.FileSize
-import edu.uchicago.cs.encsel.model.Column
+import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.model.DataType
 
 class EncFileSizeTest {
 
   @Test
   def testExtract: Unit = {
-    var col = new Column(new File("src/test/resource/test_colreader.csv").toURI(), 0, "id", DataType.INTEGER)
+    var col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_int.data").toURI()
 
     var feature = EncFileSize.extract(col)
