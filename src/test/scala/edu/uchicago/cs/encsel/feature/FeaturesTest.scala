@@ -5,14 +5,14 @@ import java.io.File
 import org.junit.Assert._
 import org.junit.Test
 
-import edu.uchicago.cs.encsel.model.Column
+import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.model.DataType
 
 class FeaturesTest {
 
   @Test
   def testFeatures: Unit = {
-    var col = new Column(new File("src/test/resource/test_colreader.csv").toURI(), 0, "id", DataType.INTEGER)
+    var col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_int.data").toURI()
 
     var features = Features.extract(col)
