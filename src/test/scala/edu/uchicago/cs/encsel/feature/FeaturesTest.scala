@@ -28,7 +28,7 @@ class FeaturesTest {
 
     assertTrue(fa(2).isInstanceOf[EncFileSize])
     assertEquals("BP_file_size", fa(2).name)
-    assertEquals(228.0, fa(2).value, 0.001)
+    assertEquals(265.0, fa(2).value, 0.001)
 
     assertTrue(fa(3).isInstanceOf[EncFileSize])
     assertEquals("RLE_file_size", fa(3).name)
