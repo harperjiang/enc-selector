@@ -46,7 +46,7 @@ public class ParquetWriterHelper {
 			int maxBitLength = 0;
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				if (line.isEmpty())
+				if (line.trim().isEmpty())
 					continue;
 				Long number = Long.parseLong(line);
 				int bitLength = 64 - Long.numberOfLeadingZeros(number);
