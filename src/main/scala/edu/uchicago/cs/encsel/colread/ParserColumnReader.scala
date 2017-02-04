@@ -32,7 +32,8 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
         fireReadRecord(source)
         if (!validate(row, schema)) {
           fireFailRecord(source)
-          logger.warn("Malformated line found, ignoring:" + row.mkString("$<>$"))
+          logger.warn("Malformated record in %s found, skipping: %s"
+            .format(source.toString, row.mkString("$$")))
         } else {
           row.zipWithIndex.foreach(col => {
             colWithWriter(col._2)._2.println(col._1)
