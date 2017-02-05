@@ -25,7 +25,6 @@
 package edu.uchicago.cs.encsel.app
 
 import edu.uchicago.cs.encsel.persist.Persistence
-import edu.uchicago.cs.encsel.feature.FeatureCollector
 import edu.uchicago.cs.encsel.feature.Features
 import java.util.concurrent.Executors
 import edu.uchicago.cs.encsel.Config
