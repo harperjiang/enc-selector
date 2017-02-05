@@ -51,7 +51,8 @@ object GuessSchema extends App {
   def guessSchema(file: Path): Unit = {
     if (logger.isDebugEnabled())
       logger.debug("Scanning %s".format(file.toUri().toString()))
-    if (!FileUtils.isDone(file.toUri(), "gsdone")) {
+    if (!FileUtils.isDone(file.toUri(), "gsdone") &&
+      !FileUtils.isDone(file.toUri(), "done")) {
       var schema = guesser.guessSchema(file.toUri())
       if (null != schema) {
         if (logger.isDebugEnabled())
