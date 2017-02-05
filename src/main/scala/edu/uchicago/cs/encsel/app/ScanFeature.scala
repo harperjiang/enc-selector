@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,14 +19,25 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.app
 
 import edu.uchicago.cs.encsel.persist.Persistence
 import edu.uchicago.cs.encsel.feature.FeatureCollector
+import edu.uchicago.cs.encsel.feature.Features
+import java.util.concurrent.Executors
+import edu.uchicago.cs.encsel.Config
 
 object ScanFeature extends App {
+  var persistence = Persistence.get
+  var threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
 
-  new FeatureCollector().collect()
+  def collect(): Unit = {
+    var cols = persistence.load()
+    cols.foreach { col => col.features = Features.extract(col) }
+    persistence.clean()
+    persistence.save(cols)
+  }
 }

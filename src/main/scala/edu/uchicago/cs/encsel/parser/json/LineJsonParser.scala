@@ -24,13 +24,14 @@
  */
 package edu.uchicago.cs.encsel.parser.json
 
-import edu.uchicago.cs.encsel.parser.Parser
-import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.parser.Record
-import edu.uchicago.cs.encsel.parser.Parser
-import edu.uchicago.cs.encsel.parser.Record
-import edu.uchicago.cs.encsel.parser.DefaultRecord
+import scala.annotation.migration
+import scala.collection.JavaConversions.asScalaSet
+
 import com.google.gson.JsonObject
+
+import edu.uchicago.cs.encsel.parser.DefaultRecord
+import edu.uchicago.cs.encsel.parser.Parser
+import edu.uchicago.cs.encsel.parser.Record
 
 /**
  * This Parser parse per-line json object format, which
@@ -46,7 +47,7 @@ class LineJsonParser extends Parser {
       new DefaultRecord(schema.columns.map(f => jsonField(jsonObject, f._2)).toArray)
     } else { // Read keys and order
       if (guessedHeader == null) {
-        guessedHeader = jsonObject.entrySet().map(f => f.getKey).toArray
+        guessedHeader = jsonObject.entrySet().map(f => f.getKey).toList.sorted.toArray
       }
       new DefaultRecord(guessedHeader.map(key => jsonField(jsonObject, key)).toArray)
     }

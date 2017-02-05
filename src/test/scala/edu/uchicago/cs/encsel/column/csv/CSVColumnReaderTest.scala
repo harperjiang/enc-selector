@@ -14,9 +14,9 @@ class CSVColumnReaderTest {
 
   @Test
   def testReadColumn(): Unit = {
-    var sourceFile = new File("src/test/resource/test_columner.csv").toURI()
+    var sourceFile = new File("src/test/resource/test_col_reader.csv").toURI()
     var ccr = new CSVColumnReader()
-    var schema = Schema.fromParquetFile(new File("src/test/resource/test_columner.schema").toURI())
+    var schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader.schema").toURI())
     var cols = ccr.readColumn(sourceFile, schema)
 
     assertEquals(5, cols.size)

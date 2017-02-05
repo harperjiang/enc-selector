@@ -36,7 +36,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
 import edu.uchicago.cs.encsel.model.DataType
-import org.apache.poi.ss.formula.functions.Columns
+import edu.uchicago.cs.encsel.util.FileUtils
 
 class Schema {
 
@@ -111,14 +111,12 @@ object Schema {
 
   def getSchema(source: URI): Schema = {
     // file_name + .schema
-    var schemaUri = new URI(source.getScheme, source.getHost,
-      "%s.schema".format(source.getPath), null)
+    var schemaUri = FileUtils.addExtension(source, "schema")
     if (new File(schemaUri).exists) {
       return Schema.fromParquetFile(schemaUri)
     }
     // file_name.abc => file_name.schema
-    schemaUri = new URI(source.getScheme, source.getHost,
-      source.getPath.replaceAll("\\.[\\d\\w]+$", ".schema"), null)
+    schemaUri = FileUtils.replaceExtension(source, "schema")
     if (new File(schemaUri).exists) {
       return Schema.fromParquetFile(schemaUri)
     }

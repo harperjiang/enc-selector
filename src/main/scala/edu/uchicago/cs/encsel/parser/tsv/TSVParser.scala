@@ -35,6 +35,15 @@ import edu.uchicago.cs.encsel.parser.DefaultRecord
 class TSVParser extends Parser {
 
   override def parseLine(line: String): Record = {
+    if (schema == null && guessedHeader == null) {
+      // Fetch a record to guess schema name
+      guessedHeader = line.split("\t")
+      return Record.EMPTY
+    }
     return new DefaultRecord(line.split("\t"))
   }
+
+  var guessedHeader: Array[String] = null;
+
+  override def guessHeaderName: Array[String] = guessedHeader
 }

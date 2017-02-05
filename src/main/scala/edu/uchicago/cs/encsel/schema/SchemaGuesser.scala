@@ -31,11 +31,19 @@ import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.model.DataType
 
 import scala.util.Try
+import org.slf4j.LoggerFactory
 
-class SchemaGenerator {
+class SchemaGuesser {
 
-  def generateSchema(file: URI): Schema = {
+  var logger = LoggerFactory.getLogger(getClass)
+
+  def guessSchema(file: URI): Schema = {
     var parser = ParserFactory.getParser(file)
+    if (null == parser) {
+      if (logger.isDebugEnabled())
+        logger.debug("No parser available for %s".format(file.toString()))
+      return null
+    }
     var records = parser.parse(file, null)
 
     var guessedHeader = parser.guessHeaderName()
@@ -59,10 +67,10 @@ class SchemaGenerator {
   }
 
   protected var booleanValues = Set("0", "1", "yes", "no", "true", "false")
-  protected val numberRegex = """-?\\d+""".r
-  protected val floatRegex = """-?\\d+\.?\\d+""".r
+  protected val numberRegex = """[\-]?\d+""".r
+  protected val floatRegex = """[\-]?\d+(\.\d*)?""".r
 
-  protected def testType(input: String, expected: DataType): DataType = {
+  def testType(input: String, expected: DataType): DataType = {
     expected match {
       case DataType.BOOLEAN => {
         if (booleanValues.contains(input.toLowerCase()))

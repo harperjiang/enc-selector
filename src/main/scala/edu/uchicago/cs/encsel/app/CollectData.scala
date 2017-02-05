@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +19,9 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.app;
 
 import java.io.File
@@ -40,6 +42,7 @@ import org.slf4j.LoggerFactory
 import edu.uchicago.cs.encsel.feature.Features
 
 import scala.collection.JavaConversions._
+import edu.uchicago.cs.encsel.util.FileUtils
 
 object CollectData extends App {
   var f = new File(args(0))
@@ -53,19 +56,9 @@ class DataCollector {
   var logger = LoggerFactory.getLogger(this.getClass)
   var threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
 
-  private def scanFunction: (Path => Iterable[Path]) = (p: Path) => {
-    p match {
-      case nofile if !Files.exists(nofile) => { Iterable[Path]() }
-      case dir if Files.isDirectory(dir) => {
-        Files.list(dir).iterator().toIterable.flatMap { scanFunction(_) }
-      }
-      case _ => { Iterable(p) }
-    }
-  }
-
   def scan(source: URI): Unit = {
     var target = Paths.get(source)
-    var tasks = scala.collection.immutable.List(target).flatMap(scanFunction(_)).map { p =>
+    var tasks = scala.collection.immutable.List(target).flatMap(FileUtils.scanFunction(_)).map { p =>
       {
         new Callable[Unit] { def call: Unit = { collect(p.toUri()) } }
       }
@@ -119,11 +112,11 @@ class DataCollector {
   }
 
   protected def isDone(file: URI): Boolean = {
-    return Files.exists(Paths.get(new URI("%s.done".format(file.toString()))))
+    return FileUtils.isDone(file, "done")
   }
 
   protected def markDone(file: URI) = {
-    Files.createFile(Paths.get(new URI("%s.done".format(file.toString()))))
+    FileUtils.markDone(file, "done")
   }
 
   private def extractFeature(col: Column): Unit = {
