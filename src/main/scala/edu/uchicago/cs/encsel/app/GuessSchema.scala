@@ -61,11 +61,11 @@ object GuessSchema extends App {
         Schema.toParquetFile(schema, schemaLocation)
         if (logger.isDebugEnabled())
           logger.debug("Schema for %s written to %s".format(file.toUri().toString(), schemaLocation))
+        FileUtils.markDone(file.toUri(), "gsdone")
       } else {
         if (logger.isDebugEnabled())
           logger.debug("No schema generated for %s".format(file.toUri().toString()))
       }
-      FileUtils.markDone(file.toUri(), "gsdone")
       if (logger.isDebugEnabled())
         logger.debug("Scanned %s".format(file.toUri().toString()))
     } else {
