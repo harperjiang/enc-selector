@@ -55,6 +55,9 @@ class XLSXParser extends Parser {
       var firstrec = iterator.next()
       guessedHeader = firstrec.iterator().map(c =>
         XSSFRowRecord.content(c.asInstanceOf[XSSFCell])).toArray
+    } else if (schema.hasHeader) {
+      // Skip first row as header
+      iterator.next()
     }
 
     iterator.map { row => new XSSFRowRecord(row.asInstanceOf[XSSFRow]) }.toIterable
@@ -64,9 +67,6 @@ class XLSXParser extends Parser {
 
   override def guessHeaderName: Array[String] = guessedHeader
 
-  override def parse(inputString: String, schema: Schema): Iterable[Record] = {
-    throw new UnsupportedOperationException("Not supported")
-  }
 }
 
 class XSSFRowRecord(row: XSSFRow) extends Record {
@@ -81,7 +81,11 @@ class XSSFRowRecord(row: XSSFRow) extends Record {
   }
 
   override def toString(): String = {
-    row.toString()
+    "XSSFCell@%d[%s]".format(row.getRowNum,
+      row.cellIterator().map { cell =>
+        XSSFRowRecord
+          .content(cell.asInstanceOf[XSSFCell])
+      }.mkString(","))
   }
 
   def iterator(): Iterator[String] = {

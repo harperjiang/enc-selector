@@ -44,10 +44,6 @@ class CommonsCSVParser extends Parser {
     parse(new FileReader(new File(inputFile)), schema)
   }
 
-  override def parse(inputString: String, schema: Schema): Iterable[Record] = {
-    parse(new StringReader(inputString), schema)
-  }
-
   protected def parse(reader: Reader, schema: Schema): Iterable[Record] = {
     this.schema = schema
 
@@ -65,7 +61,6 @@ class CommonsCSVParser extends Parser {
       guessedHeader = firstrec.iterator().toArray
     }
     iterator.map(new CSVRecordWrapper(_)).toIterable
-
   }
 
   var guessedHeader: Array[String] = null;

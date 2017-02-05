@@ -42,12 +42,7 @@ trait Parser {
     this.schema = schema
     return Source.fromFile(inputFile).getLines()
       .filter(!_.trim().isEmpty())
-      .map { parseLineIgnoreError(_) }.toIterable
-  }
-
-  def parse(inputString: String, schema: Schema): Iterable[Record] = {
-    this.schema = schema
-    return inputString.split("[\r\n]+").map { parseLineIgnoreError(_) }.toIterable
+      .map { parseLineIgnoreError(_) }.filter(_ != Record.EMPTY).toIterable
   }
 
   def parseLineIgnoreError(line: String): Record = {
