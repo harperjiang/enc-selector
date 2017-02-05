@@ -24,19 +24,20 @@
  */
 package edu.uchicago.cs.encsel.parser.csv
 
-import edu.uchicago.cs.encsel.parser.Parser
-import edu.uchicago.cs.encsel.schema.Schema
-import scala.io.Source
-import edu.uchicago.cs.encsel.parser.Record
-import java.net.URI
-import org.apache.commons.csv.CSVFormat
 import java.io.File
 import java.io.FileReader
+import java.io.Reader
+import java.net.URI
+
+import scala.collection.JavaConversions.asScalaIterator
+import scala.collection.JavaConversions.iterableAsScalaIterable
+
+import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVRecord
 
-import scala.collection.JavaConversions._
-import java.io.StringReader
-import java.io.Reader
+import edu.uchicago.cs.encsel.parser.Parser
+import edu.uchicago.cs.encsel.parser.Record
+import edu.uchicago.cs.encsel.schema.Schema
 
 class CommonsCSVParser extends Parser {
 
@@ -53,19 +54,28 @@ class CommonsCSVParser extends Parser {
     }
     var parser = format.parse(reader)
 
-    var iterator = parser.iterator()
+    var csvrecords = parser.iterator()
 
     if (schema == null) {
       // Fetch a record to guess schema name
-      var firstrec = iterator.next()
+      var firstrec = csvrecords.next()
       guessedHeader = firstrec.iterator().toArray
     }
-    iterator.map(new CSVRecordWrapper(_)).toIterable
+
+    return new java.lang.Iterable[Record]() {
+      override def iterator(): java.util.Iterator[Record] = new MyIterator(csvrecords)
+    }
+    //iterator.map(new CSVRecordWrapper(_)).toIterable
   }
 
   var guessedHeader: Array[String] = null;
 
   override def guessHeaderName: Array[String] = guessedHeader
+}
+
+class MyIterator(inner: Iterator[CSVRecord]) extends java.util.Iterator[Record] {
+  def hasNext: Boolean = inner.hasNext
+  def next(): CSVRecordWrapper = new CSVRecordWrapper(inner.next())
 }
 
 class CSVRecordWrapper(inner: CSVRecord) extends Record {
