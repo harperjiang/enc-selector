@@ -24,7 +24,7 @@ class JsonParserTest {
   def testGuessHeader: Unit = {
     var parser = new LineJsonParser
     var records = parser.parse(new File("src/test/resource/test_json_parser.json").toURI(), null).toArray
-    assertArrayEquals(Array[Object]("add", "gender", "id", "name"), parser.guessHeaderName().toArray[Object])
+    assertArrayEquals(Array[Object]("add", "gender", "id", "name"), parser.guessHeaderName.toArray[Object])
     assertEquals(5, records.size)
     assertEquals(4, records(0).length())
     assertEquals("""$$male$$34$${"a":"x","b":"c"}""", records(2).toString())

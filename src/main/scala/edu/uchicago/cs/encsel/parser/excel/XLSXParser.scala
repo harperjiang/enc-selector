@@ -40,7 +40,7 @@ import edu.uchicago.cs.encsel.schema.Schema
 
 class XLSXParser extends Parser {
 
-  override def parse(inputFile: URI, schema: Schema): Iterable[Record] = {
+  override def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
     var workbook = new XSSFWorkbook(new File(inputFile))
@@ -59,13 +59,8 @@ class XLSXParser extends Parser {
       // Skip first row as header
       iterator.next()
     }
-
-    iterator.map { row => new XSSFRowRecord(row.asInstanceOf[XSSFRow]) }.toIterable
+    iterator.map { row => new XSSFRowRecord(row.asInstanceOf[XSSFRow]) }
   }
-
-  var guessedHeader: Array[String] = null;
-
-  override def guessHeaderName: Array[String] = guessedHeader
 
 }
 

@@ -31,18 +31,31 @@ import scala.io.Source
 import org.slf4j.LoggerFactory
 
 import edu.uchicago.cs.encsel.schema.Schema
+import scala.collection.Iterator.JoinIterator
 
 trait Parser {
 
   var schema: Schema = null
+  protected var headerInline = false
+  protected var logger = LoggerFactory.getLogger(getClass())
 
-  var logger = LoggerFactory.getLogger(getClass())
-
-  def parse(inputFile: URI, schema: Schema): Iterable[Record] = {
+  def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
     this.schema = schema
-    return Source.fromFile(inputFile).getLines()
+
+    var lines = Source.fromFile(inputFile).getLines()
       .filter(!_.trim().isEmpty())
-      .map { parseLineIgnoreError(_) }.filter(_ != Record.EMPTY).toIterable
+
+    if (null == schema) {
+      // Guess header, need to retrieve a line
+      var line = lines.next()
+      guessHeader(line)
+      if (headerInline) {
+        // Put the line back
+        var lb = Array(line).toIterator ++ (lines)
+        return lb.map { parseLineIgnoreError(_) }.filter(_ != Record.EMPTY)
+      }
+    }
+    return lines.map { parseLineIgnoreError(_) }.filter(_ != Record.EMPTY)
   }
 
   def parseLineIgnoreError(line: String): Record = {
@@ -56,7 +69,9 @@ trait Parser {
     }
   }
 
-  def parseLine(line: String): Record = Record.EMPTY
+  protected def guessHeader(line: String): Unit = {}
+  protected var guessedHeader: Array[String] = null;
+  def guessHeaderName: Array[String] = guessedHeader
 
-  def guessHeaderName(): Array[String] = Array[String]();
+  def parseLine(line: String): Record = Record.EMPTY
 }

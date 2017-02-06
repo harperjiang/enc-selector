@@ -41,13 +41,9 @@ import edu.uchicago.cs.encsel.schema.Schema
 
 class CommonsCSVParser extends Parser {
 
-  override def parse(inputFile: URI, schema: Schema): Iterable[Record] = {
-    parse(new FileReader(new File(inputFile)), schema)
-  }
-
-  protected def parse(reader: Reader, schema: Schema): Iterable[Record] = {
+  override def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
     this.schema = schema
-
+    var reader = new FileReader(new File(inputFile))
     var format = CSVFormat.EXCEL
     if (schema != null && schema.hasHeader) {
       format = format.withFirstRecordAsHeader()
@@ -62,20 +58,8 @@ class CommonsCSVParser extends Parser {
       guessedHeader = firstrec.iterator().toArray
     }
 
-    return new java.lang.Iterable[Record]() {
-      override def iterator(): java.util.Iterator[Record] = new MyIterator(csvrecords)
-    }
-    //iterator.map(new CSVRecordWrapper(_)).toIterable
+    csvrecords.map(new CSVRecordWrapper(_))
   }
-
-  var guessedHeader: Array[String] = null;
-
-  override def guessHeaderName: Array[String] = guessedHeader
-}
-
-class MyIterator(inner: Iterator[CSVRecord]) extends java.util.Iterator[Record] {
-  def hasNext: Boolean = inner.hasNext
-  def next(): CSVRecordWrapper = new CSVRecordWrapper(inner.next())
 }
 
 class CSVRecordWrapper(inner: CSVRecord) extends Record {

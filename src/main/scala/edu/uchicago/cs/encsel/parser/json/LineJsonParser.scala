@@ -32,6 +32,9 @@ import com.google.gson.JsonObject
 import edu.uchicago.cs.encsel.parser.DefaultRecord
 import edu.uchicago.cs.encsel.parser.Parser
 import edu.uchicago.cs.encsel.parser.Record
+import edu.uchicago.cs.encsel.schema.Schema
+import scala.io.Source
+import java.net.URI
 
 /**
  * This Parser parse per-line json object format, which
@@ -39,6 +42,7 @@ import edu.uchicago.cs.encsel.parser.Record
  */
 class LineJsonParser extends Parser {
 
+  headerInline = true
   var jsonParser = new com.google.gson.JsonParser
 
   override def parseLine(line: String): Record = {
@@ -46,16 +50,14 @@ class LineJsonParser extends Parser {
     if (schema != null) {
       new DefaultRecord(schema.columns.map(f => jsonField(jsonObject, f._2)).toArray)
     } else { // Read keys and order
-      if (guessedHeader == null) {
-        guessedHeader = jsonObject.entrySet().map(f => f.getKey).toList.sorted.toArray
-      }
       new DefaultRecord(guessedHeader.map(key => jsonField(jsonObject, key)).toArray)
     }
   }
 
-  var guessedHeader: Array[String] = null;
-
-  override def guessHeaderName: Array[String] = guessedHeader
+  protected override def guessHeader(line: String): Unit = {
+    var jsonObject = jsonParser.parse(line).getAsJsonObject
+    guessedHeader = jsonObject.entrySet().map(f => f.getKey).toList.sorted.toArray
+  }
 
   protected def jsonField(jsonObject: JsonObject, key: String): String = {
     if (jsonObject.has(key))

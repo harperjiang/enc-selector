@@ -20,7 +20,7 @@ class TSVParserTest {
   def testGuessHeader: Unit = {
     var parser = new TSVParser
     var records = parser.parse(new File("src/test/resource/test_tsv_parser.tsv").toURI(), null).toArray
-    assertArrayEquals(Array[Object]("M", "W", "N", "O"), parser.guessHeaderName().toArray[Object])
+    assertArrayEquals(Array[Object]("M", "W", "N", "O"), parser.guessHeaderName.toArray[Object])
     assertEquals(5, records.size)
     assertEquals(4, records(0).length())
     assertEquals("3$$3.3$$Good Dog2$$7", records(2).toString())
