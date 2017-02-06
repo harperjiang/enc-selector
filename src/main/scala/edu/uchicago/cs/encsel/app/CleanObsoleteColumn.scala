@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +19,19 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.app
 
+import scala.io.Source
+
 object CleanObsoleteColumn extends App {
-  
+
+  var lines = Source.fromFile("src/test/resource/test_csv_parser.csv").getLines()
+  var line = lines.next()
+  var lines2 = Array(line).toIterator ++ lines
+  lines2.foreach { println(_) }
+  System.exit(0)
+
 }

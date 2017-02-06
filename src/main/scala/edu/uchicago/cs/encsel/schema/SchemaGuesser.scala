@@ -46,7 +46,7 @@ class SchemaGuesser {
     }
     var records = parser.parse(file, null)
 
-    var guessedHeader = parser.guessHeaderName()
+    var guessedHeader = parser.guessHeaderName
     var columns = guessedHeader.map(_.replaceAll("\\s+", "_"))
       .map((DataType.BOOLEAN, _)).toArray
 
