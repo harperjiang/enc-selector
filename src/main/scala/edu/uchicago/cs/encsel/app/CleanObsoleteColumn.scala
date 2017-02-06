@@ -29,9 +29,10 @@ import scala.io.Source
 object CleanObsoleteColumn extends App {
 
   var lines = Source.fromFile("src/test/resource/test_csv_parser.csv").getLines()
-  var line = lines.next()
-  var lines2 = Array(line).toIterator ++ lines
-  lines2.foreach { println(_) }
+  var line: String = lines.next()
+  lines = Iterator(line +: lines.toSeq: _*)
+
+  lines.foreach { println(_) }
   System.exit(0)
 
 }

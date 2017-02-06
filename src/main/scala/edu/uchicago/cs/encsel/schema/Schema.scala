@@ -93,7 +93,7 @@ object Schema {
     writer.close();
   }
 
-  private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([\\d\\w_]+);\\s*$".r
+  private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([^\\s]+);\\s*$".r
   private val hasheaderp = "^\\s*has_header\\s*$".r
   private val noheaderp = "^\\s*no_header\\s*$".r
 
@@ -102,7 +102,7 @@ object Schema {
       case "int32" => DataType.INTEGER
       case "int64" => DataType.LONG
       case "binary" => DataType.STRING
-      case "double" => DataType.FLOAT
+      case "double" => DataType.DOUBLE
       case "float" => DataType.FLOAT
       case "boolean" => DataType.BOOLEAN
       case _ => throw new IllegalArgumentException(parquetType)
