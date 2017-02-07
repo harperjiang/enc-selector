@@ -22,7 +22,7 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.persist.impl
+package edu.uchicago.cs.encsel.persist.file
 
 import java.io.File
 import java.io.FileInputStream

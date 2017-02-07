@@ -9,6 +9,7 @@ import org.junit.Assert._
 import scala.collection.mutable.ArrayBuffer
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.model.DataType
+import edu.uchicago.cs.encsel.persist.file.FilePersistence;
 
 class FilePersistenceTest {
 
