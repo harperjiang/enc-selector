@@ -23,7 +23,7 @@
 package edu.uchicago.cs.encsel.persist
 
 import edu.uchicago.cs.encsel.column.Column
-import edu.uchicago.cs.encsel.persist.impl.FilePersistence
+import edu.uchicago.cs.encsel.persist.file.FilePersistence
 
 /**
  * Interface for persisting columns and features
