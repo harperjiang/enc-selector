@@ -22,37 +22,33 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel
+package edu.uchicago.cs.encsel.column.listener
 
-import java.util.Properties
-import java.io.FileNotFoundException
 import org.slf4j.LoggerFactory
+import edu.uchicago.cs.encsel.Config
 
-object Config {
+class FailureStopper extends ColumnReaderListener {
 
-  var collectorThreadCount = 10
-
-  var columnReaderEnableCheck = true
-  var columnReaderErrorLimit = 100
-  var columnFolder = "./columns"
-
-  load()
+  var failedCount = 0
 
   var logger = LoggerFactory.getLogger(getClass())
 
-  def load(): Unit = {
-    try {
-      var p = new Properties()
-      p.load(Thread.currentThread().getContextClassLoader.getResourceAsStream("config.properties"))
+  def start(event: ColumnReaderEvent): Unit = {
+    failedCount = 0
+  }
 
-      collectorThreadCount = Integer.parseInt(p.getProperty("collector.threadCount"))
-      columnReaderEnableCheck = "true".equals(p.getProperty("column.readerEnableCheck"))
-      columnReaderErrorLimit = Integer.parseInt(p.getProperty("column.readerErrorLimit"))
-      columnFolder = p.getProperty("column.folder")
-    } catch {
-      case e: Exception => {
-        logger.warn("Failed to load configuration", e)
-      }
+  def readRecord(event: ColumnReaderEvent): Unit = {
+  }
+
+  def failRecord(event: ColumnReaderEvent): Unit = {
+    failedCount += 1
+    if (Config.columnReaderErrorLimit >= 0 && failedCount >= Config.columnReaderErrorLimit) {
+      throw new IllegalArgumentException("Too many errors encountered, stop processing")
     }
   }
+
+  def done(event: ColumnReaderEvent): Unit = {
+
+  }
+
 }
