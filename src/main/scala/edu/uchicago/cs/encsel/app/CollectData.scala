@@ -43,6 +43,7 @@ import edu.uchicago.cs.encsel.feature.Features
 
 import scala.collection.JavaConversions._
 import edu.uchicago.cs.encsel.util.FileUtils
+import java.util.concurrent.TimeUnit
 
 object CollectData extends App {
   var f = new File(args(0))
@@ -65,6 +66,7 @@ class DataCollector {
     }
     threadPool.invokeAll(tasks)
     threadPool.shutdown()
+    threadPool.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
   }
 
   def collect(source: URI): Unit = {
