@@ -64,6 +64,7 @@ class DataCollector {
       }
     }
     threadPool.invokeAll(tasks)
+    threadPool.shutdown()
   }
 
   def collect(source: URI): Unit = {
