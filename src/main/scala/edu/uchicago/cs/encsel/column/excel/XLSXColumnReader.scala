@@ -70,9 +70,9 @@ class XLSXColumnReader extends ColumnReader {
         fireReadRecord(source)
         var row = record.asInstanceOf[XSSFRow]
         if (!validate(row, schema)) {
-          fireFailRecord(source)
           logger.warn("Malformated record in %s at %d found, skipping: %s"
             .format(source.toString, record.getRowNum, record.toString))
+          fireFailRecord(source)
         } else {
           colWithWriter.foreach(pair => {
             var col = pair._1

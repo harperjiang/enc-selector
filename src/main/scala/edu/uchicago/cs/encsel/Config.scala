@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +19,9 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel
 
 import java.util.Properties
@@ -29,8 +31,9 @@ import org.slf4j.LoggerFactory
 object Config {
 
   var collectorThreadCount = 10
-  
+
   var columnReaderEnableCheck = true
+  var columnReaderErrorLimit = 100
   var columnFolder = "./columns"
 
   load()
@@ -41,9 +44,10 @@ object Config {
     try {
       var p = new Properties()
       p.load(Thread.currentThread().getContextClassLoader.getResourceAsStream("config.properties"))
-      
+
       collectorThreadCount = Integer.parseInt(p.getProperty("collector.threadCount"))
       columnReaderEnableCheck = "true".equals(p.getProperty("column.readerEnableCheck"))
+      columnReaderErrorLimit = Integer.parseInt(p.getProperty("column.readerErrorLimit"))
       columnFolder = p.getProperty("column.folder")
     } catch {
       case e: Exception => {

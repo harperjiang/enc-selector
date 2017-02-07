@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +19,9 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.column
 
 import java.net.URI
@@ -35,6 +37,7 @@ import edu.uchicago.cs.encsel.column.listener.ColumnReaderListener
 import edu.uchicago.cs.encsel.column.listener.ColumnReaderEvent
 import edu.uchicago.cs.encsel.column.listener.FailureMonitor
 import edu.uchicago.cs.encsel.schema.Schema
+import edu.uchicago.cs.encsel.column.listener.FailureStopper
 
 trait ColumnReader {
 
@@ -42,7 +45,8 @@ trait ColumnReader {
   protected var eventSupport = new EventListenerSupport(classOf[ColumnReaderListener])
 
   eventSupport.addListener(new FailureMonitor)
-  
+  eventSupport.addListener(new FailureStopper)
+
   def readColumn(source: URI, schema: Schema): Iterable[Column]
 
   protected def allocTempFolder(source: URI): Path = {

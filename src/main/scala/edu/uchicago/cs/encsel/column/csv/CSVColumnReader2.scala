@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +19,9 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.column.csv
 
 import java.io.File
@@ -67,8 +69,8 @@ class CSVColumnReader2 extends ColumnReader {
       {
         fireReadRecord(source)
         if (!validate(record, schema)) {
-          fireFailRecord(source)
           logger.warn("Malformated record at " + record.getRecordNumber + " found, skipping:" + record.toString)
+          fireFailRecord(source)
         } else {
           record.iterator().zipWithIndex.foreach(rec => {
             colWithWriter(rec._2)._2.println(rec._1)
