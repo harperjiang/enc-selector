@@ -22,37 +22,37 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.encsel.persist.jpa
 
-import edu.uchicago.cs.encsel.persist.Persistence
-import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.feature.EncFileSize
-import scala.collection.mutable.ArrayBuffer
+import javax.persistence.Entity
+import javax.persistence.Table
+import edu.uchicago.cs.encsel.feature.Feature
+import javax.persistence.Embeddable
+import javax.persistence.Column
 
-object FileSizeSummary extends App {
+@Embeddable
+class FeatureWrapper {
 
-  var columns = Persistence.get.load()
+  @Column(name = "feature_type")
+  var featureType: String = null
 
-  var intres = new ArrayBuffer[String]()
-  var strres = new ArrayBuffer[String]()
-  columns.foreach { col =>
-    {
-      var res = "%s,%s".format(col.colName,
-        col.features.filter { _.featureType.equals("EncFileSize") }
-          .map { f => (f.name, f.value) }.toList.sorted.map(p => p._2.toInt.toString()).mkString(","))
-      col.dataType match {
-        case DataType.INTEGER => {
-          intres += res
-        }
-        case DataType.STRING => {
-          strres += res
-        }
-        case _ => {}
-      }
-    }
+  @Column(name = "name")
+  var name: String = null
+
+  @Column(name = "value")
+  var value: Double = -1
+
+  def toFeature: Feature = {
+    new Feature(featureType, name, value)
   }
-  System.out.println("Integer Records")
-  System.out.println(intres.mkString("\n"))
-  System.out.println("String Records")
-  System.out.println(strres.mkString("\n"))
+}
+
+object FeatureWrapper {
+  def fromFeature(feature: Feature): FeatureWrapper = {
+    var wrapper = new FeatureWrapper
+    wrapper.featureType = feature.featureType
+    wrapper.name = feature.name
+    wrapper.value = feature.value
+    wrapper
+  }
 }
