@@ -42,13 +42,16 @@ import javax.persistence.GeneratedValue
 import javax.persistence.JoinColumn
 import javax.persistence.GenerationType
 import scala.collection.mutable.ListBuffer
+import javax.persistence.TableGenerator
 
 @Entity(name = "Column")
 @Table(name = "col_data")
 class ColumnWrapper {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @TableGenerator(name = "TABLE_GEN", table = "seq_table", pkColumnName = "name",
+    valueColumnName = "counter", pkColumnValue = "COL_DATA")
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "TABLE_GEN")
   @javax.persistence.Column(name = "id")
   var id: Int = -1
 
