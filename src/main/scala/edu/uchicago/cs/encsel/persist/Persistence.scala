@@ -24,6 +24,7 @@ package edu.uchicago.cs.encsel.persist
 
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.persist.file.FilePersistence
+import edu.uchicago.cs.encsel.persist.jpa.JPAPersistence
 
 /**
  * Interface for persisting columns and features
@@ -35,6 +36,6 @@ trait Persistence {
 }
 
 object Persistence {
-  private var impl = new FilePersistence
+  private var impl = new JPAPersistence
   def get: Persistence = impl
 }
