@@ -1,15 +1,16 @@
-package edu.uchicago.cs.encsel.persist.impl
+package edu.uchicago.cs.encsel.persist.file
 
 import java.io.File
 import java.nio.file.Files
 
+import scala.collection.mutable.ArrayBuffer
+
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert._
-import scala.collection.mutable.ArrayBuffer
+
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.persist.file.FilePersistence;
 
 class FilePersistenceTest {
 

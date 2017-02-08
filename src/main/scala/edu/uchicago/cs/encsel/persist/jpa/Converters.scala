@@ -27,22 +27,18 @@ package edu.uchicago.cs.encsel.persist.jpa
 
 import java.net.URI
 
-import org.eclipse.persistence.mappings.DatabaseMapping
-import org.eclipse.persistence.mappings.converters.Converter
-import org.eclipse.persistence.sessions.Session
-
 import edu.uchicago.cs.encsel.model.DataType
+import javax.persistence.AttributeConverter
 
-class URIConverter extends Converter {
-  def convertObjectValueToDataValue(objectValue: Object, session: Session): Object = objectValue.asInstanceOf[URI].toString
-  def convertDataValueToObjectValue(dataValue: Object, session: Session): Object = new URI(dataValue.toString)
-  def isMutable(): Boolean = false
-  def initialize(mapping: DatabaseMapping, session: Session): Unit = {}
+@javax.persistence.Converter
+class URIConverter extends AttributeConverter[URI,String] {
+  def convertToDatabaseColumn(objectValue: URI): String = objectValue.asInstanceOf[URI].toString
+  def convertToEntityAttribute(dataValue: String): URI = new URI(dataValue.toString)
 }
 
-class DataTypeConverter extends Converter {
-  def convertObjectValueToDataValue(objectValue: Object, session: Session): Object = objectValue.asInstanceOf[DataType].name()
-  def convertDataValueToObjectValue(dataValue: Object, session: Session): Object = DataType.valueOf(dataValue.toString)
-  def isMutable(): Boolean = false
-  def initialize(mapping: DatabaseMapping, session: Session): Unit = {}
+@javax.persistence.Converter
+class DataTypeConverter extends AttributeConverter[DataType,String] {
+  def convertToDatabaseColumn(objectValue: DataType): String = objectValue.asInstanceOf[DataType].name()
+  def convertToEntityAttribute(dataValue: String): DataType = DataType.valueOf(dataValue.toString)
+  
 }

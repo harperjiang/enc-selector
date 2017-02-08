@@ -33,7 +33,7 @@ import javax.persistence.Column
 @Embeddable
 class FeatureWrapper {
 
-  @Column(name = "feature_type")
+  @Column(name = "type")
   var featureType: String = null
 
   @Column(name = "name")

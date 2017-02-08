@@ -27,7 +27,7 @@ package edu.uchicago.cs.encsel.persist.jpa
 
 import java.net.URI
 
-import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions._
 
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.model.DataType
@@ -41,19 +41,20 @@ import javax.persistence.Table
 import javax.persistence.GeneratedValue
 import javax.persistence.JoinColumn
 import javax.persistence.GenerationType
+import scala.collection.mutable.ListBuffer
 
 @Entity(name = "Column")
 @Table(name = "col_data")
 class ColumnWrapper {
 
   @Id
-  @GeneratedValue(strategy=GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   @javax.persistence.Column(name = "id")
-  private var id: Int = -1
+  var id: Int = -1
 
   @javax.persistence.Column(name = "origin_uri")
   @Convert(converter = classOf[URIConverter])
-  private var origin: URI = null
+  var origin: URI = null
 
   @javax.persistence.Column(name = "idx")
   var colIndex: Int = -1
@@ -89,6 +90,8 @@ object ColumnWrapper {
     wrapper.colIndex = col.colIndex
     wrapper.dataType = col.dataType
     wrapper.origin = col.origin
+
+    wrapper.features = ListBuffer(col.features.map { FeatureWrapper.fromFeature(_) }.toSeq: _*)
   }
 }
 
