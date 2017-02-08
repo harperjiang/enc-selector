@@ -68,18 +68,13 @@ class FilePersistence extends Persistence {
 
   def load(): Iterable[Column] = {
     this.synchronized {
-      try {
-        if (null == datalist || datalist.isEmpty) {
-          var objreader = new ObjectInputStream(new FileInputStream(storage))
-          datalist = objreader.readObject().asInstanceOf[ArrayBuffer[Column]]
-          objreader.close()
-        }
-        return datalist.clone()
-      } catch {
-        case e: Exception => {
-          return Iterable[Column]()
-        }
-      }
+
+      var objreader = new ObjectInputStream(new FileInputStream(storage))
+      var data = objreader.readObject().asInstanceOf[ArrayBuffer[Column]]
+      objreader.close()
+
+      return data.clone()
+
     }
   }
 }
