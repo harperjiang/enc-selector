@@ -36,6 +36,7 @@ import scala.collection.mutable.ArrayBuffer
 import edu.uchicago.cs.encsel.persist.Persistence
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.persist.Persistence
+import java.io.FileNotFoundException
 
 /**
  * A thread safe implementation of <code>Persistence</code> backed by file storage
@@ -68,13 +69,17 @@ class FilePersistence extends Persistence {
 
   def load(): Iterable[Column] = {
     this.synchronized {
+      try {
+        var objreader = new ObjectInputStream(new FileInputStream(storage))
+        var data = objreader.readObject().asInstanceOf[ArrayBuffer[Column]]
+        objreader.close()
 
-      var objreader = new ObjectInputStream(new FileInputStream(storage))
-      var data = objreader.readObject().asInstanceOf[ArrayBuffer[Column]]
-      objreader.close()
-
-      return data.clone()
-
+        return data.clone()
+      } catch {
+        case e: FileNotFoundException => {
+          return Iterable[Column]()
+        }
+      }
     }
   }
 }
