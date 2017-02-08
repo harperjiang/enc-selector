@@ -181,7 +181,7 @@
 					</execution>
 					<execution>
 						<id>restore-persistence</id>
-						<phase>pre-package</phase>
+						<phase>prepare-package</phase>
 						<configuration>
 							<tasks>
 								<!-- restore the " proper " persistence.xml -->
