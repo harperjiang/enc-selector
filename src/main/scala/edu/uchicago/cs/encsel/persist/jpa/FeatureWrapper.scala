@@ -22,17 +22,37 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.feature
+package edu.uchicago.cs.encsel.persist.jpa
 
-final class Feature(t: String) extends Serializable {
+import javax.persistence.Entity
+import javax.persistence.Table
+import edu.uchicago.cs.encsel.feature.Feature
+import javax.persistence.Embeddable
+import javax.persistence.Column
 
-  var featureType: String = t
+@Embeddable
+class FeatureWrapper {
+
+  @Column(name = "feature_type")
+  var featureType: String = null
+
+  @Column(name = "name")
   var name: String = null
+
+  @Column(name = "value")
   var value: Double = -1
 
-  def this(t: String, n: String, v: Double) {
-    this(t)
-    this.name = n
-    this.value = v
+  def toFeature: Feature = {
+    new Feature(featureType, name, value)
+  }
+}
+
+object FeatureWrapper {
+  def fromFeature(feature: Feature): FeatureWrapper = {
+    var wrapper = new FeatureWrapper
+    wrapper.featureType = feature.featureType
+    wrapper.name = feature.name
+    wrapper.value = feature.value
+    wrapper
   }
 }

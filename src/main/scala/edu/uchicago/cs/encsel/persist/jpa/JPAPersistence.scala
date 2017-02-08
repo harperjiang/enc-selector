@@ -22,37 +22,36 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.app
 
+package edu.uchicago.cs.encsel.persist.jpa
+
+import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.persist.Persistence
-import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.feature.EncFileSize
-import scala.collection.mutable.ArrayBuffer
+import org.eclipse.persistence.queries.ReadAllQuery
 
-object FileSizeSummary extends App {
+import scala.collection.JavaConversions._
 
-  var columns = Persistence.get.load()
+class JPAPersistence extends Persistence {
 
-  var intres = new ArrayBuffer[String]()
-  var strres = new ArrayBuffer[String]()
-  columns.foreach { col =>
-    {
-      var res = "%s,%s".format(col.colName,
-        col.features.filter { _.featureType.equals("EncFileSize") }
-          .map { f => (f.name, f.value) }.toList.sorted.map(p => p._2.toInt.toString()).mkString(","))
-      col.dataType match {
-        case DataType.INTEGER => {
-          intres += res
-        }
-        case DataType.STRING => {
-          strres += res
-        }
-        case _ => {}
-      }
-    }
+  def save(datalist: Iterable[Column]) = {
+    JPAPersistence.em.getTransaction.begin()
+    datalist.map(ColumnWrapper.fromColumn(_)).foreach { JPAPersistence.em.persist(_) }
+    JPAPersistence.em.getTransaction.commit()
   }
-  System.out.println("Integer Records")
-  System.out.println(intres.mkString("\n"))
-  System.out.println("String Records")
-  System.out.println(strres.mkString("\n"))
+
+  def load(): Iterable[Column] = {
+    var query = JPAPersistence.em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
+    query.getResultList.map(_.toColumn).toIterable
+  }
+
+  def clean() = {
+    JPAPersistence.em.getTransaction.begin()
+    var query = JPAPersistence.em.createQuery("DELETE FROM Column c", classOf[ColumnWrapper])
+    query.executeUpdate()
+    JPAPersistence.em.getTransaction.commit()
+  }
+}
+
+object JPAPersistence {
+  var em = javax.persistence.Persistence.createEntityManagerFactory("enc-selector").createEntityManager()
 }

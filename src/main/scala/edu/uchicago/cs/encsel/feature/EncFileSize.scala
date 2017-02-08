@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +19,9 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.feature
 
 import java.io.File
@@ -33,14 +35,6 @@ import edu.uchicago.cs.encsel.model.IntEncoding
 import edu.uchicago.cs.encsel.model.StringEncoding
 import edu.uchicago.cs.encsel.parquet.ParquetWriterHelper
 
-class EncFileSize(f: File, enc: String) extends Feature {
-  var size = f.length
-  var encName = "%s_file_size".format(enc)
-
-  def name = encName
-  def value = size
-}
-
 object EncFileSize extends FeatureExtractor {
 
   def extract(col: Column): Iterable[Feature] = {
@@ -49,7 +43,7 @@ object EncFileSize extends FeatureExtractor {
         StringEncoding.values().map { e =>
           {
             var f = ParquetWriterHelper.singleColumnString(col.colFile, e)
-            new EncFileSize(new File(f), e.name())
+            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -57,7 +51,7 @@ object EncFileSize extends FeatureExtractor {
         IntEncoding.values().map { e =>
           {
             var f = ParquetWriterHelper.singleColumnLong(col.colFile, e)
-            new EncFileSize(new File(f), e.name())
+            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -65,7 +59,7 @@ object EncFileSize extends FeatureExtractor {
         IntEncoding.values().map { e =>
           {
             var f = ParquetWriterHelper.singleColumnInt(col.colFile, e)
-            new EncFileSize(new File(f), e.name())
+            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -73,7 +67,7 @@ object EncFileSize extends FeatureExtractor {
         FloatEncoding.values().map { e =>
           {
             var f = ParquetWriterHelper.singleColumnFloat(col.colFile, e)
-            new EncFileSize(new File(f), e.name())
+            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -81,7 +75,7 @@ object EncFileSize extends FeatureExtractor {
         FloatEncoding.values().map { e =>
           {
             var f = ParquetWriterHelper.singleColumnDouble(col.colFile, e)
-            new EncFileSize(new File(f), e.name())
+            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
