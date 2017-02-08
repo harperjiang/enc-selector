@@ -173,7 +173,7 @@
 								<copy
 									file="${project.build.testOutputDirectory}/META-INF/persistence.xml"
 									tofile="${project.build.outputDirectory}/META-INF/persistence.xml"
-									overwrite="true" />
+									/>
 							</target>
 						</configuration>
 						<goals>
