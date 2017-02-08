@@ -83,7 +83,7 @@ class ColumnWrapper {
 }
 
 object ColumnWrapper {
-  def fromColumn(col: Column) = {
+  def fromColumn(col: Column): ColumnWrapper = {
     var wrapper = new ColumnWrapper
     wrapper.colFile = col.colFile
     wrapper.colName = col.colName
@@ -92,6 +92,8 @@ object ColumnWrapper {
     wrapper.origin = col.origin
 
     wrapper.features = ListBuffer(col.features.map { FeatureWrapper.fromFeature(_) }.toSeq: _*)
+
+    wrapper
   }
 }
 
