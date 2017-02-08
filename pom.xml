@@ -172,7 +172,8 @@
 								<!--replace the "proper" persistence.xml with the "test" version -->
 								<copy
 									file="${project.build.testOutputDirectory}/META-INF/persistence.xml"
-									tofile="${project.build.outputDirectory}/META-INF/persistence.xml" />
+									tofile="${project.build.outputDirectory}/META-INF/persistence.xml"
+									overwrite="true" />
 							</target>
 						</configuration>
 						<goals>
@@ -187,7 +188,8 @@
 								<!-- restore the " proper " persistence.xml -->
 								<copy
 									file="${project.build.outputDirectory}/META-INF/persistence.xml.proper"
-									tofile="${project.build.outputDirectory}/META-INF/persistence.xml" />
+									tofile="${project.build.outputDirectory}/META-INF/persistence.xml"
+									overwrite="true" />
 							</target>
 						</configuration>
 						<goals>
