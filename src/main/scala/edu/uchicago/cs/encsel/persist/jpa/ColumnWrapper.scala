@@ -53,7 +53,7 @@ class ColumnWrapper {
     valueColumnName = "counter", pkColumnValue = "COL_DATA")
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "TABLE_GEN")
   @javax.persistence.Column(name = "id")
-  var id: Int = -1
+  var id: Int = 0
 
   @javax.persistence.Column(name = "origin_uri")
   @Convert(converter = classOf[URIConverter])
