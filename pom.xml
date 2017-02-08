@@ -164,7 +164,7 @@
 						<id>copy-test-persistence</id>
 						<phase>process-test-resources</phase>
 						<configuration>
-							<tasks>
+							<target>
 								<!--backup the "proper" persistence.xml -->
 								<copy
 									file="${project.build.outputDirectory}/META-INF/persistence.xml"
@@ -173,7 +173,7 @@
 								<copy
 									file="${project.build.testOutputDirectory}/META-INF/persistence.xml"
 									tofile="${project.build.outputDirectory}/META-INF/persistence.xml" />
-							</tasks>
+							</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
@@ -183,12 +183,12 @@
 						<id>restore-persistence</id>
 						<phase>prepare-package</phase>
 						<configuration>
-							<tasks>
+							<target>
 								<!-- restore the " proper " persistence.xml -->
 								<copy
 									file="${project.build.outputDirectory}/META-INF/persistence.xml.proper"
 									tofile="${project.build.outputDirectory}/META-INF/persistence.xml" />
-							</tasks>
+							</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
