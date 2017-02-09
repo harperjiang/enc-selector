@@ -20,15 +20,16 @@ class JPAPersistenceTest {
 
   @Before
   def cleanSchema: Unit = {
-    JPAPersistence.em.getTransaction.begin
+    var em = JPAPersistence.emf.createEntityManager()
+    em.getTransaction.begin
 
-    JPAPersistence.em.createNativeQuery("DELETE FROM feature WHERE 1 = 1;").executeUpdate()
-    JPAPersistence.em.createNativeQuery("DELETE FROM col_data WHERE 1 = 1;").executeUpdate()
-    JPAPersistence.em.flush()
+    em.createNativeQuery("DELETE FROM feature WHERE 1 = 1;").executeUpdate()
+    em.createNativeQuery("DELETE FROM col_data WHERE 1 = 1;").executeUpdate()
+    em.flush()
 
-    JPAPersistence.em.getTransaction.commit
+    em.getTransaction.commit
 
-    JPAPersistence.em.getTransaction.begin
+    em.getTransaction.begin
     var col1 = new ColumnWrapper
     col1.colName = "a"
     col1.colIndex = 5
@@ -45,9 +46,10 @@ class JPAPersistenceTest {
 
     col1.features += fea1
 
-    JPAPersistence.em.persist(col1)
+    em.persist(col1)
 
-    JPAPersistence.em.getTransaction.commit
+    em.getTransaction.commit
+    em.close
   }
 
   @Test
