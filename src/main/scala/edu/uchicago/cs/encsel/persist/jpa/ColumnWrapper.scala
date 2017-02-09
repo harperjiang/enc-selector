@@ -46,7 +46,7 @@ import javax.persistence.TableGenerator
 
 @Entity(name = "Column")
 @Table(name = "col_data")
-class ColumnWrapper {
+class ColumnWrapper extends Column {
 
   @Id
   @TableGenerator(name = "TABLE_GEN", table = "seq_table", pkColumnName = "name",
@@ -77,16 +77,12 @@ class ColumnWrapper {
   @CollectionTable(name = "feature", joinColumns = Array(new JoinColumn(name = "col_id")))
   var features: java.util.List[FeatureWrapper] = null
 
-  def toColumn(): Column = {
-    var col = new Column(origin, colIndex, colName, dataType)
-    col.colFile = this.colFile
-    col.features = this.features.map(_.toFeature).toArray.toIterable
-    col
-  }
 }
 
 object ColumnWrapper {
   def fromColumn(col: Column): ColumnWrapper = {
+    if (col.isInstanceOf[ColumnWrapper])
+      return col.asInstanceOf[ColumnWrapper]
     var wrapper = new ColumnWrapper
     wrapper.colFile = col.colFile
     wrapper.colName = col.colName
