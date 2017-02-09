@@ -34,24 +34,45 @@ import scala.collection.JavaConversions._
 class JPAPersistence extends Persistence {
 
   def save(datalist: Iterable[Column]) = {
-    JPAPersistence.em.getTransaction.begin()
-    datalist.map(ColumnWrapper.fromColumn(_)).foreach { JPAPersistence.em.persist(_) }
-    JPAPersistence.em.getTransaction.commit()
+    var em = JPAPersistence.emf.createEntityManager()
+    em.getTransaction.begin()
+    try {
+      datalist.map(ColumnWrapper.fromColumn(_)).foreach { em.persist(_) }
+      em.getTransaction.commit()
+    } catch {
+      case e: Exception => {
+        em.getTransaction.rollback()
+        throw new RuntimeException(e)
+      }
+    }
+    em.close()
   }
 
   def load(): Iterable[Column] = {
-    var query = JPAPersistence.em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
-    query.getResultList.map(_.toColumn).toIterable
+    var em = JPAPersistence.emf.createEntityManager()
+    var query = em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
+    var res = query.getResultList.map(_.toColumn).toIterable
+    em.close
+    res
   }
 
   def clean() = {
-    JPAPersistence.em.getTransaction.begin()
-    var query = JPAPersistence.em.createQuery("DELETE FROM Column c", classOf[ColumnWrapper])
-    query.executeUpdate()
-    JPAPersistence.em.getTransaction.commit()
+    var em = JPAPersistence.emf.createEntityManager()
+    em.getTransaction.begin()
+    try {
+      var query = em.createQuery("DELETE FROM Column c", classOf[ColumnWrapper])
+      query.executeUpdate()
+      em.getTransaction.commit()
+    } catch {
+      case e: Exception => {
+        em.getTransaction.rollback()
+        throw new RuntimeException(e)
+      }
+    }
+    em.close
   }
 }
 
 object JPAPersistence {
-  var em = javax.persistence.Persistence.createEntityManagerFactory("enc-selector").createEntityManager()
+  var emf = javax.persistence.Persistence.createEntityManagerFactory("enc-selector")
 }
