@@ -29,16 +29,17 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.model.DataType
 import javax.persistence.AttributeConverter
+import scala.util.Try
 
 @javax.persistence.Converter
-class URIConverter extends AttributeConverter[URI,String] {
-  def convertToDatabaseColumn(objectValue: URI): String = objectValue.asInstanceOf[URI].toString
-  def convertToEntityAttribute(dataValue: String): URI = new URI(dataValue.toString)
+class URIConverter extends AttributeConverter[URI, String] {
+  def convertToDatabaseColumn(objectValue: URI): String = Try(objectValue.asInstanceOf[URI].toString).getOrElse("")
+  def convertToEntityAttribute(dataValue: String): URI = Try { new URI(dataValue.toString) }.getOrElse(null)
 }
 
 @javax.persistence.Converter
-class DataTypeConverter extends AttributeConverter[DataType,String] {
-  def convertToDatabaseColumn(objectValue: DataType): String = objectValue.asInstanceOf[DataType].name()
-  def convertToEntityAttribute(dataValue: String): DataType = DataType.valueOf(dataValue.toString)
-  
+class DataTypeConverter extends AttributeConverter[DataType, String] {
+  def convertToDatabaseColumn(objectValue: DataType): String = Try { objectValue.asInstanceOf[DataType].name() }.getOrElse("")
+  def convertToEntityAttribute(dataValue: String): DataType = Try { DataType.valueOf(dataValue.toString) }.getOrElse(null)
+
 }
