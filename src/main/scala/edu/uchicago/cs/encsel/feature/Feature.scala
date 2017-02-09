@@ -24,11 +24,15 @@
  */
 package edu.uchicago.cs.encsel.feature
 
-final class Feature(t: String) extends Serializable {
+class Feature(t: String) extends Serializable {
 
   var featureType: String = t
   var name: String = null
   var value: Double = -1
+
+  def this() {
+    this(null)
+  }
 
   def this(t: String, n: String, v: Double) {
     this(t)

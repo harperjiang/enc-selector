@@ -31,7 +31,7 @@ import javax.persistence.Embeddable
 import javax.persistence.Column
 
 @Embeddable
-class FeatureWrapper {
+class FeatureWrapper extends Feature {
 
   @Column(name = "type")
   var featureType: String = null
@@ -42,13 +42,13 @@ class FeatureWrapper {
   @Column(name = "value")
   var value: Double = -1
 
-  def toFeature: Feature = {
-    new Feature(featureType, name, value)
-  }
 }
 
 object FeatureWrapper {
   def fromFeature(feature: Feature): FeatureWrapper = {
+    if (feature.isInstanceOf[FeatureWrapper]) {
+      return feature.asInstanceOf[FeatureWrapper]
+    }
     var wrapper = new FeatureWrapper
     wrapper.featureType = feature.featureType
     wrapper.name = feature.name

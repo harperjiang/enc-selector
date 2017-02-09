@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +19,9 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.column
 
 import java.net.URI
@@ -34,4 +36,8 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var colFile: URI = null
   var dataType = dt
   var features = Iterable[Feature]()
+
+  def this() {
+    this(null, -1, null, null)
+  }
 }

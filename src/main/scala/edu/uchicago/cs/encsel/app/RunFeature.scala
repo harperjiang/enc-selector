@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,40 +19,34 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 
-package edu.uchicago.cs.encsel.feature
+package edu.uchicago.cs.encsel.app
 
 import scala.Iterable
-import scala.collection.mutable.ArrayBuffer
 
-import org.slf4j.LoggerFactory
+import edu.uchicago.cs.encsel.feature.Sparsity
+import edu.uchicago.cs.encsel.persist.Persistence
 
-import edu.uchicago.cs.encsel.column.Column
+object RunFeature extends App {
+  var features = Iterable(Sparsity)
 
-object Features {
-  var logger = LoggerFactory.getLogger(getClass())
-  var extractors = new ArrayBuffer[FeatureExtractor]()
+  var persist = Persistence.get
 
-  install(EncFileSize)
-  install(Sparsity)
+  var cols = persist.load()
 
-  def install(fe: FeatureExtractor) = {
-    extractors += fe
-  }
-
-  def extract(input: Column): Iterable[Feature] = {
-    extractors.flatMap(ex => {
-      try {
-        ex.extract(input)
-      } catch {
-        case e: Exception => {
-          logger.error("Exception while executing %s on %s:%s, skipping"
-            .format(ex.getClass.getSimpleName, input.origin, input.colName), e)
-          Iterable[Feature]()
+  cols.foreach {
+    col =>
+      {
+        features.foreach { f =>
+          {
+            var extracted = f.extract(col)
+            col.features ++= extracted
+          }
         }
       }
-    })
   }
+  persist.save(cols)
 }

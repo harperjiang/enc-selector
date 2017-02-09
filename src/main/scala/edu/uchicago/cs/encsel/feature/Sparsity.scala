@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,40 +19,28 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 
 package edu.uchicago.cs.encsel.feature
 
-import scala.Iterable
-import scala.collection.mutable.ArrayBuffer
-
-import org.slf4j.LoggerFactory
-
 import edu.uchicago.cs.encsel.column.Column
+import scala.io.Source
 
-object Features {
-  var logger = LoggerFactory.getLogger(getClass())
-  var extractors = new ArrayBuffer[FeatureExtractor]()
-
-  install(EncFileSize)
-  install(Sparsity)
-
-  def install(fe: FeatureExtractor) = {
-    extractors += fe
-  }
-
+object Sparsity extends FeatureExtractor {
   def extract(input: Column): Iterable[Feature] = {
-    extractors.flatMap(ex => {
-      try {
-        ex.extract(input)
-      } catch {
-        case e: Exception => {
-          logger.error("Exception while executing %s on %s:%s, skipping"
-            .format(ex.getClass.getSimpleName, input.origin, input.colName), e)
-          Iterable[Feature]()
+    var counter = 0
+    var emptyCount = 0
+    Source.fromFile(input.colFile).getLines().foreach {
+      line =>
+        {
+          counter += 1
+          if (line.trim().isEmpty()) {
+            emptyCount += 1
+          }
         }
-      }
-    })
+    }
+    Iterable(new Feature("Sparsity", "", counter), new Feature("Sparsity", "", emptyCount))
   }
 }

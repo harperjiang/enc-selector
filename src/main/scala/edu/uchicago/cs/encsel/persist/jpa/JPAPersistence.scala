@@ -37,7 +37,14 @@ class JPAPersistence extends Persistence {
     var em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin()
     try {
-      datalist.map(ColumnWrapper.fromColumn(_)).foreach { em.persist(_) }
+      datalist.map(ColumnWrapper.fromColumn(_)).foreach { data =>
+        {
+          data.id match {
+            case 0 => em.persist(data)
+            case _ => em.merge(data)
+          }
+        }
+      }
       em.getTransaction.commit()
     } catch {
       case e: Exception => {
@@ -51,7 +58,7 @@ class JPAPersistence extends Persistence {
   def load(): Iterable[Column] = {
     var em = JPAPersistence.emf.createEntityManager()
     var query = em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
-    var res = query.getResultList.map(_.toColumn).toIterable
+    var res = query.getResultList.map(_.asInstanceOf[Column]).toIterable
     em.close
     res
   }
