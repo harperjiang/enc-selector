@@ -44,38 +44,9 @@ import javax.persistence.GenerationType
 import scala.collection.mutable.ListBuffer
 import javax.persistence.TableGenerator
 
-@Entity(name = "Column")
-@Table(name = "col_data")
 class ColumnWrapper extends Column {
 
-  @Id
-  @TableGenerator(name = "TABLE_GEN", table = "seq_table", pkColumnName = "name",
-    valueColumnName = "counter", pkColumnValue = "COL_DATA")
-  @GeneratedValue(strategy = GenerationType.TABLE, generator = "TABLE_GEN")
-  @javax.persistence.Column(name = "id")
   var id: Int = 0
-
-  @javax.persistence.Column(name = "origin_uri")
-  @Convert(converter = classOf[URIConverter])
-  var origin: URI = null
-
-  @javax.persistence.Column(name = "idx")
-  var colIndex: Int = -1
-
-  @javax.persistence.Column(name = "name")
-  var colName: String = null
-
-  @javax.persistence.Column(name = "file_uri")
-  @Convert(converter = classOf[URIConverter])
-  var colFile: URI = null
-
-  @javax.persistence.Column(name = "data_type")
-  @Convert(converter = classOf[DataTypeConverter])
-  var dataType: DataType = null
-
-  @ElementCollection
-  @CollectionTable(name = "feature", joinColumns = Array(new JoinColumn(name = "col_id")))
-  var features: java.util.List[FeatureWrapper] = null
 
 }
 
@@ -90,7 +61,7 @@ object ColumnWrapper {
     wrapper.dataType = col.dataType
     wrapper.origin = col.origin
 
-    wrapper.features = ListBuffer(col.features.map { FeatureWrapper.fromFeature(_) }.toSeq: _*)
+    wrapper.features = col.features
 
     wrapper
   }

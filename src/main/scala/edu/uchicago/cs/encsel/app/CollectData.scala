@@ -124,7 +124,7 @@ class DataCollector {
 
   private def extractFeature(col: Column): Unit = {
     try {
-      col.features = Features.extract(col)
+      col.features = Features.extract(col).toList
     } catch {
       case e: Exception => {
         logger.warn("Exception while processing column:%s@%s".format(col.colName, col.origin), e)
