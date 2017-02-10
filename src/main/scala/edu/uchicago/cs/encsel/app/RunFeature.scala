@@ -30,6 +30,8 @@ import scala.Iterable
 import edu.uchicago.cs.encsel.feature.Sparsity
 import edu.uchicago.cs.encsel.persist.Persistence
 
+import scala.collection.JavaConversions._
+
 object RunFeature extends App {
   var features = Iterable(Sparsity)
 

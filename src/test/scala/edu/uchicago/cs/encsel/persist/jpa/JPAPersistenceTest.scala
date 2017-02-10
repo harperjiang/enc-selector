@@ -3,9 +3,9 @@ package edu.uchicago.cs.encsel.persist.jpa
 import java.io.File
 import java.util.ArrayList
 
-import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions._
 
-import org.junit.Assert.assertEquals
+import org.junit.Assert._
 import org.junit.Before
 import org.junit.Test
 
@@ -37,9 +37,9 @@ class JPAPersistenceTest {
     col1.colFile = new File("aab").toURI
     col1.origin = new File("ccd").toURI
 
-    col1.features = new ArrayList[FeatureWrapper]
+    col1.features = new ArrayList[Feature]
 
-    var fea1 = new FeatureWrapper
+    var fea1 = new Feature
     fea1.name = "M"
     fea1.featureType = "P"
     fea1.value = 2.4
@@ -63,7 +63,7 @@ class JPAPersistenceTest {
 
     var fea1 = new Feature("W", "A", 3.5)
 
-    col1.features = Array(fea1)
+    col1.features = Array(fea1).toList
 
     jpa.save(Array(col1))
 

@@ -29,6 +29,8 @@ import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.encsel.feature.EncFileSize
 import scala.collection.mutable.ArrayBuffer
 
+import scala.collection.JavaConversions._
+
 object FileSizeSummary extends App {
 
   var columns = Persistence.get.load()

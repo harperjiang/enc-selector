@@ -44,7 +44,7 @@ import java.io.FileNotFoundException
 class FilePersistence extends Persistence {
 
   var storage = new File("storage.dat")
-  var datalist = new ArrayBuffer[Column]()
+  var datalist = new scala.collection.mutable.HashSet[Column]()
   datalist ++= load()
 
   def save(datalist: Iterable[Column]) = {

@@ -29,13 +29,15 @@ import edu.uchicago.cs.encsel.feature.Features
 import java.util.concurrent.Executors
 import edu.uchicago.cs.encsel.Config
 
+import scala.collection.JavaConversions._
+
 object ScanFeature extends App {
   var persistence = Persistence.get
   var threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
 
   def collect(): Unit = {
     var cols = persistence.load()
-    cols.foreach { col => col.features = Features.extract(col) }
+    cols.foreach { col => col.features = Features.extract(col).toList }
     persistence.clean()
     persistence.save(cols)
   }
