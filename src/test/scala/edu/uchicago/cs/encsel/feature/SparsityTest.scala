@@ -14,7 +14,7 @@ class SparsityTest {
     col.colFile = new File("src/test/resource/test_col_sparsity.data").toURI()
 
     var features = Sparsity.extract(col)
-    assertEquals(2, features.size)
+    assertEquals(3, features.size)
 
     var farray = features.toArray
 
@@ -25,6 +25,10 @@ class SparsityTest {
     assertEquals("Sparsity", farray(1).featureType)
     assertEquals("empty_count", farray(1).name)
     assertEquals(4, farray(1).value, 0.01)
+    
+    assertEquals("Sparsity", farray(2).featureType)
+    assertEquals("valid_ratio", farray(2).name)
+    assertEquals(0.7142, farray(2).value, 0.01)
 
   }
 }
