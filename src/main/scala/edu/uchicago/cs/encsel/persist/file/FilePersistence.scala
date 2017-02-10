@@ -37,6 +37,7 @@ import edu.uchicago.cs.encsel.persist.Persistence
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.persist.Persistence
 import java.io.FileNotFoundException
+import scala.collection.mutable.HashSet
 
 /**
  * A thread safe implementation of <code>Persistence</code> backed by file storage
@@ -71,7 +72,7 @@ class FilePersistence extends Persistence {
     this.synchronized {
       try {
         var objreader = new ObjectInputStream(new FileInputStream(storage))
-        var data = objreader.readObject().asInstanceOf[ArrayBuffer[Column]]
+        var data = objreader.readObject().asInstanceOf[HashSet[Column]]
         objreader.close()
 
         return data.clone()

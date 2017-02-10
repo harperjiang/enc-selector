@@ -30,6 +30,11 @@ class FilePersistenceTest {
     dl += new Column(null, 1, "", DataType.STRING)
 
     fp.save(dl)
+    
+    fp.save(dl)
+    
+    var res = fp.load()
+    assertEquals(2, res.size)
   }
 
   @Test

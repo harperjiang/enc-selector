@@ -31,6 +31,7 @@ class JPAPersistenceTest {
 
     em.getTransaction.begin
     var col1 = new ColumnWrapper
+    col1.id = 2
     col1.colName = "a"
     col1.colIndex = 5
     col1.dataType = DataType.STRING
@@ -91,6 +92,34 @@ class JPAPersistenceTest {
         }
       }
     })
+  }
+
+  @Test
+  def testUpdate: Unit = {
+    var jpa = new JPAPersistence
+
+    var col1 = new ColumnWrapper()
+    col1.origin = new File("dd").toURI
+    col1.colIndex = 3
+    col1.colName = "m"
+    col1.dataType = DataType.INTEGER
+    col1.id = 2
+    col1.colFile = new File("tt").toURI
+
+    col1.features = new ArrayList[Feature]
+
+    var fea1 = new Feature("W", "A", 3.5)
+
+    col1.features = Array[Feature](fea1).toList
+
+    jpa.save(Array[Column](col1))
+
+    var cols = jpa.load()
+
+    assertEquals(1, cols.size)
+    var col = cols.iterator.next()
+    assertEquals(1,col.features.size())
+    var f = col.features.iterator().next()
   }
 
   @Test

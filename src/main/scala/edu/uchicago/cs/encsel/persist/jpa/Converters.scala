@@ -30,16 +30,28 @@ import java.net.URI
 import edu.uchicago.cs.encsel.model.DataType
 import javax.persistence.AttributeConverter
 import scala.util.Try
+import org.eclipse.persistence.mappings.DatabaseMapping
+import org.eclipse.persistence.sessions.Session
+import org.eclipse.persistence.mappings.converters.Converter
 
-@javax.persistence.Converter
-class URIConverter extends AttributeConverter[URI, String] {
+class URIConverter extends AttributeConverter[URI, String] with Converter {
   def convertToDatabaseColumn(objectValue: URI): String = Try(objectValue.asInstanceOf[URI].toString).getOrElse("")
   def convertToEntityAttribute(dataValue: String): URI = Try { new URI(dataValue.toString) }.getOrElse(null)
+  
+  def convertObjectValueToDataValue(objectValue: Object, session: Session): String = convertToDatabaseColumn(objectValue.asInstanceOf[URI])
+  def convertDataValueToObjectValue(dataValue: Object, session: Session): URI = convertToEntityAttribute(dataValue.toString)
+  def isMutable(): Boolean = false
+  def initialize(mapping: DatabaseMapping, session: Session): Unit = {}
+
 }
 
-@javax.persistence.Converter
-class DataTypeConverter extends AttributeConverter[DataType, String] {
+class DataTypeConverter extends AttributeConverter[DataType, String] with Converter {
   def convertToDatabaseColumn(objectValue: DataType): String = Try { objectValue.asInstanceOf[DataType].name() }.getOrElse("")
   def convertToEntityAttribute(dataValue: String): DataType = Try { DataType.valueOf(dataValue.toString) }.getOrElse(null)
+
+  def convertObjectValueToDataValue(objectValue: Object, session: Session): Object = convertToDatabaseColumn(objectValue.asInstanceOf[DataType])
+  def convertDataValueToObjectValue(dataValue: Object, session: Session): Object = convertToEntityAttribute(dataValue.toString)
+  def isMutable(): Boolean = false
+  def initialize(mapping: DatabaseMapping, session: Session): Unit = {}
 
 }
