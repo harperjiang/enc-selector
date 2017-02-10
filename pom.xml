@@ -15,16 +15,10 @@
 				</includes>
 			</resource>
 			<resource>
-				<directory>src/main/config</directory>
-				<includes>
-					<include>**/*.xml</include>
-					<include>**/*.properties</include>
-				</includes>
-			</resource>
-			<resource>
 				<directory>src/main/resources</directory>
 				<includes>
 					<include>**/*.xml</include>
+					<include>**/*.properties</include>
 				</includes>
 			</resource>
 		</resources>
@@ -39,16 +33,10 @@
 				</excludes>
 			</testResource>
 			<testResource>
-				<directory>src/test/config</directory>
-				<includes>
-					<include>**/*.xml</include>
-					<include>**/*.properties</include>
-				</includes>
-			</testResource>
-			<testResource>
 				<directory>src/test/resources</directory>
 				<includes>
 					<include>**/*.xml</include>
+					<include>**/*.properties</include>
 				</includes>
 			</testResource>
 		</testResources>
@@ -73,7 +61,7 @@
 									</pluginExecutionFilter>
 									<action>
 										<execute>
-											<runOnIncremental>true</runOnIncremental>
+											<runOnIncremental>false</runOnIncremental>
 										</execute>
 									</action>
 								</pluginExecution>

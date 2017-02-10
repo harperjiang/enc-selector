@@ -41,6 +41,6 @@ object Sparsity extends FeatureExtractor {
           }
         }
     }
-    Iterable(new Feature("Sparsity", "", counter), new Feature("Sparsity", "", emptyCount))
+    Iterable(new Feature("Sparsity", "count", counter), new Feature("Sparsity", "empty_count", emptyCount))
   }
 }
