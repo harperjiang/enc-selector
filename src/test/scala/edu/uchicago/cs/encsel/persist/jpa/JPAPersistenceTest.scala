@@ -114,10 +114,10 @@ class JPAPersistenceTest {
 
     jpa.save(Array[Column](col1))
 
-    var cols = jpa.load()
+    var cols = jpa.load().toArray
 
     assertEquals(1, cols.size)
-    var col = cols.next()
+    var col = cols(0)
     assertEquals(1,col.features.size())
     var f = col.features.iterator().next()
   }
@@ -125,10 +125,10 @@ class JPAPersistenceTest {
   @Test
   def testLoad: Unit = {
     var jpa = new JPAPersistence
-    var cols = jpa.load()
+    var cols = jpa.load().toArray
 
     assertEquals(1, cols.size)
-    var col = cols.next()
+    var col = cols(0)
     assertEquals(DataType.STRING, col.dataType)
     assertEquals(5, col.colIndex)
     assertEquals("a", col.colName)
