@@ -35,6 +35,8 @@ object Length extends FeatureExtractor {
   def extract(input: Column): Iterable[Feature] = {
     var length = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty(_)).map(_.length().toDouble).toTraversable
+    if (0 == length.size)
+      return Iterable[Feature]()
     var statforlen = DataUtils.stat(length)
 
     Iterable(

@@ -39,6 +39,8 @@ object Entropy extends FeatureExtractor {
     var lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty(_))
       .map(line => { allcalc.add(line); entropy(line) }).toTraversable
+    if (0 == lineEntropy.size)
+      return Iterable[Feature]()
     var stat = DataUtils.stat(lineEntropy)
     Iterable(new Feature("Entropy", "line_max", lineEntropy.max),
       new Feature("Entropy", "line_min", lineEntropy.min),
