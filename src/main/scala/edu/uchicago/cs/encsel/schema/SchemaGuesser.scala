@@ -32,6 +32,7 @@ import edu.uchicago.cs.encsel.model.DataType
 
 import scala.util.Try
 import org.slf4j.LoggerFactory
+import java.text.NumberFormat
 
 class SchemaGuesser {
 
@@ -68,8 +69,10 @@ class SchemaGuesser {
   }
 
   protected var booleanValues = Set("0", "1", "yes", "no", "true", "false")
-  protected val numberRegex = """[\-]?\d+""".r
-  protected val floatRegex = """[\-]?\d+(\.\d*)?""".r
+  protected val numberRegex = """[\-]?[\d,]+""".r
+  protected val floatRegex = """[\-]?[,\d]+(\.\d*)?""".r
+
+  protected val numberParser = NumberFormat.getInstance
 
   def testType(input: String, expected: DataType): DataType = {
     expected match {
@@ -82,13 +85,14 @@ class SchemaGuesser {
       case DataType.INTEGER => {
         input match {
           case numberRegex(_*) => {
-            if (input.length() >= Long.MinValue.toString.length)
-              return DataType.STRING
-            if (input.length() >= Int.MinValue.toString.length) {
-              return testType(input, DataType.LONG)
-            }
-            Try({ input.toInt; DataType.INTEGER })
-              .getOrElse(DataType.LONG)
+            Try {
+              var num = numberParser.parse(input)
+              num match {
+                case x if x.isInstanceOf[Double] => DataType.STRING // Too Long
+                case x if x.intValue() == x.longValue() => DataType.INTEGER
+                case _ => DataType.LONG
+              }
+            }.getOrElse(DataType.STRING)
           }
           case floatRegex(_*) => testType(input, DataType.DOUBLE)
           case _ => DataType.STRING
@@ -97,10 +101,13 @@ class SchemaGuesser {
       case DataType.LONG => {
         input match {
           case numberRegex(_*) => {
-            if (input.length() >= Long.MinValue.toString.length)
-              return DataType.STRING
-            Try({ input.toLong; DataType.LONG })
-              .getOrElse(DataType.STRING)
+            Try {
+              var num = numberParser.parse(input)
+              num match {
+                case x if x.isInstanceOf[Double] => DataType.STRING // Too Long
+                case _ => DataType.LONG
+              }
+            }.getOrElse(DataType.STRING)
           }
           case floatRegex(_*) => testType(input, DataType.DOUBLE)
           case _ => DataType.STRING
@@ -109,15 +116,23 @@ class SchemaGuesser {
       case DataType.FLOAT => {
         input match {
           case floatRegex(_*) =>
-            Try({ input.toFloat; DataType.FLOAT })
-              .getOrElse(testType(input, DataType.DOUBLE))
+            Try {
+              var num = numberParser.parse(input)
+              num match {
+                case x if x.floatValue() == x.doubleValue() => DataType.FLOAT
+                case _ => DataType.DOUBLE
+              }
+            }.getOrElse(DataType.STRING)
           case _ => DataType.STRING
         }
       }
       case DataType.DOUBLE => {
         input match {
           case floatRegex(_*) =>
-            Try({ input.toDouble; DataType.DOUBLE }).getOrElse(DataType.STRING)
+            Try {
+              var num = numberParser.parse(input)
+              DataType.DOUBLE
+            }.getOrElse(DataType.STRING)
           case _ => DataType.STRING
         }
       }

@@ -34,6 +34,7 @@ import edu.uchicago.cs.encsel.parser.csv.CommonsCSVParser
 import edu.uchicago.cs.encsel.parser.tsv.TSVParser
 import edu.uchicago.cs.encsel.parser.json.LineJsonParser
 import edu.uchicago.cs.encsel.parser.excel.XLSXParser
+import edu.uchicago.cs.encsel.parser.col.ColParser
 
 object ParserFactory {
 
@@ -52,6 +53,9 @@ object ParserFactory {
           }
           case x if x.toLowerCase().endsWith("xlsx") => {
             new XLSXParser
+          }
+          case x if x.toLowerCase().endsWith("tmp") => {
+            new ColParser
           }
           case _ =>
             return null

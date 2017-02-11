@@ -117,7 +117,7 @@ class JPAPersistenceTest {
     var cols = jpa.load()
 
     assertEquals(1, cols.size)
-    var col = cols.iterator.next()
+    var col = cols.next()
     assertEquals(1,col.features.size())
     var f = col.features.iterator().next()
   }
@@ -128,7 +128,7 @@ class JPAPersistenceTest {
     var cols = jpa.load()
 
     assertEquals(1, cols.size)
-    var col = cols.iterator.next()
+    var col = cols.next()
     assertEquals(DataType.STRING, col.dataType)
     assertEquals(5, col.colIndex)
     assertEquals("a", col.colName)

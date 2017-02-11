@@ -48,7 +48,7 @@ class FilePersistence extends Persistence {
   var datalist = new scala.collection.mutable.HashSet[Column]()
   datalist ++= load()
 
-  def save(datalist: Iterable[Column]) = {
+  def save(datalist: Traversable[Column]) = {
     this.synchronized {
       this.datalist ++= datalist
 
@@ -68,17 +68,17 @@ class FilePersistence extends Persistence {
     }
   }
 
-  def load(): Iterable[Column] = {
+  def load(): Iterator[Column] = {
     this.synchronized {
       try {
         var objreader = new ObjectInputStream(new FileInputStream(storage))
         var data = objreader.readObject().asInstanceOf[HashSet[Column]]
         objreader.close()
 
-        return data.clone()
+        return data.clone().iterator
       } catch {
         case e: FileNotFoundException => {
-          return Iterable[Column]()
+          return Iterator[Column]()
         }
       }
     }

@@ -35,7 +35,7 @@ import edu.uchicago.cs.encsel.feature.Length
 import edu.uchicago.cs.encsel.feature.Entropy
 
 object RunFeature extends App {
-  var features = Iterable(Length, Entropy)
+  var features = Iterable(Entropy)
 
   var persist = Persistence.get
 
@@ -52,5 +52,5 @@ object RunFeature extends App {
         }
       }
   }
-  persist.save(cols)
+  persist.save(cols.toTraversable)
 }

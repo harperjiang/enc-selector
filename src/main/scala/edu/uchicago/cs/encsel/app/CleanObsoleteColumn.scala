@@ -25,14 +25,10 @@
 package edu.uchicago.cs.encsel.app
 
 import scala.io.Source
+import java.text.NumberFormat
 
 object CleanObsoleteColumn extends App {
 
-  var lines = Source.fromFile("src/test/resource/test_csv_parser.csv").getLines()
-  var line: String = lines.next()
-  lines = Iterator(line +: lines.toSeq: _*)
-
-  lines.foreach { println(_) }
-  System.exit(0)
-
+  var num = NumberFormat.getInstance.parse("123234332233223234232323.9")
+  println(num.doubleValue().toString())
 }

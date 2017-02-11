@@ -1,4 +1,5 @@
 /**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,21 +16,25 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
+ * Contributors:
+ *     Hao Jiang - initial API and implementation
+ *
+ * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.persist
+package edu.uchicago.cs.encsel.parser.col
 
-import edu.uchicago.cs.encsel.column.Column
-import scala.collection.mutable.ArrayBuffer
+import edu.uchicago.cs.encsel.parser.DefaultRecord
+import edu.uchicago.cs.encsel.parser.Parser
+import edu.uchicago.cs.encsel.parser.Record
 
-class DummyPersistence extends Persistence {
-  var storage = new ArrayBuffer[Column]()
-  def save(datalist: Traversable[Column]) = {
-    storage ++= datalist
+class ColParser extends Parser {
+  this.headerInline = true
+
+  override def parseLine(line: String): Record = {
+    new DefaultRecord(Array(line))
   }
-  def load(): Iterator[Column] = {
-    return storage.clone().toIterator
-  }
-  def clean() = {
-    storage.clear()
+  override def guessHeader(line: String): Unit = {
+    guessedHeader = Array("a")
   }
 }

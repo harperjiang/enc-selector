@@ -12,6 +12,7 @@ class SchemaGuesserTest {
     var guess = new SchemaGuesser
 
     assertEquals(DataType.INTEGER, guess.testType("22", DataType.BOOLEAN))
+    assertEquals(DataType.INTEGER, guess.testType("22,232", DataType.BOOLEAN))
     assertEquals(DataType.BOOLEAN, guess.testType("1", DataType.BOOLEAN))
     assertEquals(DataType.BOOLEAN, guess.testType("0", DataType.BOOLEAN))
     assertEquals(DataType.BOOLEAN, guess.testType("true", DataType.BOOLEAN))
@@ -20,11 +21,21 @@ class SchemaGuesserTest {
     assertEquals(DataType.BOOLEAN, guess.testType("nO", DataType.BOOLEAN))
 
     assertEquals(DataType.INTEGER, guess.testType("22", DataType.INTEGER))
+    assertEquals(DataType.INTEGER, guess.testType("22,322", DataType.INTEGER))
+    assertEquals(DataType.LONG, guess.testType("311,131,322,322", DataType.INTEGER))
     assertEquals(DataType.DOUBLE, guess.testType("22.54", DataType.INTEGER))
+    assertEquals(DataType.DOUBLE, guess.testType("33,222.54", DataType.INTEGER))
     assertEquals(DataType.STRING, guess.testType("Goodman", DataType.INTEGER))
+
+    assertEquals(DataType.LONG, guess.testType("32", DataType.LONG))
+    assertEquals(DataType.LONG, guess.testType("32,942", DataType.LONG))
+    assertEquals(DataType.LONG, guess.testType("32,323,232,234,234", DataType.LONG))
+    assertEquals(DataType.STRING, guess.testType("32,323,232,234,234,432,234,234,234,234,234,234", DataType.LONG))
+    assertEquals(DataType.STRING, guess.testType("Goodman", DataType.LONG))
 
     assertEquals(DataType.DOUBLE, guess.testType("22.5", DataType.DOUBLE))
     assertEquals(DataType.DOUBLE, guess.testType("3234", DataType.DOUBLE))
+    assertEquals(DataType.DOUBLE, guess.testType("83,323.4", DataType.DOUBLE))
     assertEquals(DataType.DOUBLE, guess.testType("5", DataType.DOUBLE))
     assertEquals(DataType.STRING, guess.testType("Goews", DataType.DOUBLE))
 

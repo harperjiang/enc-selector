@@ -39,6 +39,6 @@ object ScanFeature extends App {
     var cols = persistence.load()
     cols.foreach { col => col.features = Features.extract(col).toList }
     persistence.clean()
-    persistence.save(cols)
+    persistence.save(cols.toTraversable)
   }
 }
