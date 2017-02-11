@@ -23,34 +23,12 @@
  * *****************************************************************************
  */
 
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.encsel.util
 
-import scala.Iterable
-
-import edu.uchicago.cs.encsel.feature.Sparsity
-import edu.uchicago.cs.encsel.persist.Persistence
-
-import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.feature.Length
-import edu.uchicago.cs.encsel.feature.Entropy
-
-object RunFeature extends App {
-  var features = Iterable(Length, Entropy)
-
-  var persist = Persistence.get
-
-  var cols = persist.load()
-
-  cols.foreach {
-    col =>
-      {
-        features.foreach { f =>
-          {
-            var extracted = f.extract(col)
-            col.features ++= extracted
-          }
-        }
-      }
+object DataUtils {
+  def stat(data: Traversable[Double]): (Double, Double) = {
+    var mean = data.sum / data.size
+    var variance = data.map(e => (e - mean) * (e - mean)).sum / data.size
+    (mean, variance)
   }
-  persist.save(cols)
 }
