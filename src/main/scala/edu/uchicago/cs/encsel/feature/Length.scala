@@ -23,34 +23,24 @@
  * *****************************************************************************
  */
 
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.encsel.feature
 
-import scala.Iterable
+import edu.uchicago.cs.encsel.column.Column
+import scala.io.Source
+import java.io.File
+import edu.uchicago.cs.encsel.util.DataUtils
+import org.apache.commons.lang.StringUtils
 
-import edu.uchicago.cs.encsel.feature.Sparsity
-import edu.uchicago.cs.encsel.persist.Persistence
+object Length extends FeatureExtractor {
+  def extract(input: Column): Iterable[Feature] = {
+    var length = Source.fromFile(new File(input.colFile)).getLines()
+      .filter(StringUtils.isNotEmpty(_)).map(_.length().toDouble).toTraversable
+    var statforlen = DataUtils.stat(length)
 
-import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.feature.Length
-import edu.uchicago.cs.encsel.feature.Entropy
-
-object RunFeature extends App {
-  var features = Iterable(Length, Entropy)
-
-  var persist = Persistence.get
-
-  var cols = persist.load()
-
-  cols.foreach {
-    col =>
-      {
-        features.foreach { f =>
-          {
-            var extracted = f.extract(col)
-            col.features ++= extracted
-          }
-        }
-      }
+    Iterable(
+      new Feature("Length", "max", length.max),
+      new Feature("Length", "min", length.min),
+      new Feature("Length", "mean", statforlen._1),
+      new Feature("Length", "variance", statforlen._2))
   }
-  persist.save(cols)
 }
