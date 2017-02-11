@@ -25,15 +25,14 @@
 
 package edu.uchicago.cs.encsel.persist.jpa
 
+import scala.collection.JavaConversions.asScalaBuffer
+
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.persist.Persistence
-import org.eclipse.persistence.queries.ReadAllQuery
-
-import scala.collection.JavaConversions._
 
 class JPAPersistence extends Persistence {
 
-  def save(datalist: Iterable[Column]) = {
+  def save(datalist: Traversable[Column]) = {
     var em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin()
     try {
@@ -55,10 +54,10 @@ class JPAPersistence extends Persistence {
     em.close()
   }
 
-  def load(): Iterable[Column] = {
+  def load(): Iterator[Column] = {
     var em = JPAPersistence.emf.createEntityManager()
     var query = em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
-    var res = query.getResultList.map(_.asInstanceOf[Column]).toIterable
+    var res = query.getResultList.map(_.asInstanceOf[Column]).toIterator
     em.close
     res
   }

@@ -23,15 +23,14 @@
 package edu.uchicago.cs.encsel.persist
 
 import edu.uchicago.cs.encsel.column.Column
-import edu.uchicago.cs.encsel.persist.file.FilePersistence
 import edu.uchicago.cs.encsel.persist.jpa.JPAPersistence
 
 /**
  * Interface for persisting columns and features
  */
 trait Persistence {
-  def save(datalist: Iterable[Column])
-  def load(): Iterable[Column]
+  def save(datalist: Traversable[Column])
+  def load(): Iterator[Column]
   def clean()
 }
 

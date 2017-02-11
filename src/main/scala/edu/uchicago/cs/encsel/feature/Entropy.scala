@@ -36,6 +36,8 @@ object Entropy extends FeatureExtractor {
   var linecalc = new EntropyCalc()
 
   def extract(input: Column): Iterable[Feature] = {
+    allcalc.reset()
+    
     var lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty(_))
       .map(line => { allcalc.add(line); entropy(line) }).toTraversable

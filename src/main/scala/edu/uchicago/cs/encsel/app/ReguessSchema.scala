@@ -1,4 +1,5 @@
-/*******************************************************************************
+/**
+ * *****************************************************************************
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,16 +19,25 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *     
- *******************************************************************************/
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.app
 
-import edu.uchicago.cs.encsel.persist.file.FilePersistence
-import edu.uchicago.cs.encsel.persist.jpa.JPAPersistence
+import edu.uchicago.cs.encsel.persist.Persistence
+import edu.uchicago.cs.encsel.schema.SchemaGuesser
+import org.slf4j.LoggerFactory
 
-object MigratePersistence extends App {
-  var fp = new FilePersistence
-  var jp = new JPAPersistence
-  
-  jp.save(fp.load().toTraversable)
+object ReguessSchema extends App {
+  var cols = Persistence.get.load()
+  var schemaGuesser = new SchemaGuesser()
+  var logger = LoggerFactory.getLogger(getClass)
+  cols.foreach { col =>
+    {
+      var schema = schemaGuesser.guessSchema(col.colFile)
+      if (col.dataType != schema.columns(0)._1) {
+        logger.warn("Unmatched data type found, %s<->%s in %s:%s", col.dataType, schema.columns(0)._1, col.origin, col.colName)
+      }
+    }
+  }
 }

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory
 
 import edu.uchicago.cs.encsel.schema.Schema
 import scala.collection.Iterator.JoinIterator
+import org.apache.commons.lang.StringUtils
 
 trait Parser {
 
@@ -43,7 +44,6 @@ trait Parser {
     this.schema = schema
 
     var lines = Source.fromFile(inputFile).getLines()
-      .filter(!_.trim().isEmpty())
 
     if (null == schema) {
       // Guess header, need to retrieve a line
@@ -52,15 +52,18 @@ trait Parser {
       if (headerInline) {
         // Put the line back
         var lb = Array(line).toIterator ++ (lines)
-        return lb.map { parseLineIgnoreError(_) }.filter(_ != Record.EMPTY)
+        return lb.map { parseLineIgnoreError(_) }
       }
     }
-    return lines.map { parseLineIgnoreError(_) }.filter(_ != Record.EMPTY)
+    return lines.map { parseLineIgnoreError(_) }
   }
 
   def parseLineIgnoreError(line: String): Record = {
     try {
-      return parseLine(line)
+      line match {
+        case x if StringUtils.isEmpty(x) => Record.EMPTY
+        case _ => parseLine(line)
+      }
     } catch {
       case e: Exception => {
         logger.warn("Exception while parsing line:" + line, e)
