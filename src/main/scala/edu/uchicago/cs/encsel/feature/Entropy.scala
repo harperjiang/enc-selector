@@ -29,11 +29,14 @@ import scala.io.Source
 import java.io.File
 import edu.uchicago.cs.encsel.util.DataUtils
 import org.apache.commons.lang.StringUtils
+import org.slf4j.LoggerFactory
 
 object Entropy extends FeatureExtractor {
 
   var allcalc = new EntropyCalc()
   var linecalc = new EntropyCalc()
+  
+  var logger = LoggerFactory.getLogger(getClass)
 
   def extract(input: Column): Iterable[Feature] = {
     allcalc.reset()
