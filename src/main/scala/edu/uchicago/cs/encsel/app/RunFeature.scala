@@ -35,8 +35,11 @@ import edu.uchicago.cs.encsel.feature.Length
 import edu.uchicago.cs.encsel.feature.Entropy
 import scala.collection.mutable.ArrayBuffer
 import edu.uchicago.cs.encsel.column.Column
+import org.slf4j.LoggerFactory
 
 object RunFeature extends App {
+
+  var logger = LoggerFactory.getLogger(getClass)
   var features = Iterable(Entropy)
 
   var persist = Persistence.get
@@ -52,6 +55,7 @@ object RunFeature extends App {
           {
             var extracted = f.extract(col)
             col.features ++= extracted
+            logger.debug("%d features extracted for col %s:%s".format(extracted.size, col.origin, col.colName))
           }
         }
         buffer += col

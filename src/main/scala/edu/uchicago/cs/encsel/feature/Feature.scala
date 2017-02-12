@@ -39,4 +39,16 @@ class Feature(t: String) extends Serializable {
     this.name = n
     this.value = v
   }
+
+  override def equals(obj: Any): Boolean = {
+    if (obj.isInstanceOf[Feature]) {
+      var fea = obj.asInstanceOf[Feature]
+      return this.featureType.equals(fea.featureType) && this.name.equals(fea.name)
+    }
+    return super.equals(obj)
+  }
+
+  override def hashCode(): Int = {
+    return 13 * this.featureType.hashCode() + this.name.hashCode()
+  }
 }
