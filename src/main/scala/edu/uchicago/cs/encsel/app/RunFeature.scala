@@ -46,7 +46,7 @@ object RunFeature extends App {
 
   var cols = persist.load()
 
-  var buffer = new ArrayBuffer[Column](1000)
+  var buffer = new ArrayBuffer[Column](100)
 
   cols.foreach {
     col =>
@@ -59,7 +59,7 @@ object RunFeature extends App {
           }
         }
         buffer += col
-        if (buffer.length >= 1000) {
+        if (buffer.length >= 100) {
           persist.save(buffer.toTraversable)
           buffer.clear()
         }
