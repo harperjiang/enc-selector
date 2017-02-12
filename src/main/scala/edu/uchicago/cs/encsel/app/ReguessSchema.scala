@@ -36,7 +36,7 @@ object ReguessSchema extends App {
     {
       var schema = schemaGuesser.guessSchema(col.colFile)
       if (col.dataType != schema.columns(0)._1) {
-        logger.warn("Unmatched data type found, %s<->%s in %s:%s", col.dataType, schema.columns(0)._1, col.origin, col.colName)
+        logger.warn("Unmatched data type found, %s<->%s in %s:%s".format(col.dataType, schema.columns(0)._1, col.origin, col.colName))
       }
     }
   }
