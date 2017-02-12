@@ -33,6 +33,8 @@ import edu.uchicago.cs.encsel.persist.Persistence
 import scala.collection.JavaConversions._
 import edu.uchicago.cs.encsel.feature.Length
 import edu.uchicago.cs.encsel.feature.Entropy
+import scala.collection.mutable.ArrayBuffer
+import edu.uchicago.cs.encsel.column.Column
 
 object RunFeature extends App {
   var features = Iterable(Entropy)
@@ -40,6 +42,8 @@ object RunFeature extends App {
   var persist = Persistence.get
 
   var cols = persist.load()
+
+  var buffer = new ArrayBuffer[Column](1000)
 
   cols.foreach {
     col =>
@@ -50,7 +54,12 @@ object RunFeature extends App {
             col.features ++= extracted
           }
         }
+        buffer += col
+        if (buffer.length >= 1000) {
+          persist.save(buffer.toTraversable)
+          buffer.clear()
+        }
       }
   }
-  persist.save(cols.toTraversable)
+  persist.save(buffer.toTraversable)
 }

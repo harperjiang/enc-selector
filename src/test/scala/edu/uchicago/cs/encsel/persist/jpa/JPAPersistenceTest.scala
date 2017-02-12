@@ -54,7 +54,7 @@ class JPAPersistenceTest {
   }
 
   @Test
-  def testSave: Unit = {
+  def testSaveNew: Unit = {
     var jpa = new JPAPersistence
 
     var col1 = new Column(new File("dd").toURI, 3, "m", DataType.INTEGER)
@@ -95,6 +95,24 @@ class JPAPersistenceTest {
   }
 
   @Test
+  def testSaveMerge: Unit = {
+    var jpa = new JPAPersistence
+    var cols = jpa.load().toArray
+    assertEquals(1, cols.size)
+
+    cols(0).features += new Feature("T", "PP", 3.25)
+    jpa.save(cols)
+
+    var newcols = jpa.load().toArray
+
+    assertEquals(1, cols.size)
+    var features = cols(0).features
+    assertEquals(2, features.size)
+    assertEquals("M", features(0).name)
+    assertEquals("PP", features(1).name)
+  }
+
+  @Test
   def testUpdate: Unit = {
     var jpa = new JPAPersistence
 
@@ -118,7 +136,7 @@ class JPAPersistenceTest {
 
     assertEquals(1, cols.size)
     var col = cols(0)
-    assertEquals(1,col.features.size())
+    assertEquals(1, col.features.size())
     var f = col.features.iterator().next()
   }
 

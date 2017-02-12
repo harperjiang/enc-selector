@@ -41,6 +41,21 @@ class EntropyTest {
     assertEquals(0.0374, features(3).value, 0.001)
     assertEquals("total", features(4).name)
     assertEquals(2.0694, features(4).value, 0.001)
+
+    col.colFile = new File("src/test/resource/test_col_str.data").toURI()
+
+    features = Entropy.extract(col).toArray
+    assertEquals(5, features.size)
+    assertEquals("line_max", features(0).name)
+    assertEquals(2.4802, features(0).value, 0.001)
+    assertEquals("line_min", features(1).name)
+    assertEquals(1.6865, features(1).value, 0.001)
+    assertEquals("line_mean", features(2).name)
+    assertEquals(2.1873, features(2).value, 0.001)
+    assertEquals("line_var", features(3).name)
+    assertEquals(0.0614, features(3).value, 0.001)
+    assertEquals("total", features(4).name)
+    assertEquals(3.5247 * Math.log(2), features(4).value, 0.001)
   }
 
 }
