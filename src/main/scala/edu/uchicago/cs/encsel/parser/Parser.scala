@@ -39,7 +39,7 @@ trait Parser {
   var schema: Schema = null
   protected var headerInline = false
   protected var logger = LoggerFactory.getLogger(getClass())
-
+  protected var blankRecord: BlankRecord = null
   def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
@@ -49,11 +49,14 @@ trait Parser {
       // Guess header, need to retrieve a line
       var line = lines.next()
       guessHeader(line)
+      blankRecord = new BlankRecord(guessedHeader.size)
       if (headerInline) {
         // Put the line back
         var lb = Array(line).toIterator ++ (lines)
         return lb.map { parseLineIgnoreError(_) }
       }
+    } else {
+      blankRecord = new BlankRecord(schema.columns.size)
     }
     return lines.map { parseLineIgnoreError(_) }
   }
@@ -61,7 +64,7 @@ trait Parser {
   def parseLineIgnoreError(line: String): Record = {
     try {
       line match {
-        case x if StringUtils.isEmpty(x) => Record.EMPTY
+        case x if StringUtils.isEmpty(x) => blankRecord
         case _ => parseLine(line)
       }
     } catch {
@@ -76,5 +79,5 @@ trait Parser {
   protected var guessedHeader: Array[String] = null;
   def guessHeaderName: Array[String] = guessedHeader
 
-  def parseLine(line: String): Record = Record.EMPTY
+  def parseLine(line: String): Record = blankRecord
 }
