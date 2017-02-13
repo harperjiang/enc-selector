@@ -3,12 +3,16 @@ package edu.uchicago.cs.encsel.parser.csv
 import org.junit.Assert._
 import org.junit.Test
 
+class CSVParserForTest extends CSVParser {
+  override def parseLine(input: String) = super.parseLine(input)
+}
+
 class CSVParserTest {
 
   @Test
   def testParseLine(): Unit = {
 
-    var parser = new CSVParser()
+    var parser = new CSVParserForTest()
 
     var input = "a,b,c,d,e";
     var output = parser.parseLine(input)
@@ -33,7 +37,7 @@ class CSVParserTest {
 
   @Test
   def testSpecialLine(): Unit = {
-    var parser = new CSVParser()
+    var parser = new CSVParserForTest()
     var line1 = """19823,HT223608,03/29/2011 08:11:00 AM,009XX W FULLERTON AVE,0110,HOMICIDE,FIRST DEGREE MURDER,"CTA ""L"" PLATFORM",true,false,1933,019,43,7,01A,1169577,1916141,2011,08/17/2015 03:03:40 PM,41.925398449,-87.652311296,"(41.925398449, -87.652311296)""""
 
     var output = parser.parseLine(line1)
