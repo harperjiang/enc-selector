@@ -33,20 +33,20 @@ import org.slf4j.LoggerFactory
 
 object Entropy extends FeatureExtractor {
 
-  var allcalc = new EntropyCalc()
-  var linecalc = new EntropyCalc()
-  
   var logger = LoggerFactory.getLogger(getClass)
 
   def extract(input: Column): Iterable[Feature] = {
-    allcalc.reset()
-    
+    var allcalc = new EntropyCalc()
+    var linecalc = new EntropyCalc()
+
     var lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty(_))
-      .map(line => { allcalc.add(line); entropy(line) }).toTraversable
+      .map(line => { allcalc.add(line); entropy(line, linecalc) }).toTraversable
     if (0 == lineEntropy.size)
       return Iterable[Feature]()
     var stat = DataUtils.stat(lineEntropy)
+    var max = lineEntropy.max
+    var min = lineEntropy.min
     Iterable(new Feature("Entropy", "line_max", lineEntropy.max),
       new Feature("Entropy", "line_min", lineEntropy.min),
       new Feature("Entropy", "line_mean", stat._1),
@@ -54,7 +54,7 @@ object Entropy extends FeatureExtractor {
       new Feature("Entropy", "total", allcalc.done()))
   }
 
-  def entropy(data: String): Double = {
+  def entropy(data: String, linecalc: EntropyCalc): Double = {
     linecalc.reset()
     linecalc.add(data)
     linecalc.done()
