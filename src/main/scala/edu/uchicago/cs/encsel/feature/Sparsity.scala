@@ -29,6 +29,7 @@ import edu.uchicago.cs.encsel.column.Column
 import scala.io.Source
 
 object Sparsity extends FeatureExtractor {
+  
   def extract(input: Column): Iterable[Feature] = {
     var counter = 0
     var emptyCount = 0
