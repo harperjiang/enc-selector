@@ -61,7 +61,7 @@ trait Parser {
     return lines.map { parseLineIgnoreError(_) }
   }
 
-  def parseLineIgnoreError(line: String): Record = {
+  protected def parseLineIgnoreError(line: String): Record = {
     try {
       line match {
         case x if StringUtils.isEmpty(x) => blankRecord
@@ -79,5 +79,5 @@ trait Parser {
   protected var guessedHeader: Array[String] = null;
   def guessHeaderName: Array[String] = guessedHeader
 
-  def parseLine(line: String): Record = blankRecord
+  protected def parseLine(line: String): Record = blankRecord
 }

@@ -24,32 +24,11 @@
  */
 package edu.uchicago.cs.encsel.feature
 
-class Feature(t: String) extends Serializable {
+import edu.uchicago.cs.encsel.column.Column
 
-  var featureType: String = t
-  var name: String = null
-  var value: Double = -1
-  var isVector = false
+object ColumnName extends FeatureExtractor {
 
-  def this() {
-    this(null)
-  }
-
-  def this(t: String, n: String, v: Double) {
-    this(t)
-    this.name = n
-    this.value = v
-  }
-
-  override def equals(obj: Any): Boolean = {
-    if (obj.isInstanceOf[Feature]) {
-      var fea = obj.asInstanceOf[Feature]
-      return this.featureType.equals(fea.featureType) && this.name.equals(fea.name)
-    }
-    return super.equals(obj)
-  }
-
-  override def hashCode(): Int = {
-    return 13 * this.featureType.hashCode() + this.name.hashCode()
+  def extract(input: Column): Iterable[Feature] = {
+    throw new UnsupportedOperationException("Not implemented")
   }
 }
