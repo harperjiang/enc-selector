@@ -70,7 +70,7 @@ class SchemaGuesser {
 
   protected var booleanValues = Set("0", "1", "yes", "no", "true", "false")
   protected val numberRegex = """[\-]?[\d,]+""".r
-  protected val floatRegex = """[\-]?[,\d]+(\.\d*)?""".r
+  protected val floatRegex = """[\-]?[,\d]*(\.\d*)?(E\d*)?""".r
 
   protected val numberParser = NumberFormat.getInstance
 

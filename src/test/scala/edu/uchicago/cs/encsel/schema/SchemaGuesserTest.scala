@@ -34,6 +34,9 @@ class SchemaGuesserTest {
     assertEquals(DataType.STRING, guess.testType("Goodman", DataType.LONG))
 
     assertEquals(DataType.DOUBLE, guess.testType("22.5", DataType.DOUBLE))
+    assertEquals(DataType.DOUBLE, guess.testType(".5", DataType.DOUBLE))
+    assertEquals(DataType.DOUBLE, guess.testType(".5E2", DataType.DOUBLE))
+    assertEquals(DataType.DOUBLE, guess.testType("-3.5", DataType.DOUBLE))
     assertEquals(DataType.DOUBLE, guess.testType("3234", DataType.DOUBLE))
     assertEquals(DataType.DOUBLE, guess.testType("83,323.4", DataType.DOUBLE))
     assertEquals(DataType.DOUBLE, guess.testType("5", DataType.DOUBLE))
