@@ -71,7 +71,8 @@ public class StringWriteSupport extends WriteSupport<List<String>> {
 					recordConsumer.startField(cols.get(i).getPath()[0], i);
 					switch (cols.get(i).getType()) {
 					case BOOLEAN:
-						recordConsumer.addBoolean(Boolean.parseBoolean(val));
+						String lower = val.toLowerCase();
+						recordConsumer.addBoolean("true".equals(lower) || "yes".equals(lower) || "1".equals(lower));
 						break;
 					case FLOAT:
 						recordConsumer.addFloat(Float.parseFloat(val));

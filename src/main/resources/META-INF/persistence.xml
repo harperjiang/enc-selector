@@ -7,7 +7,7 @@
 		<mapping-file>META-INF/eclipselink-orm.xml</mapping-file>
 		<class>edu.uchicago.cs.encsel.persist.jpa.ColumnWrapper</class>
 		<class>edu.uchicago.cs.encsel.persist.jpa.FeatureWrapper</class>
-		
+
 		<class>edu.uchicago.cs.encsel.persist.jpa.URIConverter</class>
 		<class>edu.uchicago.cs.encsel.persist.jpa.DataTypeConverter</class>
 		<properties>
@@ -16,7 +16,7 @@
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/encsel" />
 			<property name="javax.persistence.jdbc.user" value="encsel" />
 			<property name="javax.persistence.jdbc.password" value="encsel" />
-			<!-- property name="eclipselink.logging.level" value="FINE"/-->
+			<property name="eclipselink.logging.level" value="FINE" />
 		</properties>
 	</persistence-unit>
 </persistence>

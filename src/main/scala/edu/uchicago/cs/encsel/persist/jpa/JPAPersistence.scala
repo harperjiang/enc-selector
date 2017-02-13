@@ -29,8 +29,10 @@ import scala.collection.JavaConversions.asScalaBuffer
 
 import edu.uchicago.cs.encsel.column.Column
 import edu.uchicago.cs.encsel.persist.Persistence
+import org.slf4j.LoggerFactory
 
 class JPAPersistence extends Persistence {
+  var logger = LoggerFactory.getLogger(getClass)
 
   def save(datalist: Traversable[Column]) = {
     var em = JPAPersistence.emf.createEntityManager()
@@ -47,7 +49,9 @@ class JPAPersistence extends Persistence {
       em.getTransaction.commit()
     } catch {
       case e: Exception => {
-        em.getTransaction.rollback()
+        logger.warn("Exception while saving data", e)
+        if (em.getTransaction.isActive())
+          em.getTransaction.rollback()
         throw new RuntimeException(e)
       }
     }
