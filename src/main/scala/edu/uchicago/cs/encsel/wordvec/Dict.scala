@@ -83,6 +83,11 @@ object Dict {
     var input = raw.toLowerCase()
     var notfound = (input, notFound)
 
+    // Convert plural form to singular form
+    if (!isAbbrv(input)) {
+      input = Plural.removePlural(input)
+    }
+
     var candidates = new ArrayBuffer[(String, Double, Double)]
 
     if (index.contains(input)) {
