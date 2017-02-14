@@ -29,7 +29,6 @@ class Feature(t: String) extends Serializable {
   var featureType: String = t
   var name: String = null
   var value: Double = -1
-  var isVector = false
 
   def this() {
     this(null)
