@@ -38,34 +38,32 @@ object Dict {
 
   val abbrvMatch = 0.9
 
-  val dictFile = "src/main/word/top_5000.csv"
-  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
+  val dictFile = "src/main/word/google_10000.txt"
+  //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
+  val dictSchema = new Schema(Array((DataType.STRING, "word")), false)
 
   protected var words = new HashMap[Char, ArrayBuffer[(String, Int)]]()
   protected var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
-  protected var index = new HashSet[String]()
+  protected var index = new HashMap[String, Int]()
   protected var abbrvIdx = new HashMap[String, String]()
+
   init()
 
   def init(): Unit = {
     var parser = new CSVParser()
     var records = parser.parse(new File(dictFile).toURI(), dictSchema)
-
+    var counter = 0
     records.zipWithIndex.foreach { record =>
       {
-        var word = record._1(1)
-        index += word
-        abbrvIdx += ((abbrv(word), word))
-        words.getOrElse(word(0), new ArrayBuffer[(String, Int)]()) += ((word, record._2))
-        abbrvs.getOrElse(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv(word), record._2))
+        var word = record._1(0)
+        index += ((word, counter))
+        abbrvIdx.getOrElseUpdate(abbrv(word), word)
+        words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, counter))
+        abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv(word), counter))
+        counter += 1
       }
     }
     words.foreach(_._2.sortBy(_._1))
-  }
-
-  protected def abbrv(input: String) = {
-    // Remove any non-leading aeiou
-    input.replaceAll("""(?!^)[aeiou]""", "")
   }
 
   /**
@@ -84,15 +82,43 @@ object Dict {
         (abbrvIdx.getOrElse(x, ""), abbrvMatch)
       }
       case _ => {
-        var partial = words.getOrElse(input(0), new ArrayBuffer[(String, Int)]())
-          .map(word => (word._1, WordUtils.levDistance2(input, word._1))).minBy(_._2)
-        var abbrvPartial = abbrvs.getOrElse(input(0), new ArrayBuffer[(String, Int)]())
-          .map(word => (word._1, WordUtils.levDistance2(input, word._1))).minBy(_._2)
-        // TODO Take the frequency of word into account 
-        // TODO Normalize the fidelity
-        return Array(partial, abbrvPartial).minBy(_._2)
+        var candidates = new ArrayBuffer[(String, Double)]()
+        var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+          .map(word => (word._1, WordUtils.levDistance2(input, word._1), word._2))
+        if (!partials.isEmpty) {
+          var partial = partials.minBy(t => (t._2, t._3))
+          candidates += ((partial._1, partial._2))
+        }
+
+        var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+          .map(abb =>
+            {
+              var word = abbrvIdx.getOrElse(abb._1, "")
+              var wordPrio = index.getOrElse(word, Int.MaxValue)
+              (word, WordUtils.levDistance2(input, abb._1), wordPrio)
+            })
+        if (!abbrvPartials.isEmpty) {
+          var abbrvp = abbrvPartials.minBy(t => (t._2, t._3))
+          candidates += ((abbrvp._1, abbrvp._2))
+        }
+        // Normalize the fidelity
+        var candidate = candidates.minBy(_._2)
+        (candidate._1, normalize(candidate._2))
       }
     }
-
   }
+
+  def abbrv(input: String) = {
+    // Remove any non-leading aeiou and or
+    var abbrv = input.replaceAll("""(?!^)or""", "")
+    abbrv.replaceAll("""(?!^)[aeiou]""", "")
+  }
+
+  protected def distance(input: String, target: String, targetPrio: Int): Double = {
+    // TODO Take target priority into account
+    var dist = WordUtils.levDistance2(input, target)
+    dist
+  }
+
+  protected def normalize(levdist: Double): Double = 1 / (levdist + 1)
 }
