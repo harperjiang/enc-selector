@@ -36,7 +36,7 @@ import edu.uchicago.cs.encsel.util.WordUtils
 
 object Dict {
 
-  val abbrvMatch = 0.9
+  val abbrvMatch = 1.1
 
   val dictFile = "src/main/word/google_10000.txt"
   //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
@@ -46,21 +46,22 @@ object Dict {
   protected var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
   protected var index = new HashMap[String, Int]()
   protected var abbrvIdx = new HashMap[String, String]()
+  protected var count = 0
 
   init()
 
   def init(): Unit = {
     var parser = new CSVParser()
     var records = parser.parse(new File(dictFile).toURI(), dictSchema)
-    var counter = 0
+
     records.zipWithIndex.foreach { record =>
       {
         var word = record._1(0)
-        index += ((word, counter))
+        index += ((word, count))
         abbrvIdx.getOrElseUpdate(abbrv(word), word)
-        words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, counter))
-        abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv(word), counter))
-        counter += 1
+        words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, count))
+        abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv(word), count))
+        count += 1
       }
     }
     words.foreach(_._2.sortBy(_._1))
@@ -74,38 +75,48 @@ object Dict {
    */
   def lookup(raw: String): (String, Double) = {
     var input = raw.toLowerCase()
-    input match {
-      case x if (index.contains(x)) => {
-        (input, 1)
-      }
-      case x if (abbrvIdx.contains(x)) => {
-        (abbrvIdx.getOrElse(x, ""), abbrvMatch)
-      }
-      case _ => {
-        var candidates = new ArrayBuffer[(String, Double)]()
-        var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
-          .map(word => (word._1, WordUtils.levDistance2(input, word._1), word._2))
-        if (!partials.isEmpty) {
-          var partial = partials.minBy(t => (t._2, t._3))
-          candidates += ((partial._1, partial._2))
-        }
 
-        var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
-          .map(abb =>
-            {
-              var word = abbrvIdx.getOrElse(abb._1, "")
-              var wordPrio = index.getOrElse(word, Int.MaxValue)
-              (word, WordUtils.levDistance2(input, abb._1), wordPrio)
-            })
-        if (!abbrvPartials.isEmpty) {
-          var abbrvp = abbrvPartials.minBy(t => (t._2, t._3))
-          candidates += ((abbrvp._1, abbrvp._2))
-        }
-        // Normalize the fidelity
-        var candidate = candidates.minBy(_._2)
-        (candidate._1, normalize(candidate._2))
+    var candidates = new ArrayBuffer[(String, Double, Double)]
+
+    if (index.contains(input)) {
+      // Fully match, 0 distance
+      candidates += ((input, 0, freq_penalty(index.getOrElse(input, Int.MaxValue))))
+    }
+    if (abbrvIdx.contains(input)) {
+      // Known abbreviation
+      var originWord = abbrvIdx.getOrElse(input, "")
+      var originIdx = index.getOrElse(originWord, Int.MaxValue)
+      candidates += ((originWord, abbrvMatch - 1, abbrvMatch * freq_penalty(originIdx)))
+    }
+
+    if (candidates.isEmpty) {
+      var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+        .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
+      if (!partials.isEmpty) {
+        var partial = partials.minBy(t => t._2 + t._3)
+        candidates += ((partial._1, partial._2, partial._2 + partial._3))
+      }
+
+      var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+        .map(abb =>
+          {
+            var word = abbrvIdx.getOrElse(abb._1, "")
+            var wordPrio = index.getOrElse(word, Int.MaxValue)
+            (word, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
+          })
+      if (!abbrvPartials.isEmpty) {
+        var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
+        candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
       }
     }
+    // Normalize the fidelity
+    var candidate = candidates.minBy(_._3)
+    var normalized = normalize(candidate._2)
+    if (normalized < 0.5)
+      // No guess
+      (input, 1)
+    else
+      (candidate._1, normalize(candidate._2))
   }
 
   def abbrv(input: String) = {
@@ -119,6 +130,8 @@ object Dict {
     var dist = WordUtils.levDistance2(input, target)
     dist
   }
+
+  protected def freq_penalty(idx: Int): Double = idx.toDouble * 5 / count
 
   protected def normalize(levdist: Double): Double = 1 / (levdist + 1)
 }
