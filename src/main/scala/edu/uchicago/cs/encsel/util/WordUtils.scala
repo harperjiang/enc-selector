@@ -47,9 +47,9 @@ object WordUtils {
       return (1 to Math.max(a.length, b.length).intValue()).map(weight(_)).sum
     var asub = a.substring(0, a.length() - 1)
     var bsub = b.substring(0, b.length() - 1)
-    return Array(levDistance(asub, b) + weight(a.length),
-      levDistance(a, bsub) + weight(b.length),
-      levDistance(asub, bsub) + (a.last != b.last match { case true => weight(Math.max(a.length, b.length)) case _ => 0 })).min
+    return Array(levDistance2(asub, b) + weight(a.length),
+      levDistance2(a, bsub) + weight(b.length),
+      levDistance2(asub, bsub) + (a.last != b.last match { case true => weight(Math.max(a.length, b.length)) case _ => 0 })).min
   }
 
   protected def weight(idx: Int): Double = 1.15 - Math.tanh(0.15 * idx)

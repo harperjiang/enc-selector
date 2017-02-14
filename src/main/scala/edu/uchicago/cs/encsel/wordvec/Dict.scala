@@ -59,7 +59,8 @@ object Dict {
       {
         var word = record._1(0)
         index += ((word, count))
-        abbrvIdx.getOrElseUpdate(abbrv(word), word)
+        if (word.length > 3 && abbrv(word).length >= 2)
+          abbrvIdx.getOrElseUpdate(abbrv(word), word)
         words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, count))
         abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv(word), count))
         count += 1
@@ -68,14 +69,19 @@ object Dict {
     words.foreach(_._2.sortBy(_._1))
   }
 
+  def strictLookup(raw: String): Boolean = index.contains(raw.toLowerCase())
+
   /**
    * This algorithm first match full words, then look for abbreviation
    * Finally look for entries having smallest distance
+   *
+   * Fuzzy lookup only carry out when there's no non-leading vowel
    *
    * @return pair of (string in dictionary, fidelity)
    */
   def lookup(raw: String): (String, Double) = {
     var input = raw.toLowerCase()
+    var notfound = (input, notFound)
 
     var candidates = new ArrayBuffer[(String, Double, Double)]
 
@@ -91,33 +97,38 @@ object Dict {
     }
 
     if (candidates.isEmpty) {
-      var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
-        .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
-      if (!partials.isEmpty) {
-        var partial = partials.minBy(t => t._2 + t._3)
-        candidates += ((partial._1, partial._2, partial._2 + partial._3))
-      }
+      if (isAbbrv(input)) { // Fuzzy search for abbreviation only
+        var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+          .filter(t => t._1.length > input.length && t._1.intersect(input).length == input.length)
+          .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
+        if (!partials.isEmpty) {
+          var partial = partials.minBy(t => t._2 + t._3)
+          candidates += ((partial._1, partial._2, partial._2 + partial._3))
+        }
 
-      var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
-        .map(abb =>
-          {
-            var word = abbrvIdx.getOrElse(abb._1, "")
-            var wordPrio = index.getOrElse(word, Int.MaxValue)
-            (word, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
-          })
-      if (!abbrvPartials.isEmpty) {
-        var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
-        candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
+        var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+          .filter(t => t._1.length >= input.length && t._1.intersect(input).length == input.length)
+          .map(abb =>
+            {
+              var word = abbrvIdx.getOrElse(abb._1, "")
+              var wordPrio = index.getOrElse(word, Int.MaxValue)
+              (word, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
+            })
+        if (!abbrvPartials.isEmpty) {
+          var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
+          candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
+        }
       }
     }
-    // Normalize the fidelity
-    var candidate = candidates.minBy(_._3)
-    var normalized = normalize(candidate._2)
-    if (normalized < 0.5)
-      // No guess, return original words with a low fidelity
-      (input, notFound)
-    else
-      (candidate._1, normalize(candidate._2))
+    candidates match {
+      case empty if empty.isEmpty => notfound
+      case _ => {
+        var candidate = candidates.minBy(_._3)
+        // Normalize the fidelity
+        var normalized = normalize(candidate._2)
+        (candidate._1, normalize(candidate._2))
+      }
+    }
   }
 
   def abbrv(input: String) = {
@@ -126,10 +137,13 @@ object Dict {
     abbrv.replaceAll("""(?!^)[aeiou]""", "")
   }
 
-  protected def distance(input: String, target: String, targetPrio: Int): Double = {
-    // TODO Take target priority into account
-    var dist = WordUtils.levDistance2(input, target)
-    dist
+  val vowelInWord = """(?!^)[aeiou]""".r
+
+  def isAbbrv(input: String) = {
+    input.length >= 2 && (vowelInWord.findFirstIn(input) match {
+      case Some(x) => false
+      case None => true
+    })
   }
 
   protected def freq_penalty(idx: Int): Double = idx.toDouble * 5 / count

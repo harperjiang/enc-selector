@@ -2,6 +2,7 @@ package edu.uchicago.cs.encsel.wordvec
 
 import org.junit.Test
 import org.junit.Assert._
+import edu.uchicago.cs.encsel.util.WordUtils
 
 class DictTest {
 
@@ -12,7 +13,7 @@ class DictTest {
     var rpt = Dict.lookup("rpt")
     assertEquals("report", rpt._1)
     var cmd = Dict.lookup("cmd")
-    assertEquals("come", cmd._1)
+    assertEquals("command", cmd._1)
     var yr = Dict.lookup("yr")
     assertEquals("year", yr._1)
     var dt = Dict.lookup("dt")
@@ -29,8 +30,4 @@ class DictTest {
     assertEquals("rpt", Dict.abbrv("report"))
   }
 
-  @Test
-  def testNormalize: Unit = {
-    println((1 to 7).map(n => 1.15 - Math.tanh(0.15 * n)).sum)
-  }
 }
