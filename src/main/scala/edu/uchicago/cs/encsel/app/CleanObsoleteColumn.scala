@@ -29,6 +29,8 @@ import java.text.NumberFormat
 
 object CleanObsoleteColumn extends App {
 
-  var num = NumberFormat.getInstance.parse("123234332233223234232323.9")
-  println(num.doubleValue().toString())
+  var a = "abcdefg"
+
+  println(a.substring(0, 7))
+  println(a.substring(7))
 }

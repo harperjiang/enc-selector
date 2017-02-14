@@ -30,4 +30,10 @@ class DictTest {
     assertEquals("rpt", Dict.abbrv("report"))
   }
 
+  @Test
+  def testPlural: Unit = {
+    var codes = Dict.lookup("codes")
+
+    assertEquals("code", codes._1)
+  }
 }

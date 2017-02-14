@@ -12,7 +12,6 @@ class WordSplitTest {
     assertEquals(2, res._1.length)
     assertEquals("report", res._1(0))
     assertEquals("year", res._1(1))
-
   }
 
   @Test
@@ -23,8 +22,12 @@ class WordSplitTest {
     assertEquals("inspection", res._1(0))
     assertEquals("code", res._1(1))
 
+    res = split.split("inspectioncodes")
+    assertEquals(2, res._1.length)
+    assertEquals("inspection", res._1(0))
+    assertEquals("code", res._1(1))
+
     res = split.split("actualcmd")
-    println(res)
     assertEquals(2, res._1.length)
     assertEquals("actual", res._1(0))
     assertEquals("command", res._1(1))
