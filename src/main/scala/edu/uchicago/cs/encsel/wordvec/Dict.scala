@@ -37,6 +37,7 @@ import edu.uchicago.cs.encsel.util.WordUtils
 object Dict {
 
   val abbrvMatch = 1.1
+  val notFound = 0.1
 
   val dictFile = "src/main/word/google_10000.txt"
   //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
@@ -113,8 +114,8 @@ object Dict {
     var candidate = candidates.minBy(_._3)
     var normalized = normalize(candidate._2)
     if (normalized < 0.5)
-      // No guess
-      (input, 1)
+      // No guess, return original words with a low fidelity
+      (input, notFound)
     else
       (candidate._1, normalize(candidate._2))
   }
