@@ -6,11 +6,16 @@ import org.junit.Assert._
 class WordSplitTest {
 
   @Test
-  def testSplit(): Unit = {
+  def testSplitAbbrv(): Unit = {
     var split = new WordSplit()
     var res = split.split("RPTYR")
     assertEquals(2, res._1.length)
     assertEquals("report", res._1(0))
+    assertEquals("year", res._1(1))
+
+    res = split.split("SMYS")
+    assertEquals(2, res._1.length)
+    assertEquals("some", res._1(0))
     assertEquals("year", res._1(1))
   }
 
@@ -31,6 +36,15 @@ class WordSplitTest {
     assertEquals(2, res._1.length)
     assertEquals("actual", res._1(0))
     assertEquals("command", res._1(1))
+  }
+
+  @Test
+  def testSplitPlural: Unit = {
+    var split = new WordSplit()
+    var res = split.split("ReportYears")
+    assertEquals(2, res._1.length)
+    assertEquals("report", res._1(0))
+    assertEquals("year", res._1(1))
   }
 
   @Test
