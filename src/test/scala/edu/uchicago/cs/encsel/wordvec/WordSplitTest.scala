@@ -31,8 +31,13 @@ class WordSplitTest {
     assertEquals(2, res._1.length)
     assertEquals("inspection", res._1(0))
     assertEquals("code", res._1(1))
-
-    res = split.split("actualcmd")
+  }
+  
+  @Test
+  def testSplitCombined: Unit = {
+    var split = new WordSplit()
+    var res = split.split("actualcmd")
+    println(res)
     assertEquals(2, res._1.length)
     assertEquals("actual", res._1(0))
     assertEquals("command", res._1(1))

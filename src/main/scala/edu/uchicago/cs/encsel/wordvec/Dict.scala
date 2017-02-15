@@ -87,7 +87,8 @@ object Dict {
   def lookup(raw: String): (String, Double) = {
     var input = raw.toLowerCase()
     var notfound = (input, notFound)
-
+    if (input.length() <= 1)
+      return notfound
     // Convert plural form to singular form
     if (!isAbbreviate(input)) {
       input = Plural.removePlural(input)
