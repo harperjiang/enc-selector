@@ -46,5 +46,10 @@ class WordSplitTest {
     assertEquals("nov",res._1(0))
     assertEquals("issued",res._1(1))
     assertEquals("date",res._1(2))
+    
+    res = split.split("GeneralID")
+    assertEquals(2, res._1.length)
+    assertEquals("general",res._1(0))
+    assertEquals("id",res._1(1))
   }
 }

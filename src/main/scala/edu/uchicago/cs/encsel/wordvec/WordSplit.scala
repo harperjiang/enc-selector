@@ -43,7 +43,9 @@ class WordSplit {
       }
       case x if !x.equals(x.toUpperCase()) && !x.equals(x.toLowerCase()) => {
         // Camel style
-        split(x.replaceAll("([A-Z])(?=[a-z])", "_$1"))
+        var separated = x.replaceAll("(?<!^)([A-Z])(?=[a-z])", "_$1")
+        separated = separated.replaceAll("(?<=[a-z])([A-Z])", "_$1")
+        split(separated)
       }
       case _ => {
         guessMemory.clear
@@ -51,7 +53,7 @@ class WordSplit {
       }
     }
   }
-      
+
   /**
    * Dynamic Programming for Guess abbreviation
    */
