@@ -21,6 +21,7 @@ class DictTest {
     var zip = Dict.lookup("zip")
     assertEquals("zip", zip._1)
     var non = Dict.lookup("jiang")
+    println(non)
     assertEquals("jiang", non._1)
   }
 
@@ -28,6 +29,11 @@ class DictTest {
   def testAbbrv: Unit = {
     assertEquals("rpt", Dict.abbreviate("repeat"))
     assertEquals("rpt", Dict.abbreviate("report"))
+  }
+
+  @Test
+  def testCorrectWord: Unit = {
+    assertEquals("identification", Dict.lookup("identificaiton")._1)
   }
 
   @Test

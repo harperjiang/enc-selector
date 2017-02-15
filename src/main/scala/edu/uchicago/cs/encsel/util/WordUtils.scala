@@ -45,6 +45,10 @@ object WordUtils {
   def levDistance2(a: String, b: String): Double = {
     if (StringUtils.isEmpty(a) || StringUtils.isEmpty(b))
       return (1 to Math.max(a.length, b.length).intValue()).map(weight(_)).sum
+    if (a.startsWith(b) || b.startsWith(a)) {
+      return (Math.min(a.length, b.length).toInt to Math.max(a.length, b.length).toInt - 1).map(weight(_)).sum
+    }
+
     var asub = a.substring(0, a.length() - 1)
     var bsub = b.substring(0, b.length() - 1)
     return Array(levDistance2(asub, b) + weight(a.length),

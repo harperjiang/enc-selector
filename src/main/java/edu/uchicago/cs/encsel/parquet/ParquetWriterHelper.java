@@ -103,6 +103,31 @@ public class ParquetWriterHelper {
 		}
 	}
 
+	public static URI singleColumnBoolean(URI input) throws IOException {
+		File output = genOutput(input, "BOOLEAN");
+		if (output.exists())
+			output.delete();
+		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+
+		MessageType schema = new MessageType("record",
+				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value"));
+
+		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema, false);
+
+		String line = null;
+		List<String> holder = new ArrayList<String>();
+		while ((line = reader.readLine()) != null) {
+			holder.add(line.trim());
+			writer.write(holder);
+			holder.clear();
+		}
+
+		reader.close();
+		writer.close();
+
+		return output.toURI();
+	}
+
 	public static URI singleColumnInt(URI input, IntEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
