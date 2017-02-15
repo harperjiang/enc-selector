@@ -31,6 +31,7 @@ import scala.collection.JavaConversions._
 import edu.uchicago.cs.encsel.feature.Feature
 import edu.uchicago.cs.encsel.model.DataType
 import scala.collection.mutable.ListBuffer
+import scala.util.Try
 
 class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var origin: URI = o
@@ -38,9 +39,13 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var colName: String = cn
   var colFile: URI = null
   var dataType = dt
-  var features:java.util.List[Feature] = ListBuffer[Feature]()
+  var features: java.util.List[Feature] = ListBuffer[Feature]()
 
   def this() {
     this(null, -1, null, null)
+  }
+
+  def findFeature(t: String, name: String): Feature = {
+    Try { features.filter { f => f.featureType.equals(t) && f.name.equals(name) }(0) }.getOrElse(null)
   }
 }

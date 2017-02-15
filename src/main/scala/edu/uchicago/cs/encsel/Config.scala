@@ -35,6 +35,7 @@ object Config {
   var columnReaderEnableCheck = true
   var columnReaderErrorLimit = 100
   var columnFolder = "./columns"
+  var tempFolder = "./temp"
 
   load()
 

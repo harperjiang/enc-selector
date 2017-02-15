@@ -38,6 +38,7 @@ object Dict {
 
   private val abbrvMatch = 1.1
   private val notFound = 0.1
+  private val notFoundThreshold = 0.3
 
   private val dictFile = "word/google_10000.txt"
   //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
@@ -106,26 +107,30 @@ object Dict {
     }
 
     if (candidates.isEmpty) {
-      if (isAbbreviate(input)) { // Fuzzy search for abbreviation only
-        var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
-          .filter(t => t._1.length > input.length && t._1.intersect(input).length == input.length)
-          .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
-        if (!partials.isEmpty) {
-          var partial = partials.minBy(t => t._2 + t._3)
-          candidates += ((partial._1, partial._2, partial._2 + partial._3))
+      isAbbreviate(input) match {
+        case false => {
+          // For performance consideration, only search for words that are +/- 1 length of the target
+          var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+            .filter(t => t._1.length <= input.length + 1 && t._1.length >= input.length - 1 && t._1.intersect(input).length() >= input.length - 1)
+            .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
+          if (!partials.isEmpty) {
+            var partial = partials.minBy(t => t._2 + t._3)
+            candidates += ((partial._1, partial._2, partial._2 + partial._3))
+          }
         }
-
-        var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
-          .filter(t => t._1.length >= input.length && t._1.intersect(input).length == input.length)
-          .map(abb =>
-            {
-              var word = abbrvIdx.getOrElse(abb._1, "")
-              var wordPrio = index.getOrElse(word, Int.MaxValue)
-              (word, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
-            })
-        if (!abbrvPartials.isEmpty) {
-          var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
-          candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
+        case true => { // Abbrv search for abbreviation only
+          var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+            .filter(t => t._1.length >= input.length && t._1.intersect(input).length == input.length)
+            .map(abb =>
+              {
+                var word = abbrvIdx.getOrElse(abb._1, "")
+                var wordPrio = index.getOrElse(word, Int.MaxValue)
+                (word, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
+              })
+          if (!abbrvPartials.isEmpty) {
+            var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
+            candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
+          }
         }
       }
     }
@@ -135,8 +140,11 @@ object Dict {
         var candidate = candidates.minBy(_._3)
         // Normalize the fidelity
         var normalized = normalize(candidate._2)
-        // The dictionary contains plural words
-        (Plural.removePlural(candidate._1), normalize(candidate._2))
+        if (normalized < notFoundThreshold)
+          notfound
+        else
+          // The dictionary contains plural words
+          (Plural.removePlural(candidate._1), normalize(candidate._2))
       }
     }
   }
