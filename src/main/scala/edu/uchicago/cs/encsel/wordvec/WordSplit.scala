@@ -32,7 +32,9 @@ import scala.collection.mutable.HashSet
 
 class WordSplit {
 
-  def split(input: String): (Buffer[String], Double) = {
+  def split(raw: String): (Buffer[String], Double) = {
+    // Remove all numbers
+    var input = raw.replaceAll("""\d""", "")
     input match {
       case x if x.contains("_") => {
         // Separator
