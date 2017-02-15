@@ -106,7 +106,7 @@
 						<goals>
 							<goal>testCompile</goal>
 						</goals>
-						<phase>test</phase>
+						<phase>process-test-resources</phase>
 					</execution>
 					<execution>
 						<phase>process-resources</phase>
