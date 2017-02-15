@@ -33,6 +33,9 @@ import org.slf4j.LoggerFactory
 import edu.uchicago.cs.encsel.schema.Schema
 import scala.collection.Iterator.JoinIterator
 import org.apache.commons.lang.StringUtils
+import java.io.InputStream
+import java.io.FileInputStream
+import java.io.File
 
 trait Parser {
 
@@ -40,10 +43,11 @@ trait Parser {
   protected var headerInline = false
   protected var logger = LoggerFactory.getLogger(getClass())
   protected var blankRecord: BlankRecord = null
-  def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
+
+  def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
-    var lines = Source.fromFile(inputFile).getLines()
+    var lines = Source.fromInputStream(input).getLines()
 
     if (null == schema) {
       // Guess header, need to retrieve a line
@@ -60,6 +64,8 @@ trait Parser {
     }
     return lines.map { parseLineIgnoreError(_) }
   }
+
+  def parse(inputFile: URI, schema: Schema): Iterator[Record] = parse(new FileInputStream(new File(inputFile)), schema)
 
   protected def parseLineIgnoreError(line: String): Record = {
     try {
