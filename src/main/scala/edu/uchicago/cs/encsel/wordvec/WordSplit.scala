@@ -34,21 +34,21 @@ class WordSplit {
 
   def split(raw: String): (Buffer[String], Double) = {
     // Remove all numbers
-    var input = raw.replaceAll("""\d""", "")
+    var input = raw.replaceAll("""\d""", "_")
     input match {
-      case x if x.contains("_") => {
-        // Separator
-        var parts = x.split("_")
-        var fidelity = 1d
-        (parts.map(part => { var lookup = Dict.lookup(part); fidelity *= lookup._2; lookup._1 })
-          .filter(StringUtils.isNotEmpty(_)).toBuffer, fidelity)
-      }
       case x if !x.equals(x.toUpperCase()) && !x.equals(x.toLowerCase()) => {
         // Camel style
         var separated = x.replaceAll("(?<!^)([A-Z])(?=[a-z])", "_$1")
         separated = separated.replaceAll("(?<=[a-z])([A-Z])", "_$1")
         separated = separated.toLowerCase()
         split(separated)
+      }
+      case x if x.contains("_") => {
+        // Separator
+        var parts = x.split("_+")
+        var fidelity = 1d
+        (parts.map(part => { var lookup = Dict.lookup(part); fidelity *= lookup._2; lookup._1 })
+          .filter(StringUtils.isNotEmpty(_)).toBuffer, fidelity)
       }
       case _ => {
         guessMemory.clear
