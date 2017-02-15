@@ -77,7 +77,7 @@ class DictRule extends Rule {
 
 class PluralDictRule extends Rule {
 
-  val dictFile = "src/main/word/plural"
+  val dictFile = "word/plural.txt"
 
   val schema = new Schema(Array((DataType.STRING, "plural"), (DataType.STRING, "origin")), false)
 
@@ -86,7 +86,8 @@ class PluralDictRule extends Rule {
 
   def loadDict: Unit = {
     var parser = new CSVParser()
-    var records = parser.parse(new File(dictFile).toURI, schema)
+    var dicturi = Thread.currentThread().getContextClassLoader.getResource(dictFile).toURI()
+    var records = parser.parse(dicturi, schema)
     records.foreach { record => { dict += ((record(0), record(1))); inverse += ((record(1), record(0))); } }
   }
   def add(input: String): String = inverse.getOrElse(input, null)

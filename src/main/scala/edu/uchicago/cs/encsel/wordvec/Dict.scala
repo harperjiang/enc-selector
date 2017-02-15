@@ -39,7 +39,7 @@ object Dict {
   private val abbrvMatch = 1.1
   private val notFound = 0.1
 
-  private val dictFile = "src/main/word/google_10000.txt"
+  private val dictFile = "word/google_10000.txt"
   //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
   private val dictSchema = new Schema(Array((DataType.STRING, "word")), false)
 
@@ -56,7 +56,8 @@ object Dict {
 
   protected def init(): Unit = {
     var parser = new CSVParser()
-    var records = parser.parse(new File(dictFile).toURI(), dictSchema)
+    var dict = Thread.currentThread().getContextClassLoader.getResource(dictFile).toURI()
+    var records = parser.parse(dict, dictSchema)
 
     records.zipWithIndex.foreach { record =>
       {
@@ -138,7 +139,7 @@ object Dict {
       }
     }
   }
-  
+
   private[wordvec] def abbreviate(input: String) = {
     // Remove any non-leading aeiou and or
     var abbrv = orInWord.replaceAllIn(input, "")
