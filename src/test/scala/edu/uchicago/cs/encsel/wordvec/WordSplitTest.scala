@@ -34,8 +34,12 @@ class WordSplitTest {
   }
 
   @Test
-  def testSplitUnderscore: Unit = {
-
+  def testRemoveNumber: Unit = {
+    var split = new WordSplit()
+    var res = split.split("column522342Day")
+    assertEquals(2, res._1.length)
+    assertEquals("column", res._1(0))
+    assertEquals("day", res._1(1))
   }
 
   @Test
@@ -43,13 +47,13 @@ class WordSplitTest {
     var split = new WordSplit()
     var res = split.split("NOVIssuedDate")
     assertEquals(3, res._1.length)
-    assertEquals("nov",res._1(0))
-    assertEquals("issued",res._1(1))
-    assertEquals("date",res._1(2))
-    
+    assertEquals("nov", res._1(0))
+    assertEquals("issued", res._1(1))
+    assertEquals("date", res._1(2))
+
     res = split.split("GeneralID")
     assertEquals(2, res._1.length)
-    assertEquals("general",res._1(0))
-    assertEquals("id",res._1(1))
+    assertEquals("general", res._1(0))
+    assertEquals("id", res._1(1))
   }
 }
