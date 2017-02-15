@@ -45,6 +45,7 @@ class WordSplit {
         // Camel style
         var separated = x.replaceAll("(?<!^)([A-Z])(?=[a-z])", "_$1")
         separated = separated.replaceAll("(?<=[a-z])([A-Z])", "_$1")
+        separated = separated.toLowerCase()
         split(separated)
       }
       case _ => {

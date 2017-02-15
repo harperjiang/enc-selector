@@ -29,15 +29,20 @@ import edu.uchicago.cs.encsel.wordvec.WordSplit
 import scala.collection.mutable.HashSet
 import java.io.PrintWriter
 import java.io.FileOutputStream
+import org.slf4j.LoggerFactory
 
 object GatherColumnWord extends App {
   var cols = Persistence.get.load()
   var wordset = new HashSet[String]()
-
+  var logger = LoggerFactory.getLogger(getClass)
   cols.foreach(col => {
-    var split = new WordSplit()
-    var words = split.split(col.colName)
-    wordset ++= words._1
+    try {
+      var split = new WordSplit()
+      var words = split.split(col.colName)
+      wordset ++= words._1
+    } catch {
+      case e: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
+    }
   })
   var writer = new PrintWriter(new FileOutputStream("words"))
 
