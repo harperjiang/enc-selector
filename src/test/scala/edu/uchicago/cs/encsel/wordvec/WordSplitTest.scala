@@ -31,6 +31,20 @@ class WordSplitTest {
     assertEquals(2, res._1.length)
     assertEquals("actual", res._1(0))
     assertEquals("command", res._1(1))
+  }
 
+  @Test
+  def testSplitUnderscore: Unit = {
+
+  }
+
+  @Test
+  def testSplitCamel: Unit = {
+    var split = new WordSplit()
+    var res = split.split("NOVIssuedDate")
+    assertEquals(3, res._1.length)
+    assertEquals("nov",res._1(0))
+    assertEquals("issued",res._1(1))
+    assertEquals("date",res._1(2))
   }
 }

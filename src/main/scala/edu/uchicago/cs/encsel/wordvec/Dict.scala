@@ -36,22 +36,25 @@ import edu.uchicago.cs.encsel.util.WordUtils
 
 object Dict {
 
-  val abbrvMatch = 1.1
-  val notFound = 0.1
+  private val abbrvMatch = 1.1
+  private val notFound = 0.1
 
-  val dictFile = "src/main/word/google_10000.txt"
+  private val dictFile = "src/main/word/google_10000.txt"
   //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
-  val dictSchema = new Schema(Array((DataType.STRING, "word")), false)
+  private val dictSchema = new Schema(Array((DataType.STRING, "word")), false)
 
-  protected var words = new HashMap[Char, ArrayBuffer[(String, Int)]]()
-  protected var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
-  protected var index = new HashMap[String, Int]()
-  protected var abbrvIdx = new HashMap[String, String]()
-  protected var count = 0
+  private var words = new HashMap[Char, ArrayBuffer[(String, Int)]]()
+  private var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
+  private var index = new HashMap[String, Int]()
+  private var abbrvIdx = new HashMap[String, String]()
+  private var count = 0
+
+  private val vowelInWord = """(?!^)[aeiou]""".r
+  private val orInWord = """(?!^)or""".r
 
   init()
 
-  def init(): Unit = {
+  protected def init(): Unit = {
     var parser = new CSVParser()
     var records = parser.parse(new File(dictFile).toURI(), dictSchema)
 
@@ -59,10 +62,10 @@ object Dict {
       {
         var word = record._1(0)
         index += ((word, count))
-        if (word.length > 3 && abbrv(word).length >= 2)
-          abbrvIdx.getOrElseUpdate(abbrv(word), word)
+        if (word.length > 3 && abbreviate(word).length >= 2)
+          abbrvIdx.getOrElseUpdate(abbreviate(word), word)
         words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, count))
-        abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv(word), count))
+        abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbreviate(word), count))
         count += 1
       }
     }
@@ -84,7 +87,7 @@ object Dict {
     var notfound = (input, notFound)
 
     // Convert plural form to singular form
-    if (!isAbbrv(input)) {
+    if (!isAbbreviate(input)) {
       input = Plural.removePlural(input)
     }
 
@@ -102,7 +105,7 @@ object Dict {
     }
 
     if (candidates.isEmpty) {
-      if (isAbbrv(input)) { // Fuzzy search for abbreviation only
+      if (isAbbreviate(input)) { // Fuzzy search for abbreviation only
         var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
           .filter(t => t._1.length > input.length && t._1.intersect(input).length == input.length)
           .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
@@ -135,23 +138,22 @@ object Dict {
       }
     }
   }
-
-  def abbrv(input: String) = {
+  
+  private[wordvec] def abbreviate(input: String) = {
     // Remove any non-leading aeiou and or
-    var abbrv = input.replaceAll("""(?!^)or""", "")
-    abbrv.replaceAll("""(?!^)[aeiou]""", "")
+    var abbrv = orInWord.replaceAllIn(input, "")
+    vowelInWord.replaceAllIn(abbrv, "")
   }
 
-  val vowelInWord = """(?!^)[aeiou]""".r
-
-  def isAbbrv(input: String) = {
+  private[wordvec] def isAbbreviate(input: String) = {
     input.length >= 2 && (vowelInWord.findFirstIn(input) match {
       case Some(x) => false
       case None => true
     })
   }
 
-  protected def freq_penalty(idx: Int): Double = idx.toDouble * 5 / count
+  private[wordvec] def freq_penalty(idx: Int): Double = idx.toDouble * 5 / count
 
-  protected def normalize(levdist: Double): Double = 1 / (levdist + 1)
+  private[wordvec] def normalize(levdist: Double): Double = 1 / (levdist + 1)
+
 }
