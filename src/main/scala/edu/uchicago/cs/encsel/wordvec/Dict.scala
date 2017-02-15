@@ -135,7 +135,8 @@ object Dict {
         var candidate = candidates.minBy(_._3)
         // Normalize the fidelity
         var normalized = normalize(candidate._2)
-        (candidate._1, normalize(candidate._2))
+        // The dictionary contains plural words
+        (Plural.removePlural(candidate._1), normalize(candidate._2))
       }
     }
   }
