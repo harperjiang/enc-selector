@@ -26,8 +26,8 @@ class DictTest {
 
   @Test
   def testAbbrv: Unit = {
-    assertEquals("rpt", Dict.abbrv("repeat"))
-    assertEquals("rpt", Dict.abbrv("report"))
+    assertEquals("rpt", Dict.abbreviate("repeat"))
+    assertEquals("rpt", Dict.abbreviate("report"))
   }
 
   @Test

@@ -32,8 +32,6 @@ import scala.collection.mutable.HashSet
 
 class WordSplit {
 
-  private val vowel = Set('a', 'e', 'i', 'o', 'u').toSeq
-
   def split(input: String): (Buffer[String], Double) = {
     input match {
       case x if x.contains("_") => {
@@ -45,56 +43,21 @@ class WordSplit {
       }
       case x if !x.equals(x.toUpperCase()) && !x.equals(x.toLowerCase()) => {
         // Camel style
-        split(x.replaceAll("([A-Z])", "_\1"))
+        split(x.replaceAll("([A-Z])(?=[a-z])", "_$1"))
       }
       case _ => {
-        //        splitMemory.clear
-        //        var words = wordSplit(input, 0, input.length)
-        //        words match {
-        //          case null => {
         guessMemory.clear
         guessSplit(input, 0, input.length)
-        //          }
-        //          case _ => (words, 1)
-        //        }
       }
     }
   }
-
-  /**
-   * Look for words combination
-   */
-  protected var splitMemory = new HashMap[(Int, Int), Buffer[String]]()
-
-  def wordSplit(input: String, fromPos: Int, toPos: Int): Buffer[String] = {
-    splitMemory.getOrElseUpdate((fromPos, toPos), {
-      (fromPos, toPos) match {
-        case (f, t) if f == t => new ArrayBuffer[String]()
-        case _ => (fromPos + 1 to toPos).map { i =>
-          {
-            input.substring(fromPos, i) match {
-              case x if Dict.strictLookup(x) =>
-                wordSplit(input, i, toPos) match {
-                  case none if none == null => null
-                  case remain => x +: remain
-                }
-              case _ => null
-            }
-          }
-        }.filter(_ != null) match {
-          case empty if empty.isEmpty => null
-          case nonEmpty => nonEmpty.minBy(_.length)
-        }
-      }
-    })
-  }
-
+      
   /**
    * Dynamic Programming for Guess abbreviation
    */
   protected var guessMemory = new HashMap[(Int, Int), (Buffer[String], Double)]()
 
-  def guessSplit(input: String, fromPos: Int, toPos: Int): (Buffer[String], Double) = {
+  protected def guessSplit(input: String, fromPos: Int, toPos: Int): (Buffer[String], Double) = {
     guessMemory.getOrElseUpdate((fromPos, toPos), {
       // Scan and recognize
       (fromPos, toPos) match {

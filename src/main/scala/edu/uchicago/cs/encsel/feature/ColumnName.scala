@@ -26,6 +26,11 @@ package edu.uchicago.cs.encsel.feature
 
 import edu.uchicago.cs.encsel.column.Column
 
+/**
+ * The <code>ColumnName</code> feature tries to capture the relationship
+ * between column name and its encoding.
+ *
+ */
 object ColumnName extends FeatureExtractor {
 
   def extract(input: Column): Iterable[Feature] = {
