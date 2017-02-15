@@ -13,6 +13,7 @@ class DictTest {
     var rpt = Dict.lookup("rpt")
     assertEquals("report", rpt._1)
     var cmd = Dict.lookup("cmd")
+    println(cmd)
     assertEquals("command", cmd._1)
     var yr = Dict.lookup("yr")
     assertEquals("year", yr._1)
@@ -39,7 +40,6 @@ class DictTest {
   @Test
   def testPlural: Unit = {
     var codes = Dict.lookup("codes")
-
     assertEquals("code", codes._1)
   }
 }

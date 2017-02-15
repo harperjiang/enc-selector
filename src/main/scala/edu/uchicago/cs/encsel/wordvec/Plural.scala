@@ -119,7 +119,7 @@ class EsRule extends Rule {
   }
   def remove(input: String): String = {
     input match {
-      case es if es endsWith ("es") => input.replaceAll("es$", "")
+      case es if es endsWith ("es") => input.replaceAll("(?<!^)es$", "")
       case _ => null
     }
   }
@@ -129,7 +129,7 @@ class SRule extends Rule {
   def add(input: String): String = input + "s"
   def remove(input: String): String = {
     input match {
-      case s if s endsWith ("s") => input.replaceAll("s$", "")
+      case s if s endsWith ("s") => input.replaceAll("(?<!^)s$", "")
       case _ => null
     }
   }
