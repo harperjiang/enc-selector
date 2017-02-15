@@ -56,7 +56,7 @@ object Dict {
 
   protected def init(): Unit = {
     var parser = new CSVParser()
-    var dict = Thread.currentThread().getContextClassLoader.getResource(dictFile).toURI()
+    var dict = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
     var records = parser.parse(dict, dictSchema)
 
     records.zipWithIndex.foreach { record =>

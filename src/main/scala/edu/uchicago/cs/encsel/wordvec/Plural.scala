@@ -86,7 +86,7 @@ class PluralDictRule extends Rule {
 
   def loadDict: Unit = {
     var parser = new CSVParser()
-    var dicturi = Thread.currentThread().getContextClassLoader.getResource(dictFile).toURI()
+    var dicturi = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
     var records = parser.parse(dicturi, schema)
     records.foreach { record => { dict += ((record(0), record(1))); inverse += ((record(1), record(0))); } }
   }

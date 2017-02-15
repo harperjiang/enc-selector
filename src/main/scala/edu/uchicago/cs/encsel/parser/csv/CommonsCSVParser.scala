@@ -38,12 +38,14 @@ import org.apache.commons.csv.CSVRecord
 import edu.uchicago.cs.encsel.parser.Parser
 import edu.uchicago.cs.encsel.parser.Record
 import edu.uchicago.cs.encsel.schema.Schema
+import java.io.InputStream
+import java.io.InputStreamReader
 
 class CommonsCSVParser extends Parser {
 
-  override def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
+  override def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
-    var reader = new FileReader(new File(inputFile))
+    var reader = new InputStreamReader(input)
     var format = CSVFormat.EXCEL
     if (schema != null && schema.hasHeader) {
       format = format.withFirstRecordAsHeader()

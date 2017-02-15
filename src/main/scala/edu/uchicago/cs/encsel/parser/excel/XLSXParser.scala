@@ -37,13 +37,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import edu.uchicago.cs.encsel.parser.Parser
 import edu.uchicago.cs.encsel.parser.Record
 import edu.uchicago.cs.encsel.schema.Schema
+import java.io.InputStream
 
 class XLSXParser extends Parser {
 
-  override def parse(inputFile: URI, schema: Schema): Iterator[Record] = {
+  override def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
-    var workbook = new XSSFWorkbook(new File(inputFile))
+    var workbook = new XSSFWorkbook(input)
 
     // By default only scan the first sheet
     var sheet = workbook.getSheetAt(0)
