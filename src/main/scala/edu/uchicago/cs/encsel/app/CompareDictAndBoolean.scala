@@ -42,6 +42,16 @@ import org.apache.commons.io.output.NullWriter
 import java.io.PrintWriter
 import edu.uchicago.cs.encsel.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.model.DataType
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
+import org.apache.parquet.hadoop.ParquetWriter
+import edu.uchicago.cs.encsel.parquet.ParquetWriterBuilder
+import org.apache.parquet.schema.Type.Repetition
+import org.apache.parquet.schema.MessageType
+import java.util.ArrayList
+import org.apache.parquet.schema.PrimitiveType
+import org.apache.hadoop.fs.Path
+
+import scala.collection.JavaConversions._
 
 object CompareDictAndBoolean extends App {
 
@@ -53,6 +63,7 @@ object CompareDictAndBoolean extends App {
       var distvals = distinct(col.colFile)
       if (distvals.size < threshold) {
         genColumn(distvals, col)
+        genColumn2(distvals, col)
       }
     })
 
@@ -64,7 +75,7 @@ object CompareDictAndBoolean extends App {
 
   def genColumn(distval: Set[String], column: Column) = {
     var folder = Files.createTempDirectory(Paths.get(Config.tempFolder),
-      Try { column.asInstanceOf[ColumnWrapper].id.toString() }.getOrElse(column.colName))
+      Try { column.asInstanceOf[ColumnWrapper].id.toString() + "_" }.getOrElse(column.colName))
     var files = distval.map(value => { (value, folder.resolve(namize(value)).toFile()) }).toMap
     var writers = files.map(kv => { (kv._1, new PrintWriter(new FileWriter(kv._2))) })
 
@@ -77,6 +88,26 @@ object CompareDictAndBoolean extends App {
     writers.foreach(_._2.close)
 
     var sumLength = files.toList.map(f => new File(ParquetWriterHelper.singleColumnBoolean(f._2.toURI())).length()).sum
+    var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
+    println(sumLength, dictLength, sumLength / dictLength)
+  }
+
+  def genColumn2(distval: Set[String], column: Column) = {
+    var folder = Files.createTempDirectory(Paths.get(Config.tempFolder),
+      Try { column.asInstanceOf[ColumnWrapper].id.toString() + "_" }.getOrElse(column.colName))
+    var output = folder.resolve(column.colName)
+    var row = distval.toList
+    var schema = new MessageType("record",
+      row.zipWithIndex.map(i => new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value_%d".format(i._2))));
+
+    var writer: ParquetWriter[java.util.List[String]] = ParquetWriterBuilder.buildDefault(new Path(output.toUri()), schema, false);
+
+    Source.fromFile(new File(column.colFile)).getLines().foreach(line =>
+      writer.write(row.map { elem => line.equals(elem).toString() }))
+
+    writer.close();
+
+    var sumLength = output.size
     var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
     println(sumLength, dictLength, sumLength / dictLength)
   }
