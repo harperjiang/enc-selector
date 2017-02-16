@@ -55,7 +55,7 @@ import scala.collection.JavaConversions._
 
 object CompareDictAndBoolean extends App {
 
-  val threshold = 8
+  val threshold = 20
 
   var cols = Persistence.get.load()
   cols.filter { col => { col.colName.toLowerCase().contains("category") && col.dataType == DataType.STRING && col.findFeature("Sparsity", "valid_ratio").value == 1 } }
@@ -89,7 +89,7 @@ object CompareDictAndBoolean extends App {
 
     var sumLength = files.toList.map(f => new File(ParquetWriterHelper.singleColumnBoolean(f._2.toURI())).length()).sum
     var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
-    println(sumLength, dictLength, sumLength / dictLength)
+    println(distval.size, sumLength, dictLength, sumLength / dictLength)
   }
 
   def genColumn2(distval: Set[String], column: Column) = {
@@ -109,7 +109,7 @@ object CompareDictAndBoolean extends App {
 
     var sumLength = output.toFile().length
     var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
-    println(sumLength, dictLength, sumLength / dictLength)
+    println(distval.size, sumLength, dictLength, sumLength / dictLength)
   }
 
   def namize(input: String) = input.replaceAll("""[^\d\w]""", "_")
