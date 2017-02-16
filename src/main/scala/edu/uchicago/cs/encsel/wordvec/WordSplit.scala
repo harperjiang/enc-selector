@@ -77,7 +77,7 @@ class WordSplit {
             var left = Dict.lookup(input.substring(fromPos, i))
             var right = guessSplit(input, i, toPos)
             (left._1 +: right._1, left._2 * right._2)
-          })).maxBy(t => (t._2, -t._1.length))
+          })).maxBy(t => (t._2 - 0.1 * t._1.length))
         }
       }
     })

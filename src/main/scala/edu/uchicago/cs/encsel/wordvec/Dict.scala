@@ -36,7 +36,7 @@ import edu.uchicago.cs.encsel.util.WordUtils
 
 object Dict {
 
-  private val abbrvMatch = 1.1
+  private val abbrvPenalty = 0.1
   private val notFound = 0.1
   private val notFoundThreshold = 0.3
 
@@ -44,10 +44,15 @@ object Dict {
   //  val dictSchema = new Schema(Array((DataType.INTEGER, "seq"), (DataType.STRING, "word"), (DataType.STRING, "pos")), true)
   private val dictSchema = new Schema(Array((DataType.STRING, "word")), false)
 
+  private val abbrvFile = "word/abbrv.txt"
+  private val abbrvSchema = new Schema(Array((DataType.STRING, "word"), (DataType.STRING, "abbrv")), false)
+
   private var words = new HashMap[Char, ArrayBuffer[(String, Int)]]()
-  private var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
   private var index = new HashMap[String, Int]()
-  private var abbrvIdx = new HashMap[String, String]()
+
+  private var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
+  private var abbrvDict = new HashMap[String, String]()
+  private var abbrvIdx = new HashMap[String, (String, Double)]()
   private var count = 0
 
   private val vowelInWord = """(?!^)[aeiou]""".r
@@ -58,16 +63,23 @@ object Dict {
   protected def init(): Unit = {
     var parser = new CSVParser()
     var dict = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
+    var abbrvLoad = Thread.currentThread().getContextClassLoader.getResourceAsStream(abbrvFile)
     var records = parser.parse(dict, dictSchema)
-
+    abbrvDict ++= parser.parse(abbrvLoad, abbrvSchema).map { record => (record(0) -> record(1)) }
     records.zipWithIndex.foreach { record =>
       {
         var word = record._1(0)
         index += ((word, count))
-        if (word.length > 3 && abbreviate(word).length >= 2)
-          abbrvIdx.getOrElseUpdate(abbreviate(word), word)
         words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, count))
-        abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbreviate(word), count))
+
+        if (abbrvDict.contains(word) || (word.length > 3 && abbreviate(word).length >= 2)) {
+          var abbrv = abbrvDict.getOrElse(word, abbreviate(word))
+          abbrvIdx.getOrElseUpdate(abbrv,
+            (word, abbrvDict.contains(word) match {
+              case true => 0 case false => abbrvPenalty
+            }))
+          abbrvs.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((abbrv, count))
+        }
         count += 1
       }
     }
@@ -102,9 +114,9 @@ object Dict {
     }
     if (abbrvIdx.contains(input)) {
       // Known abbreviation
-      var originWord = abbrvIdx.getOrElse(input, "")
-      var originIdx = index.getOrElse(originWord, Int.MaxValue)
-      candidates += ((originWord, abbrvMatch - 1, abbrvMatch * freq_penalty(originIdx)))
+      var originWord = abbrvIdx.getOrElse(input, null)
+      var originIdx = index.getOrElse(originWord._1, Int.MaxValue)
+      candidates += ((originWord._1, originWord._2, freq_penalty(originIdx)))
     }
 
     if (candidates.isEmpty) {
@@ -124,9 +136,9 @@ object Dict {
             .filter(t => t._1.length >= input.length && t._1.intersect(input).length == input.length)
             .map(abb =>
               {
-                var word = abbrvIdx.getOrElse(abb._1, "")
-                var wordPrio = index.getOrElse(word, Int.MaxValue)
-                (word, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
+                var word = abbrvIdx.getOrElse(abb._1, ("", 0))
+                var wordPrio = index.getOrElse(word._1, Int.MaxValue)
+                (word._1, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
               })
           if (!abbrvPartials.isEmpty) {
             var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
@@ -156,7 +168,9 @@ object Dict {
     vowelInWord.replaceAllIn(abbrv, "")
   }
 
-  private[wordvec] def isAbbreviate(input: String) = {
+  private[wordvec] def isAbbreviate(input: String): Boolean = {
+    if (abbrvIdx.contains(input))
+      return true
     input.length >= 2 && (vowelInWord.findFirstIn(input) match {
       case Some(x) => false
       case None => true
@@ -165,6 +179,6 @@ object Dict {
 
   private[wordvec] def freq_penalty(idx: Int): Double = idx.toDouble * 5 / count
 
-  private[wordvec] def normalize(levdist: Double): Double = 1 / (levdist + 1)
+  private[wordvec] def normalize(levdist: Double): Double = Math.exp(-0.5 * levdist)
 
 }
