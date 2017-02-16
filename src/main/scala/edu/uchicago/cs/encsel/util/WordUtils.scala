@@ -60,6 +60,6 @@ object WordUtils {
     matrix(a.length)(b.length)
   }
 
-  protected def weight(idx: Int): Double = 1.15 - Math.tanh(0.15 * idx)
+  protected def weight(idx: Int): Double = Math.exp(-0.05 * idx) + 0.05
 
 }
