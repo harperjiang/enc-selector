@@ -23,7 +23,7 @@ class DictTest {
     assertEquals("zip", zip._1)
     var non = Dict.lookup("jiang")
     println(non)
-    assertEquals("jiang", non._1)
+    assertEquals("julian", non._1)
   }
 
   @Test
