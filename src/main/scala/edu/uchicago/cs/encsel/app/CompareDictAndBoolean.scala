@@ -98,7 +98,7 @@ object CompareDictAndBoolean extends App {
     var output = folder.resolve(column.colName)
     var row = distval.toList
     var schema = new MessageType("record",
-      row.zipWithIndex.map(i => new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value_%d".format(i._2))));
+      row.zipWithIndex.map(i => new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value_2_%d".format(i._2))));
 
     var writer: ParquetWriter[java.util.List[String]] = ParquetWriterBuilder.buildDefault(new Path(output.toUri()), schema, false);
 
@@ -107,7 +107,7 @@ object CompareDictAndBoolean extends App {
 
     writer.close();
 
-    var sumLength = output.size
+    var sumLength = output.toFile().length
     var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
     println(sumLength, dictLength, sumLength / dictLength)
   }
