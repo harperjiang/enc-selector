@@ -1,8 +1,7 @@
 package edu.uchicago.cs.encsel.network
 
 class Graph {
-  
-  
-  def forward()
-  def backward()
+
+  def forward() = Unit
+  def backward() = Unit
 }
