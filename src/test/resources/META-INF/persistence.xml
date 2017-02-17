@@ -6,11 +6,10 @@
 		transaction-type="RESOURCE_LOCAL">
 		<mapping-file>META-INF/eclipselink-orm.xml</mapping-file>
 
-		<class>edu.uchicago.cs.encsel.persist.jpa.ColumnWrapper</class>
-		<class>edu.uchicago.cs.encsel.persist.jpa.FeatureWrapper</class>
+		<class>edu.uchicago.cs.encsel.dataset.persist.jpa.ColumnWrapper</class>
 		
-		<class>edu.uchicago.cs.encsel.persist.jpa.URIConverter</class>
-		<class>edu.uchicago.cs.encsel.persist.jpa.DataTypeConverter</class>
+		<class>edu.uchicago.cs.encsel.dataset.persist.jpa.URIConverter</class>
+		<class>edu.uchicago.cs.encsel.dataset.persist.jpa.DataTypeConverter</class>
 		<properties>
 			<property name="eclipselink.jdbc.batch-writing" value="JDBC" />
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />

@@ -28,18 +28,18 @@ import java.io.File
 
 import java.util.concurrent.Executors
 import java.nio.file.Paths
-import edu.uchicago.cs.encsel.column.ColumnReaderFactory
+import edu.uchicago.cs.encsel.dataset.column.ColumnReaderFactory
 import java.util.concurrent.Callable
-import edu.uchicago.cs.encsel.column.Column
+import edu.uchicago.cs.encsel.dataset.column.Column
 import java.net.URI
-import edu.uchicago.cs.encsel.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import java.nio.file.Path
 import java.nio.file.Files
 import edu.uchicago.cs.encsel.Config
-import edu.uchicago.cs.encsel.column.ColumnReader
-import edu.uchicago.cs.encsel.schema.Schema
+import edu.uchicago.cs.encsel.dataset.column.ColumnReader
+import edu.uchicago.cs.encsel.dataset.schema.Schema
 import org.slf4j.LoggerFactory
-import edu.uchicago.cs.encsel.feature.Features
+import edu.uchicago.cs.encsel.dataset.feature.Features
 
 import scala.collection.JavaConversions._
 import edu.uchicago.cs.encsel.util.FileUtils

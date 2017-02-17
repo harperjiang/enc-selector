@@ -24,8 +24,8 @@
  */
 package edu.uchicago.cs.encsel.app
 
-import edu.uchicago.cs.encsel.persist.Persistence
-import edu.uchicago.cs.encsel.schema.SchemaGuesser
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.schema.SchemaGuesser
 import org.slf4j.LoggerFactory
 
 object ReguessSchema extends App {

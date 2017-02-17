@@ -11,7 +11,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.BeforeClass
-import edu.uchicago.cs.encsel.persist.DummyPersistence
+import edu.uchicago.cs.encsel.dataset.persist.DummyPersistence
 
 class DataCollectorForTest extends DataCollector {
 

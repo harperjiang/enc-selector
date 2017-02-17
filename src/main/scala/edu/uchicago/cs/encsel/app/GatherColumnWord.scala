@@ -24,8 +24,8 @@
  */
 package edu.uchicago.cs.encsel.app
 
-import edu.uchicago.cs.encsel.persist.Persistence
-import edu.uchicago.cs.encsel.wordvec.WordSplit
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.wordvec.WordSplit
 import scala.collection.mutable.HashSet
 import java.io.PrintWriter
 import java.io.FileOutputStream
