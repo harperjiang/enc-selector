@@ -27,14 +27,14 @@ package edu.uchicago.cs.encsel.app
 
 import scala.Iterable
 
-import edu.uchicago.cs.encsel.feature.Sparsity
-import edu.uchicago.cs.encsel.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.feature.Sparsity
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
 
 import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.feature.Length
-import edu.uchicago.cs.encsel.feature.Entropy
+import edu.uchicago.cs.encsel.dataset.feature.Length
+import edu.uchicago.cs.encsel.dataset.feature.Entropy
 import scala.collection.mutable.ArrayBuffer
-import edu.uchicago.cs.encsel.column.Column
+import edu.uchicago.cs.encsel.dataset.column.Column
 import org.slf4j.LoggerFactory
 
 object RunFeature extends App {

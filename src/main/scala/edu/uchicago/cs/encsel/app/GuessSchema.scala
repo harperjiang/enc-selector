@@ -29,9 +29,9 @@ import java.io.File
 import java.nio.file.Paths
 import java.nio.file.Files
 import java.nio.file.Path
-import edu.uchicago.cs.encsel.schema.SchemaGuesser
+import edu.uchicago.cs.encsel.dataset.schema.SchemaGuesser
 import org.slf4j.LoggerFactory
-import edu.uchicago.cs.encsel.schema.Schema
+import edu.uchicago.cs.encsel.dataset.schema.Schema
 
 object GuessSchema extends App {
 
