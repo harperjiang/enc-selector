@@ -1,1 +1,17 @@
 /test_colreader.csv.done
+/.test_col_int.data.BP.crc
+/.test_col_int.data.DELTABP.crc
+/.test_col_int.data.DICT.crc
+/.test_col_int.data.PLAIN.crc
+/.test_col_int.data.RLE.crc
+/.test_col_str.data.DELTAL.crc
+/.test_col_str.data.DICT.crc
+/.test_col_str.data.PLAIN.crc
+/content.csv.done
+/test_col_int.data.BP
+/test_col_int.data.DELTABP
+/test_col_int.data.DICT
+/test_col_int.data.PLAIN
+/test_col_int.data.RLE
+/test_columner.csv.done
+/test_to_schema.schema.gen
