@@ -12,9 +12,6 @@ import org.junit.Test
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.feature.Feature
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.dataset.persist.jpa.ColumnWrapper;
-import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence;
-
 import javax.persistence.Embeddable
 import javax.persistence.Entity
 import javax.persistence.Table
