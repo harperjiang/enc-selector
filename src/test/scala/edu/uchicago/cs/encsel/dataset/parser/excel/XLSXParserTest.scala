@@ -1,7 +1,6 @@
 package edu.uchicago.cs.encsel.dataset.parser.excel
 
 import edu.uchicago.cs.encsel.dataset.parser.csv.CommonsCSVParser
-import edu.uchicago.cs.encsel.dataset.parser.excel.XLSXParser;
 
 import java.io.File
 import edu.uchicago.cs.encsel.dataset.schema.Schema

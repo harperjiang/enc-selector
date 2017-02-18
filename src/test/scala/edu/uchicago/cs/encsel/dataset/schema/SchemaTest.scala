@@ -6,7 +6,6 @@ import org.junit.Assert._
 import org.junit.Test
 
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.dataset.schema.Schema;
 import scala.io.Source
 
 class SchemaTest {

@@ -4,7 +4,6 @@ import org.junit.Test
 import org.junit.Assert._
 import java.io.File
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.dataset.schema.SchemaGuesser;
 
 class SchemaGuesserTest {
 

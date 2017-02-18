@@ -5,7 +5,6 @@ import java.io.File
 import org.junit.Test
 import org.junit.Assert._
 
-import edu.uchicago.cs.encsel.dataset.parser.csv.CommonsCSVParser;
 import edu.uchicago.cs.encsel.dataset.schema.Schema
 import java.util.Arrays
 
