@@ -24,6 +24,11 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
+
 object NdConversions {
-  
+
+  implicit def arrayToNdArray(array: Array[Double]): INDArray = Nd4j.create(array)
+  implicit def arrayToNdArray2(array: Array[Array[Double]]): INDArray = Nd4j.create(array)
 }

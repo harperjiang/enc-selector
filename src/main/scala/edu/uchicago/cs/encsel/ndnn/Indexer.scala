@@ -51,7 +51,8 @@ object Indexer {
 
     val flatten = data.reshape(datashape.product, -1)
     val idxflatten = idx.dup.reshape(idxshape.product, -1)
-    val offset = Nd4j.create((0 until rownum).map(_.doubleValue() * rowlength).toArray).reshape(rownum, -1)
+    val offset = Nd4j.create((0 until rownum)
+      .map(_.doubleValue() * rowlength).toArray).reshape(rownum, -1)
     idxflatten.addi(offset)
 
     Nd4j.create(NDArrayUtil.toInts(idxflatten).map { flatten.getDouble(_) }, idxshape)
@@ -70,11 +71,13 @@ object Indexer {
 
     val flatten = data.reshape(datashape.product, -1)
     val idxflatten = idx.dup.reshape(idxshape.product, -1)
-    val offset = Nd4j.create((0 until rownum).map(_.doubleValue() * rowlength).toArray).reshape(rownum, -1)
+    val offset = Nd4j.create((0 until rownum)
+      .map(_.doubleValue() * rowlength).toArray).reshape(rownum, -1)
     idxflatten.addi(offset)
     val valueflatten = toput.reshape(idxshape.product, -1)
 
-    NDArrayUtil.toInts(idxflatten).zip(valueflatten.data().asDouble()).foreach(p => flatten.putScalar(p._1, p._2))
+    NDArrayUtil.toInts(idxflatten).zip(valueflatten.data().asDouble())
+      .foreach(p => flatten.putScalar(p._1, p._2))
   }
 
   protected def checkShape(dataShape: Array[Int], idxShape: Array[Int]): Boolean = {
@@ -98,13 +101,5 @@ object Indexer {
       }
       case _ => false
     }
-  }
-
-  /**
-   * TODO
-   * Support Numpy style indexing
-   */
-  def get(data: INDArray, idx: String) = {
-    null
   }
 }
