@@ -24,25 +24,6 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
-import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.api.rng.distribution.impl.NormalDistribution
-import org.nd4j.linalg.factory.Nd4j
-
-trait InitPolicy {
-  def init(shape: Array[Int]): INDArray;
-  def init(shape: Int*): INDArray = init(shape.toArray)
-}
-
-object Xavier extends InitPolicy {
-  def init(shape: Array[Int]): INDArray = {
-    var n = shape.dropRight(1).product
-    var sd = Math.sqrt(3d / n)
-    new NormalDistribution(0, sd).sample(shape.toArray)
-  }
-}
-
-object Zero extends InitPolicy {
-  def init(shape: Array[Int]): INDArray = {
-    Nd4j.createUninitialized(shape).assign(0)
-  }
+object NdConversions {
+  
 }

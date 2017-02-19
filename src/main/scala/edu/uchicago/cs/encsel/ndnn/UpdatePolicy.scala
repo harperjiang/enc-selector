@@ -51,7 +51,8 @@ class SGD(e: Double) extends UpdatePolicy {
   }
 
   def update(p: Param) = {
-    p.value.subi(p.grad.mul(eta))
+    if (p.grad != null)
+      p.value.subi(p.grad.mul(eta))
   }
 }
 
@@ -60,11 +61,13 @@ class Momentum(e: Double, m: Double) extends UpdatePolicy {
   val mu = m
 
   def update(p: Param) = {
-    val grad = p.grad
-    val oldmomen = p.context.getOrElse(UpdatePolicy.momentumKey, Nd4j.createUninitialized(grad.shape).assign(0))
-    val momentum = oldmomen.mul(mu).add(grad.mul(1 - mu))
-    p.value.subi(momentum.mul(eta))
-    p.context.put(UpdatePolicy.momentumKey, momentum)
+    if (p.grad != null) {
+      val grad = p.grad
+      val oldmomen = p.context.getOrElse(UpdatePolicy.momentumKey, grad)
+      val momentum = oldmomen.mul(mu).add(grad.mul(1 - mu))
+      p.value.subi(momentum.mul(eta))
+      p.context.put(UpdatePolicy.momentumKey, momentum)
+    }
   }
 }
 
@@ -73,11 +76,14 @@ class RMSProp(e: Double, b: Double) extends UpdatePolicy {
   val beta = b
 
   def update(p: Param) = {
-    val grad = p.grad
-    val oldrms = p.context.getOrElse(UpdatePolicy.rmspropKey, Nd4j.createUninitialized(grad.shape).assign(0))
-    val rms = oldrms.mul(beta).add(Transforms.pow(grad, 2).mul(1 - beta))
-    p.value.subi(grad.div(rms.add(UpdatePolicy.rmsEpsilon)).mul(eta))
-    p.context.put(UpdatePolicy.rmspropKey, rms)
+    if (p.grad != null) {
+      val grad = p.grad
+      val gradsqr = Transforms.pow(grad, 2)
+      val oldrms = p.context.getOrElse(UpdatePolicy.rmspropKey, gradsqr)
+      val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
+      p.value.subi(grad.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
+      p.context.put(UpdatePolicy.rmspropKey, rms)
+    }
   }
 }
 
@@ -87,16 +93,18 @@ class Adam(e: Double, a: Double, b: Double) extends UpdatePolicy {
   val beta = b
 
   def update(p: Param) = {
-    val grad = p.grad
+    if (p.grad != null) {
+      val grad = p.grad
+      val gradsqr = Transforms.pow(grad, 2)
+      val oldmomen = p.context.getOrElse(UpdatePolicy.adammeanKey, grad)
+      val momentum = oldmomen.mul(alpha).add(grad.mul(1 - alpha))
 
-    val oldmomen = p.context.getOrElse(UpdatePolicy.adammeanKey, Nd4j.createUninitialized(grad.shape).assign(0))
-    val momentum = oldmomen.mul(alpha).add(grad.mul(1 - beta))
+      val oldrms = p.context.getOrElse(UpdatePolicy.adamvarKey, gradsqr)
+      val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
+      p.value.subi(momentum.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
 
-    val oldrms = p.context.getOrElse(UpdatePolicy.adamvarKey, Nd4j.createUninitialized(grad.shape).assign(0))
-    val rms = oldrms.mul(beta).add(Transforms.pow(grad, 2).mul(1 - beta))
-    p.value.subi(momentum.div(rms.add(UpdatePolicy.rmsEpsilon)).mul(eta))
-
-    p.context.put(UpdatePolicy.adammeanKey, momentum)
-    p.context.put(UpdatePolicy.adamvarKey, rms)
+      p.context.put(UpdatePolicy.adammeanKey, momentum)
+      p.context.put(UpdatePolicy.adamvarKey, rms)
+    }
   }
 }
