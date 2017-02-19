@@ -30,11 +30,31 @@ import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.factory.Nd4j
 
 trait LossFunction {
-  def loss(actual: INDArray, expected: INDArray): Double
+  def loss(actual: INDArray, expected: INDArray, calcgrad: Boolean = true): Double
   def gradient: INDArray
 }
 
-class SigmoidLogLoss extends LossFunction {
+class SquareLoss extends LossFunction {
+  var grad: INDArray = null
+  /**
+   * @param actual		Shape [B, N]
+   * @param	expected	Shape [B, N]
+   * @return	The averaged squared difference of actual - expected
+   */
+  def loss(actual: INDArray, expected: INDArray, calcgrad: Boolean): Double = {
+    val b = actual.shape()(0)
+
+    if (calcgrad) {
+      // Compute Gradient
+      grad = actual.sub(expected).mul(1d / b)
+    }
+    // Loss
+    Transforms.pow(actual.sub(expected), 2).sum(1).meanNumber().doubleValue() / 2
+  }
+  def gradient: INDArray = grad
+}
+
+class SoftMaxLogLoss extends LossFunction {
   val clip = 1e-12
   var grad: INDArray = null
   /**
@@ -45,25 +65,20 @@ class SigmoidLogLoss extends LossFunction {
    * @return 	mean of log loss of ground truth label in actual probability
    *
    */
-  def loss(actual: INDArray, expected: INDArray): Double = {
+  def loss(actual: INDArray, expected: INDArray, calcgrad: Boolean): Double = {
     val shape = actual.shape()
     val b = shape(0)
     val n = shape(1)
 
-    val flatten = actual.reshape(b * n, -1)
-    val idxflatten = expected.reshape(b, -1)
-    val offset = Nd4j.create((0 until b).map(_.doubleValue() * n).toArray).reshape(b, -1)
-    idxflatten.addi(offset)
+    val fetch = Indexer.get(actual, expected)
+    if (calcgrad) {
+      // Compute gradient
+      grad = Nd4j.createUninitialized(b, n).assign(0)
+      val allone = Nd4j.create((0 to b - 1).map(i => 1d / b).toArray).reshape(b, -1)
 
-    // Compute gradient
-    grad = Nd4j.createUninitialized(b * n, 1)
-    grad.assign(0)
-    val allone = Nd4j.create((0 to b - 1).map(i => 1d / b).toArray)
-    grad.put(NDArrayIndex.allFor(idxflatten), allone)
-    grad = grad.reshape(b, n)
-
-    val fetch = flatten.get(NDArrayIndex.allFor(idxflatten): _*)
-
+      // -log(x) gradient
+      Indexer.put(grad, expected, allone.div(fetch).neg())
+    }
     Transforms.log(Transforms.max(fetch, clip)).neg().meanNumber().doubleValue()
   }
 

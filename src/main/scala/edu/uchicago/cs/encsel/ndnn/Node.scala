@@ -95,6 +95,9 @@ abstract class Node(is: Node*) {
   inputs ++= is
   inputs.foreach(_.addOutput(this))
 
+  def getInputs = inputs.clone()
+  def getOutputs = outputs.clone()
+
   def addInput(input: Node) = inputs += input
   def addOutput(output: Node) = outputs += output
 
@@ -107,18 +110,27 @@ abstract class Node(is: Node*) {
       this.value = compute
       outputs.foreach { _.forward(this) }
       readyInput.clear()
+      // Clear gradient for backward
+      grad = null
     }
   }
 
   def backward(source: Node, grad: INDArray): Unit = {
     if (outputs.contains(source)) {
       readyOutput += source
-      this.grad.addi(grad)
+      this.grad = this.grad match {
+        case null => grad
+        case _ => this.grad.add(grad)
+      }
     }
-    if(source == this)
-      this.grad.addi(grad)
+    if (source == this)
+      this.grad = this.grad match {
+        case null => grad
+        case _ => this.grad.add(grad)
+      }
+
     if (readyOutput.size == outputs.size) {
-      updateGrad.foreach(pair=> pair._1.backward(this, pair._2))
+      updateGrad.foreach(pair => pair._1.backward(this, pair._2))
       readyOutput.clear()
     }
   }
@@ -140,15 +152,18 @@ abstract class OpNode(op: TransformOp, input: Node) extends Node(input) {
   }
 }
 
-class Input extends Node {
+class Input(n: String) extends Node {
+  val name = n
+  def this() = this("default_input")
+  def getValue = this.value
   def setValue(value: INDArray) = this.value = value
   def compute = this.value
   def updateGrad = Map.empty[Node, INDArray]
 }
 
-class Param extends Input {
+class Param(n: String) extends Input(n) {
   var context = new HashMap[String, INDArray]()
-
+  def this() = this("default_param")
 }
 
 class Add(x: Node, y: Node) extends Node(x, y) {
@@ -162,7 +177,7 @@ class Add(x: Node, y: Node) extends Node(x, y) {
     left.value.add(Node.broadcast(right.value, left.value.shape))
   }
 
-  def updateGrad: Unit = {
+  def updateGrad = {
     // Sum along dimension
     val diff = Node.diff(left.value.shape, right.value.shape)
     var leftgrad = this.grad.dup()
@@ -171,7 +186,7 @@ class Add(x: Node, y: Node) extends Node(x, y) {
     var rightgrad = this.grad.dup()
     if (diff._2.length != 0)
       rightgrad = rightgrad.sum(diff._2: _*)
-    Map((left, leftgrad),(right, rightgrad))
+    Map((left, leftgrad), (right, rightgrad))
   }
 }
 
@@ -186,7 +201,7 @@ class Mul(x: Node, y: Node) extends Node(x, y) {
     left.value.mul(Node.broadcast(right.value, left.value.shape))
   }
 
-  def updateGrad: Unit = {
+  def updateGrad = {
     val diff = Node.diff(left.value.shape, right.value.shape)
     var leftgrad = this.grad.mul(Node.broadcast(right.value, left.value.shape))
     if (diff._1.length > 0)
@@ -194,7 +209,7 @@ class Mul(x: Node, y: Node) extends Node(x, y) {
     var rightgrad = this.grad.mul(left.value)
     if (diff._2.length > 0)
       rightgrad = rightgrad.sum(diff._2: _*)
-    Map((left,leftgrad),(right,rightgrad))
+    Map((left, leftgrad), (right, rightgrad))
   }
 }
 
@@ -205,7 +220,7 @@ class DotMul(x: Node, y: Node) extends Node(x, y) {
 
   def compute: INDArray = left.value.mmul(right.value)
 
-  def updateGrad: Unit = {
+  def updateGrad = {
     Map((left, this.grad.mmul(right.value.transpose())),
       (right, left.value.transpose().mmul(this.grad)))
   }

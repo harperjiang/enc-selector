@@ -34,32 +34,54 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   val updatePolicy = up
   val lossFunction = loss
 
-  val inputs = new ArrayBuffer[Input]
-  val params = new ArrayBuffer[Param]
-  var output: Node = null
+  protected val inputs = new ArrayBuffer[Input]
+  protected val params = new ArrayBuffer[Param]
+  protected val expected = new Input()
+  protected var output: Node = null
 
-  def param(shape: Array[Int]): Param = {
-    val newparam = new Param()
-    newparam.value = initPolicy.init(shape)
+  def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
+    val newparam = new Param(n)
+    newparam.value = usePolicy.init(shape)
     params += newparam
     newparam
   }
 
-  def input(shape: Array[Int]): Input = {
-    val newinput = new Input()
+  def input(n: String): Input = {
+    val newinput = new Input(n)
     inputs += newinput
     newinput
   }
 
-  def output(node: Node): Unit = { output = node }
+  def expect(value: INDArray) = expected.setValue(value)
+  def setOutput(node: Node): Unit = { output = node }
 
-  def forward() = inputs.foreach { _.forward(null) }
+  def getInputs = inputs.clone()
+  def getParams = params.clone()
+  def getOutput = output
 
-  def backward(expected: INDArray) = {
-    val loss = lossFunction.loss(output.value, expected)
-    output.grad = lossFunction.gradient
-    output.backward(null)
+  def train: Double = {
+    // TODO Check conditions
 
+    // Forward
+    inputs.foreach { input => input.forward(input) }
+    params.foreach { p => p.forward(p) }
+    // Compute Loss
+    val loss = lossFunction.loss(output.value, expected.value)
+    // Backward
+    output.backward(output, lossFunction.gradient)
+    // Update Parameters
     params.foreach { updatePolicy.update(_) }
+
+    loss
+  }
+
+  def test: Double = {
+    // Forward
+    inputs.foreach { input => input.forward(input) }
+    params.foreach { p => p.forward(p) }
+    // Compute Loss
+    val loss = lossFunction.loss(output.value, expected.value, false)
+
+    loss
   }
 }

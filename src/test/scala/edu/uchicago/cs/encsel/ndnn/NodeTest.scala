@@ -42,18 +42,18 @@ class NodeTest {
   }
 
   @Test
-  def testForward:Unit = {
+  def testForward: Unit = {
 
-    val node1 = new DummyNode()
-    val node2 = new DummyNode()
-    val node3 = new DummyNode(node1,node2)
+    val node1 = new Input()
+    val node2 = new Input()
+    val node3 = new DummyNode(node1, node2)
     val node4 = new DummyNode(node3)
     val node5 = new DummyNode(node3)
     val node6 = new DummyNode(node4)
-    val node7 = new DummyNode(node2,node5, node6)
+    val node7 = new DummyNode(node2, node5, node6)
 
-    node1.value = Nd4j.createUninitialized(Array(2,3,5))
-    node2.value = Nd4j.createUninitialized(Array(4,9,7))
+    node1.value = Nd4j.createUninitialized(Array(2, 3, 5)).assign(1)
+    node2.value = Nd4j.createUninitialized(Array(4, 9, 7)).assign(2)
     node1.forward(node1)
     node2.forward(node2)
 
@@ -61,24 +61,24 @@ class NodeTest {
   }
 
   @Test
-  def testBackward:Unit = {
-    val node1 = new DummyNode()
-    val node2 = new DummyNode()
-    val node3 = new DummyNode(node1,node2)
+  def testBackward: Unit = {
+    val node1 = new Input()
+    val node2 = new Input()
+    val node3 = new DummyNode(node1, node2)
     val node4 = new DummyNode(node3)
     val node5 = new DummyNode(node3)
     val node6 = new DummyNode(node4)
     val node7 = new DummyNode(node2, node5, node6)
 
-    node7.backward(node7, Nd4j.createUninitialized(Array(3,2,7)).assign(1))
+    node7.backward(node7, Nd4j.createUninitialized(Array(3, 2, 7)).assign(1))
 
-    assertArrayEquals(Array(3,2,7), node1.grad.shape)
-    assertArrayEquals(Array(3,2,7), node2.grad.shape)
+    assertArrayEquals(Array(3, 2, 7), node1.grad.shape)
+    assertArrayEquals(Array(3, 2, 7), node2.grad.shape)
 
-    for(i<- 0 to 2; j<-0 to 1;k <- 0 to 6){
-       assertEquals(2,node1.grad.getDouble(i,j,k),0.001)
-      assertEquals(3,node2.grad.getDouble(i,j,k), 0.001)
-      }
+    for (i <- 0 to 2; j <- 0 to 1; k <- 0 to 6) {
+      assertEquals(2, node1.grad.getDouble(i, j, k), 0.001)
+      assertEquals(3, node2.grad.getDouble(i, j, k), 0.001)
+    }
   }
 
 }
