@@ -31,7 +31,7 @@ import org.nd4j.linalg.factory.Nd4j
 
 trait LossFunction {
   def forClassification: Boolean
-  def loss(actual: INDArray, expected: INDArray, calcgrad: Boolean = true): Double
+  def loss(actual: INDArray, expected: INDArray, fortest: Boolean = false): Double
   def gradient: INDArray
   def accuracy: Int
 }
