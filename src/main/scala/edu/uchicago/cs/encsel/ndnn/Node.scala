@@ -24,12 +24,12 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.api.ops.TransformOp
 import org.nd4j.linalg.factory.Nd4j
-import scala.collection.mutable.HashMap
 
 object Node {
   /**
@@ -38,12 +38,18 @@ object Node {
    * This method support broadcast from lower dimension to higher dimension.
    * E.g., [a,b] -> [x,y,a,b], but no [a,b]-> [a,b,c,d]
    * 1 can be broadcasted to bigger numbers, e.g., [1,b]->[c,a,b]
+   *
+   * For same num of dimension, it can do [1,b]->[a,b] and [b,1]->[b,a]
    */
   def broadcast(a: INDArray, shape: Array[Int]): INDArray = {
     var originShape = a.shape()
 
     if (originShape.sameElements(shape))
       return a
+
+    if (originShape.length == shape.length)
+      return a.broadcast(shape: _*)
+
     val originProd = originShape.product
     val shapeProd = shape.product
     if (originProd > shapeProd || shapeProd % originProd != 0)
@@ -148,7 +154,8 @@ abstract class OpNode(op: TransformOp, input: Node) extends Node(input) {
 
   def updateGrad = {
     val derivative = op.derivative()
-    Map((input, this.grad.mul(Nd4j.getExecutioner.execAndReturn(derivative))))
+    val derivalue = Nd4j.getExecutioner.execAndReturn(derivative)
+    Map((input, this.grad.mul(derivalue)))
   }
 }
 
@@ -226,8 +233,17 @@ class DotMul(x: Node, y: Node) extends Node(x, y) {
   }
 }
 
-class Sigmoid(input: Node) extends OpNode(new org.nd4j.linalg.api.ops.impl.transforms.Sigmoid(), input);
+class Sigmoid(input: Node) extends OpNode(new org.nd4j.linalg.api.ops.impl.transforms.Sigmoid(), input)
 
-class SoftMax(input: Node) extends OpNode(new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(), input)
+class SoftMax(input: Node) extends Node(input) {
+
+  def compute: INDArray = Nd4j.getExecutioner.execAndReturn(
+    new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(this.input.value))
+
+  def updateGrad = {
+    val gvdot = Node.broadcast(this.value.mul(this.grad).sum(1), this.grad.shape)
+    Map((input, this.value.mul(this.grad.sub(gvdot))))
+  }
+}
     
     

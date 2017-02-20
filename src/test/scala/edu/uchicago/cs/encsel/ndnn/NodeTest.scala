@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.NDArrayIndex
+import org.nd4j.linalg.api.ops.impl.transforms.SoftMaxDerivative
 
 class NodeTest {
 
@@ -26,7 +27,15 @@ class NodeTest {
         case 1 => assertEquals(3, broadcasted.getDouble(i, j, k, l), 0.001)
         case 2 => assertEquals(9, broadcasted.getDouble(i, j, k, l), 0.001)
       }
+    }
 
+    val a2 = Nd4j.create(Array(3d, 9, 8, 0))
+    val a21 = Node.broadcast(a2, Array(5, 4))
+    val a22 = Node.broadcast(a2.transpose(), Array(4, 5))
+
+    for (i <- 0 to 3; j <- 0 to 4) {
+      assertEquals(a2.getDouble(i), a21.getDouble(j, i), 0.01)
+      assertEquals(a2.getDouble(i), a22.getDouble(i, j), 0.01)
     }
   }
 
@@ -81,4 +90,49 @@ class NodeTest {
     }
   }
 
+}
+
+class SoftMaxTest {
+  @Test
+  def testCalculate: Unit = {
+    val input = new Input()
+    val softmax = new SoftMax(input)
+
+    input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
+
+    softmax.forward(input)
+
+    val result = softmax.value
+    assertArrayEquals(Array(3, 5), result.shape())
+    val expected = Array(Array(0.01165623, 0.03168492, 0.08612854, 0.23412166, 0.63640865),
+      Array(0.00481395, 0.71445362, 0.2628328, 0.00481395, 0.01308567),
+      Array(0.06745081, 0.06745081, 0.1833503, 0.1833503, 0.49839779))
+    for (i <- 0 until 3; j <- 0 until 5) {
+      assertEquals(expected(i)(j), result.getDouble(i, j), 0.01)
+    }
+  }
+
+  @Test
+  def testDerivative: Unit = {
+    val input = new Input()
+    val softmax = new SoftMax(input)
+
+    input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
+
+    softmax.forward(input)
+
+    val grad = Nd4j.create(Array(Array(0, 0, 1d / 3, 0, 0), Array(0, 2d / 3, 0, 0, 0), Array(0, 0, 0, 0, 1.5 / 3)))
+
+    softmax.backward(softmax, grad)
+    val result = input.grad
+
+    println(softmax.value)
+
+    val expected = Array(Array(-0.00033464, -0.00090966, 0.02623681, -0.00672152, -0.01827098),
+      Array(-0.0022929, 0.13600643, -0.1251879, -0.0022929, -0.00623274),
+      Array(-0.01680867, -0.01680867, -0.04569069, -0.04569069, 0.12499872))
+    for (i <- 0 until 3; j <- 0 until 5) {
+      assertEquals(expected(i)(j), result.getDouble(i, j), 0.0001)
+    }
+  }
 }

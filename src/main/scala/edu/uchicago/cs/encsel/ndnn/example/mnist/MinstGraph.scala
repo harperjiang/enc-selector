@@ -37,6 +37,10 @@ import edu.uchicago.cs.encsel.ndnn.Input
 class MinstGraph extends Graph(Xavier, new SGD(0.05, 1), new SoftMaxLogLoss) {
 
   def pixelInput = inputs(0)
+  def w1 = params(0)
+  def b1 = params(1)
+  def w2 = params(2)
+  def b2 = params(3)
 
   override def build: Unit = {
     val pixelInput = input("pixel")

@@ -34,8 +34,8 @@ object Minst extends App {
   val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
   val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
 
-  val trainset = new MinstDataset(trainDataFile, trainLabelFile)
-  val testset = new MinstDataset(testDataFile, testLabelFile)
+  val trainset = new MinstDataset(trainDataFile, trainLabelFile, 1000)
+  val testset = new MinstDataset(testDataFile, testLabelFile, 100)
 
   val graph = new MinstGraph()
 
@@ -63,6 +63,8 @@ object Minst extends App {
     graph.pixelInput.setValue(testbatch.data)
     graph.expect(testbatch.groundTruth)
     val (loss, acc) = graph.test
+    println(graph.b2.value)
+    println(graph.b2.grad)
     println("Epoch %d, accuracy %d %f".format(i, acc, acc.doubleValue() / testbatch.size))
   }
 
