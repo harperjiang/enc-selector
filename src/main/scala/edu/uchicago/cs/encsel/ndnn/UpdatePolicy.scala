@@ -24,11 +24,11 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
-import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 
 object UpdatePolicy {
   val etaDefault = 0.05
+  val etaDecay = 0.9
 
   val momentumKey = "momentum"
 
@@ -39,26 +39,31 @@ object UpdatePolicy {
   val adamvarKey = "adamvar"
 }
 
-trait UpdatePolicy {
+abstract class UpdatePolicy(e: Double, d: Double) {
+  protected var eta = e
+  protected val decay = d
   def update(p: Param): Unit
+  def weightDecay() = eta *= decay
 }
 
-class SGD(e: Double) extends UpdatePolicy {
-  val eta = e
+class SGD(e: Double, d: Double) extends UpdatePolicy(e, d) {
 
-  def this() {
-    this(UpdatePolicy.etaDefault)
-  }
+  def this() = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay)
+  def this(e: Double) = this(e, UpdatePolicy.etaDecay)
 
   def update(p: Param) = {
     if (p.grad != null)
       p.value.subi(p.grad.mul(eta))
   }
+
 }
 
-class Momentum(e: Double, m: Double) extends UpdatePolicy {
-  val eta = e
-  val mu = m
+class Momentum(e: Double, d: Double, m: Double) extends UpdatePolicy(e, d) {
+
+  private val mu = m
+
+  def this(e: Double, m: Double) = this(e, UpdatePolicy.etaDecay, m)
+  def this(m: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, m)
 
   def update(p: Param) = {
     if (p.grad != null) {
@@ -69,11 +74,15 @@ class Momentum(e: Double, m: Double) extends UpdatePolicy {
       p.context.put(UpdatePolicy.momentumKey, momentum)
     }
   }
+
 }
 
-class RMSProp(e: Double, b: Double) extends UpdatePolicy {
-  val eta = e
-  val beta = b
+class RMSProp(e: Double, d: Double, b: Double) extends UpdatePolicy(e, d) {
+
+  private val beta = b
+
+  def this(e: Double, b: Double) = this(e, UpdatePolicy.etaDecay, b)
+  def this(b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, b)
 
   def update(p: Param) = {
     if (p.grad != null) {
@@ -87,10 +96,13 @@ class RMSProp(e: Double, b: Double) extends UpdatePolicy {
   }
 }
 
-class Adam(e: Double, a: Double, b: Double) extends UpdatePolicy {
-  val eta = e
-  val alpha = a
-  val beta = b
+class Adam(e: Double, d: Double, a: Double, b: Double) extends UpdatePolicy(e, d) {
+
+  private val alpha = a
+  private val beta = b
+
+  def this(e: Double, a: Double, b: Double) = this(e, UpdatePolicy.etaDecay, a, b)
+  def this(a: Double, b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, a, b)
 
   def update(p: Param) = {
     if (p.grad != null) {

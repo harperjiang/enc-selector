@@ -1,6 +1,6 @@
 package edu.uchicago.cs.encsel.ndnn
 
-import org.junit.Assert.assertEquals
+import org.junit.Assert._
 import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
 
@@ -45,6 +45,6 @@ class GraphTest {
 
     graph.expect(Nd4j.create(Array(2d, 1d, 4d)).reshape(3, -1))
 
-    assertEquals(22.27 / 3, graph.test, 0.01)
+    assertEquals(22.27 / 3, graph.test._1, 0.01)
   }
 }
