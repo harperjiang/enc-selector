@@ -23,8 +23,6 @@ class GraphTest {
     graph.expect(Nd4j.create(Array(Array(25d, 31d), Array(79d, 112d), Array(43d, 110d), Array(49d, 54d))))
     var loss = Double.MaxValue
     for (i <- 0 to 100) {
-      println("Value is :" + w.value)
-      println("Grad is :" + w.grad)
       loss = graph.train
     }
 

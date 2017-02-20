@@ -37,7 +37,7 @@ object MinstDataset {
   val LABEL_MAGIC = 2049
 }
 
-class MinstDataset(trainFile: String, testFile: String) extends DefaultDataset(Array(28 * 28), Array(1)) {
+class MinstDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset(Array(28 * 28), Array(1)) {
 
   def load(): (Int, Array[INDArray], Array[INDArray]) = {
     val datais = new DataInputStream(new FileInputStream(trainFile))
@@ -53,15 +53,17 @@ class MinstDataset(trainFile: String, testFile: String) extends DefaultDataset(A
     if (datacount != labelcount)
       throw new IllegalArgumentException("Incorrect number of records")
 
+    val dataSize = sizeLimit match { case -1 => datacount case _ => sizeLimit }
+
     val rowcnt = datais.readInt()
     val colcnt = datais.readInt()
     if (rowcnt != 28 || colcnt != 28)
       throw new IllegalArgumentException("Incorrect row/col cnt")
 
-    val datas = new Array[INDArray](datacount)
-    val labels = new Array[INDArray](datacount)
+    val datas = new Array[INDArray](dataSize)
+    val labels = new Array[INDArray](dataSize)
     val databuffer = new Array[Double](rowcnt * colcnt)
-    for (i <- 0 until datacount) {
+    for (i <- 0 until dataSize) {
       for (j <- 0 until databuffer.length)
         databuffer(j) = datais.readUnsignedByte().toDouble
       datas(i) = Nd4j.create(databuffer)
@@ -71,6 +73,6 @@ class MinstDataset(trainFile: String, testFile: String) extends DefaultDataset(A
     datais.close
     labelis.close
 
-    (datacount, datas, labels)
+    (dataSize, datas, labels)
   }
 }

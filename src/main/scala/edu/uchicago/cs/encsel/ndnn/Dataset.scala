@@ -88,6 +88,8 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends Dataset {
 
   def batches: Iterator[Batch] = {
     bSize = bSize match { case Dataset.BATCH_ALL => dataSize case _ => bSize }
+    if (0 == bSize)
+      throw new IllegalArgumentException("Batch Size is ZERO")
     val numBatch = (dataSize / bSize) + ((dataSize % bSize) match { case 0 => 0 case _ => 1 })
     val curBatchSize = bSize
     (0 until numBatch).toIterator.map { i =>
