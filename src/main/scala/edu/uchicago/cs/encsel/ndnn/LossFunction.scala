@@ -66,8 +66,11 @@ class SquareLoss extends LossFunctionBase {
 
 }
 
-class SoftMaxLogLoss extends LossFunctionBase {
+object SoftMaxLogLoss {
   val clip = 1e-12
+}
+
+class SoftMaxLogLoss extends LossFunctionBase {
 
   def forClassification = true
   /**
@@ -84,19 +87,21 @@ class SoftMaxLogLoss extends LossFunctionBase {
     val n = shape(1)
 
     val fetch = Indexer.get(actual, expected)
+    val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip)
     if (!fortest) {
       // Compute gradient
       grad = Nd4j.createUninitialized(b, n).assign(0)
       val allone = Nd4j.create((0 to b - 1).map(i => 1d / b).toArray).reshape(b, -1)
 
       // -log(x) gradient
-      Indexer.put(grad, expected, allone.div(fetch).neg())
+
+      Indexer.put(grad, expected, allone.div(clipval).neg())
     } else if (forClassification) {
       // Accuracy for classification
       val predict = Nd4j.argMax(actual, 1)
       acc = predict.eq(expected).sumNumber().intValue()
     }
-    Transforms.log(Transforms.max(fetch, clip)).neg().meanNumber().doubleValue()
+    Transforms.log(clipval).neg().meanNumber().doubleValue()
   }
 
 }

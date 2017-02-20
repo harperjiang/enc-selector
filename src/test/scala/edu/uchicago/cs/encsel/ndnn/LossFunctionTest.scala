@@ -25,18 +25,20 @@ class SoftMaxLogLossTest {
     val sloss = new SoftMaxLogLoss()
     val prob = Nd4j.create(Array(Array(0.1d, 0.2d, 0.35d, 0.25d, 0.1d),
       Array(0.2d, 0.3d, 0.1d, 0.15d, 0.25d),
-      Array(0.3d, 0.1d, 0.15d, 0.05d, 0.4d)))
-    val label = Nd4j.create(Array(3d, 2d, 4d)).reshape(3, 1)
+      Array(0.3d, 0.1d, 0.15d, 0.05d, 0.4d),
+      Array(0, 0, 0, 0, 1d)))
+    val label = Nd4j.create(Array(3d, 2, 4, 0)).reshape(4, 1)
     val loss = sloss.loss(prob, label)
 
     val grad = sloss.gradient
 
-    assertArrayEquals(Array(3, 5), grad.shape())
-    for (i <- 0 to 2; j <- 0 to 4) {
+    assertArrayEquals(Array(4, 5), grad.shape())
+    for (i <- 0 to 3; j <- 0 to 4) {
       (i, j) match {
-        case (0, 3) => assertEquals(-1 / (3 * 0.25), grad.getDouble(i, j), 0.01)
-        case (1, 2) => assertEquals(-1 / (3 * 0.1), grad.getDouble(i, j), 0.01)
-        case (2, 4) => assertEquals(-1 / (3 * 0.4), grad.getDouble(i, j), 0.01)
+        case (0, 3) => assertEquals(-1 / (4 * 0.25), grad.getDouble(i, j), 0.01)
+        case (1, 2) => assertEquals(-1 / (4 * 0.1), grad.getDouble(i, j), 0.01)
+        case (2, 4) => assertEquals(-1 / (4 * 0.4), grad.getDouble(i, j), 0.01)
+        case (3, 0) => assertEquals(-1 / (4 * SoftMaxLogLoss.clip), grad.getDouble(i, j), 1E11)
         case _ => assertEquals(0, grad.getDouble(i, j), 0.01)
       }
     }

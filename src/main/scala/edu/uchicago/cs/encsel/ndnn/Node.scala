@@ -237,8 +237,10 @@ class Sigmoid(input: Node) extends OpNode(new org.nd4j.linalg.api.ops.impl.trans
 
 class SoftMax(input: Node) extends Node(input) {
 
-  def compute: INDArray = Nd4j.getExecutioner.execAndReturn(
-    new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(this.input.value))
+  def compute: INDArray = {
+    Nd4j.getExecutioner.execAndReturn(
+      new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(input.value.dup()))
+  }
 
   def updateGrad = {
     val gvdot = Node.broadcast(this.value.mul(this.grad).sum(1), this.grad.shape)
