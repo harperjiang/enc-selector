@@ -99,7 +99,7 @@ class SoftMaxTest {
     val softmax = new SoftMax(input)
 
     input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
-
+    val inputbackup = input.value.dup()
     softmax.forward(input)
 
     val result = softmax.value
@@ -108,6 +108,7 @@ class SoftMaxTest {
       Array(0.00481395, 0.71445362, 0.2628328, 0.00481395, 0.01308567),
       Array(0.06745081, 0.06745081, 0.1833503, 0.1833503, 0.49839779))
     for (i <- 0 until 3; j <- 0 until 5) {
+      assertEquals(input.value.getDouble(i, j), inputbackup.getDouble(i, j), 0.01)
       assertEquals(expected(i)(j), result.getDouble(i, j), 0.01)
     }
   }
