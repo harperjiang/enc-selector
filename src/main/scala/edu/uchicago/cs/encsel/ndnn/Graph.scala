@@ -39,6 +39,10 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   protected val expected = new Input()
   protected var output: Node = null
 
+  build
+
+  def build: Unit = Unit
+
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
     val newparam = new Param(n)
     newparam.value = usePolicy.init(shape)
@@ -60,7 +64,7 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   def getOutput = output
 
   def train: Double = {
-    // TODO Check conditions
+    // TODO Validate the network
 
     // Forward
     inputs.foreach { input => input.forward(input) }
@@ -69,19 +73,19 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
     val loss = lossFunction.loss(output.value, expected.value)
     // Backward
     output.backward(output, lossFunction.gradient)
-    // Update Parameters
+    // Update Parameters and Decay Weight
     params.foreach { updatePolicy.update(_) }
-
+    updatePolicy.weightDecay()
     loss
   }
 
-  def test: Double = {
+  def test: (Double, Int) = {
     // Forward
     inputs.foreach { input => input.forward(input) }
     params.foreach { p => p.forward(p) }
     // Compute Loss
     val loss = lossFunction.loss(output.value, expected.value, false)
 
-    loss
+    (loss, lossFunction.accuracy)
   }
 }
