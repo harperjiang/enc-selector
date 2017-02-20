@@ -84,7 +84,7 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
     inputs.foreach { input => input.forward(input) }
     params.foreach { p => p.forward(p) }
     // Compute Loss
-    val loss = lossFunction.loss(output.value, expected.value, false)
+    val loss = lossFunction.loss(output.value, expected.value, true)
 
     (loss, lossFunction.accuracy)
   }
