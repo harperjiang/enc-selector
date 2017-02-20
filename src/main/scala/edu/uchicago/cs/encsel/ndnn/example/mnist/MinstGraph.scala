@@ -34,7 +34,7 @@ import edu.uchicago.cs.encsel.ndnn.Zero
 import edu.uchicago.cs.encsel.ndnn.Add
 import edu.uchicago.cs.encsel.ndnn.Input
 
-class MinstGraph extends Graph(Xavier, new SGD(0.05), new SoftMaxLogLoss) {
+class MinstGraph extends Graph(Xavier, new SGD(0.05, 1), new SoftMaxLogLoss) {
 
   def pixelInput = inputs(0)
 
