@@ -28,7 +28,7 @@ import org.nd4j.linalg.ops.transforms.Transforms
 
 object UpdatePolicy {
   val etaDefault = 0.05
-  val etaDecay = 0.9
+  val etaDecay = 1
 
   val momentumKey = "momentum"
 

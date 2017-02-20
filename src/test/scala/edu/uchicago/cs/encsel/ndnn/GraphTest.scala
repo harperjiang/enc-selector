@@ -8,7 +8,7 @@ class GraphTest {
 
   @Test
   def testTrain: Unit = {
-    var graph = new Graph(Xavier, new SGD(0.02), new SquareLoss())
+    var graph = new Graph(Xavier, new SGD(0.02, 1), new SquareLoss())
 
     // Setup
     var x = graph.input("x")
@@ -22,7 +22,9 @@ class GraphTest {
     x.setValue(Nd4j.create(Array(Array(3d, 2d, 1d), Array(5d, 7d, 6d), Array(8d, 2d, 9d), Array(6d, 4d, 1d))))
     graph.expect(Nd4j.create(Array(Array(25d, 31d), Array(79d, 112d), Array(43d, 110d), Array(49d, 54d))))
     var loss = Double.MaxValue
-    for (i <- 0 to 500) {
+    for (i <- 0 to 100) {
+      println("Value is :" + w.value)
+      println("Grad is :" + w.grad)
       loss = graph.train
     }
 
