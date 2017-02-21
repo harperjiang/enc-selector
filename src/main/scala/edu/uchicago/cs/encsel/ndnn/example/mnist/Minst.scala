@@ -71,6 +71,6 @@ object Minst extends App {
   graph.pixelInput.setValue(testbatch2.data)
   graph.expect(testbatch2.groundTruth)
   val (loss2, acc2) = graph.test
-  println("Final Accuracy: %f".format(acc.doubleValue() / testbatch.size))
+  println("Final Accuracy: %f".format(acc2.doubleValue() / testbatch2.size))
 
 }

@@ -86,19 +86,6 @@ object Node {
       bpadded.zipAll(maxdim, 0, 0).zipWithIndex
       .filter(p => p._1._1 < p._1._2).map(_._2))
   }
-
-  /**
-   * Methods for resource management
-   */
-  def release(data: INDArray): Unit = {
-    if (null != data && !data.isCleanedUp()) {
-      data.cleanup()
-    }
-  }
-
-  def isValid(data: INDArray): Boolean = {
-    data != null && !data.isCleanedUp()
-  }
 }
 
 abstract class Node(is: Node*) {
@@ -109,8 +96,8 @@ abstract class Node(is: Node*) {
   protected var readyInput = new HashSet[Node]
   protected var readyOutput = new HashSet[Node]
 
-  private[ndnn] var value: INDArray = _
-  private[ndnn] var grad: INDArray = _
+  private[ndnn] var value: INDArray = null
+  private[ndnn] var grad: INDArray = null
 
   inputs ++= is
   inputs.foreach(_.addOutput(this))
@@ -127,31 +114,28 @@ abstract class Node(is: Node*) {
       readyInput += source
 
     if (readyInput.size == inputs.size) {
-      Node.release(this.value)
       this.value = compute
       outputs.foreach { _.forward(this) }
       readyInput.clear()
       // Clear gradient for backward
-      Node.release(grad)
+      grad = null
     }
   }
 
   def backward(source: Node, grad: INDArray): Unit = {
     source match {
-      case t if t == this => {
-        this.grad = grad.dup()
+      case ths if ths == this => {
+        this.grad = grad
       }
       case out if outputs.contains(out) => {
         readyOutput += source
-        Node.isValid(this.grad) match {
-          case true => this.grad.addi(grad)
-          case _ => this.grad = grad.dup()
+        this.grad match {
+          case null => this.grad = grad
+          case _ => this.grad.addi(grad)
         }
       }
-      case _ => throw new IllegalArgumentException("Unexpected Backward Source")
     }
-
-    Node.release(grad)
+    grad.cleanup()
 
     if (readyOutput.size == outputs.size) {
       updateGrad.foreach(pair => pair._1.backward(this, pair._2))
@@ -173,9 +157,7 @@ abstract class OpNode(op: TransformOp, input: Node) extends Node(input) {
   def updateGrad = {
     val derivative = op.derivative()
     val derivalue = Nd4j.getExecutioner.execAndReturn(derivative)
-    val res = this.grad.mul(derivalue)
-    Node.release(derivalue)
-    Map((input, res))
+    Map((input, this.grad.mul(derivalue)))
   }
 }
 
@@ -198,21 +180,21 @@ class Add(x: Node, y: Node) extends Node(x, y) {
   protected val right = y
 
   def compute: INDArray = {
-    val broadcast = Node.broadcast(right.value, left.value.shape)
-    val result = left.value.add(broadcast)
-    Node.release(broadcast)
-    result
+    // Always assume y is a smaller
+    if (left.value.shape.product < right.value.shape.product)
+      throw new IllegalArgumentException()
+    left.value.add(Node.broadcast(right.value, left.value.shape))
   }
 
   def updateGrad = {
     // Sum along dimension
     val diff = Node.diff(left.value.shape, right.value.shape)
-    val leftgrad = this.grad.dup()
-
-    val rightgrad = diff._2.length match {
-      case 0 => this.grad.dup()
-      case _ => this.grad.sum(diff._2: _*)
-    }
+    var leftgrad = this.grad.dup()
+    if (diff._1.length != 0)
+      leftgrad = leftgrad.sum(diff._1: _*)
+    var rightgrad = this.grad.dup()
+    if (diff._2.length != 0)
+      rightgrad = rightgrad.sum(diff._2: _*)
     Map((left, leftgrad), (right, rightgrad))
   }
 }
@@ -223,26 +205,19 @@ class Mul(x: Node, y: Node) extends Node(x, y) {
 
   // Always assume y is smaller
   def compute: INDArray = {
-    val broadcast = Node.broadcast(right.value, left.value.shape)
-    val result = left.value.mul(broadcast)
-    Node.release(broadcast)
-    result
+    if (left.value.shape.product < right.value.shape.product)
+      throw new IllegalArgumentException()
+    left.value.mul(Node.broadcast(right.value, left.value.shape))
   }
 
   def updateGrad = {
     val diff = Node.diff(left.value.shape, right.value.shape)
-    val broadcast = Node.broadcast(right.value, left.value.shape)
-    val leftgrad = broadcast.mul(this.grad)
-    Node.release(broadcast)
-    val rightgrad = diff._2.length match {
-      case 0 => left.value.mul(this.grad)
-      case _ => {
-        val prod = left.value.mul(this.grad)
-        val sum = prod.sum(diff._2: _*)
-        Node.release(prod)
-        sum
-      }
-    }
+    var leftgrad = this.grad.mul(Node.broadcast(right.value, left.value.shape))
+    if (diff._1.length > 0)
+      leftgrad = leftgrad.sum(diff._1: _*)
+    var rightgrad = this.grad.mul(left.value)
+    if (diff._2.length > 0)
+      rightgrad = rightgrad.sum(diff._2: _*)
     Map((left, leftgrad), (right, rightgrad))
   }
 }
@@ -255,13 +230,8 @@ class DotMul(x: Node, y: Node) extends Node(x, y) {
   def compute: INDArray = left.value.mmul(right.value)
 
   def updateGrad = {
-    val rt = right.value.transpose()
-    val lgrad = this.grad.mmul(rt)
-    Node.release(rt)
-    val lt = left.value.transpose()
-    val rgrad = lt.mmul(this.grad)
-    Node.release(lt)
-    Map((left, lgrad), (right, rgrad))
+    Map((left, this.grad.mmul(right.value.transpose())),
+      (right, left.value.transpose().mmul(this.grad)))
   }
 }
 
@@ -269,10 +239,7 @@ class ReLU(input: Node) extends Node(input) {
   def compute: INDArray = Transforms.relu(input.value)
 
   def updateGrad = {
-    val gt = this.value.gt(0)
-    val grad = this.grad.mul(gt)
-    Node.release(gt)
-    Map((input, grad))
+    Map((input, this.grad.mul(this.value.gt(0))))
   }
 }
 
@@ -286,16 +253,8 @@ class SoftMax(input: Node) extends Node(input) {
   }
 
   def updateGrad = {
-    val mul = this.value.mul(this.grad)
-    val sum = mul.sum(1)
-    val gvdot = Node.broadcast(sum, this.grad.shape)
-    val sub = this.grad.sub(gvdot)
-    val grad = this.value.mul(sub)
-    Node.release(sub)
-    Node.release(gvdot)
-    Node.release(sum)
-    Node.release(mul)
-    Map((input, grad))
+    val gvdot = Node.broadcast(this.value.mul(this.grad).sum(1), this.grad.shape)
+    Map((input, this.value.mul(this.grad.sub(gvdot))))
   }
 }
     
