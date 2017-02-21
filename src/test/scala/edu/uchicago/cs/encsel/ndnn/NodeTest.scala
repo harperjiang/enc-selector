@@ -137,3 +137,40 @@ class SoftMaxTest {
     }
   }
 }
+
+class SigmoidTest {
+
+  @Test
+  def testCompute: Unit = {
+    val input = new Input()
+    val sigmoid = new Sigmoid(input)
+    input.setValue(Nd4j.create(Array(Array(0.4, 0.9, -1.1, 3.8), Array(2.2, 1.7, 0.5, -0.7))))
+
+    input.forward(input)
+
+    assertArrayEquals(Array(2, 4), sigmoid.value.shape())
+
+    val expected = Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
+      Array(0.90024951, 0.84553473, 0.62245933, 0.33181223)))
+    for (i <- 0 to 1; j <- 0 to 3) {
+      assertEquals(expected.getDouble(i, j), sigmoid.value.getDouble(i, j), 0.001)
+    }
+  }
+
+  @Test
+  def testUpdateGrad: Unit = {
+    val input = new Input()
+    val sigmoid = new Sigmoid(input)
+    sigmoid.value = Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
+      Array(0.90024951, 0.84553473, 0.62245933, 0.33181223)))
+    val grad = Nd4j.create(Array(Array(1, 0, 2, 4d), Array(2, 1, 7, 5d)))
+    sigmoid.backward(sigmoid, grad)
+    
+    val expected = grad.muli(sigmoid.value.mul(sigmoid.value.sub(1).negi()))
+    println(input.grad)
+    for (i <- 0 to 1; j <- 0 to 3) {
+      assertEquals(expected.getDouble(i, j), input.grad.getDouble(i, j), 0.001)
+    }
+  }
+
+}
