@@ -26,18 +26,18 @@ package edu.uchicago.cs.encsel.ndnn.example.mnist
 
 import edu.uchicago.cs.encsel.ndnn.Dataset
 
-object Minst extends App {
-  val folder = "C:/Users/Cathy"
+object Mnist extends App {
+  val folder = "/home/harper"
 
   val trainDataFile = folder + "/dataset/mnist/train-images.idx3-ubyte"
   val trainLabelFile = folder + "/dataset/mnist/train-labels.idx1-ubyte"
   val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
   val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
 
-  val trainset = new MinstDataset(trainDataFile, trainLabelFile )
-  val testset = new MinstDataset(testDataFile, testLabelFile)
+  val trainset = new MnistDataset(trainDataFile, trainLabelFile )
+  val testset = new MnistDataset(testDataFile, testLabelFile)
 
-  val graph = new MinstGraph()
+  val graph = new MnistGraph()
 
   testset.batchSize(Dataset.BATCH_ALL)
   val testbatch = testset.batches.next()

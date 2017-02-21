@@ -35,7 +35,7 @@ import edu.uchicago.cs.encsel.ndnn.Add
 import edu.uchicago.cs.encsel.ndnn.Input
 import edu.uchicago.cs.encsel.ndnn.ReLU
 
-class MinstGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
+class MnistGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
 
   var pixelInput: Input = _
 
