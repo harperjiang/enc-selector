@@ -64,8 +64,8 @@ class MinstDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) ext
     val labels = new Array[INDArray](dataSize)
     val databuffer = new Array[Double](rowcnt * colcnt)
     for (i <- 0 until dataSize) {
-      for (j <- 0 until databuffer.length)
-        databuffer(j) = datais.readUnsignedByte().toDouble
+      for (j <- databuffer.indices)
+        databuffer(j) = datais.readUnsignedByte()/255.toDouble
       datas(i) = Nd4j.create(databuffer)
       labels(i) = Nd4j.create(Array(labelis.readUnsignedByte().toDouble))
     }

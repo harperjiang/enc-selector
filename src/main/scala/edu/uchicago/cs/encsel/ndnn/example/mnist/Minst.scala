@@ -34,21 +34,18 @@ object Minst extends App {
   val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
   val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
 
-  val trainset = new MinstDataset(trainDataFile, trainLabelFile, 1000)
-  val testset = new MinstDataset(testDataFile, testLabelFile, 100)
+  val trainset = new MinstDataset(trainDataFile, trainLabelFile )
+  val testset = new MinstDataset(testDataFile, testLabelFile)
 
   val graph = new MinstGraph()
 
-  //  testset.batchSize(Dataset.BATCH_ALL)
-  //  val testbatch = testset.batches.next()
-  //  graph.pixelInput.setValue(testbatch.data)
-  //  graph.expect(testbatch.groundTruth)
-  //  val (loss, acc) = graph.test
-  //
-  //  println(graph.b2.value)
-  //  println(graph.b2.grad)
-  //  println(acc)
-  //  println(acc.doubleValue() / testbatch.size)
+  testset.batchSize(Dataset.BATCH_ALL)
+  val testbatch = testset.batches.next()
+  graph.pixelInput.setValue(testbatch.data)
+  graph.expect(testbatch.groundTruth)
+  val (loss, acc) = graph.test
+
+  println("Initial Accuracy: %f".format(acc.doubleValue() / testbatch.size))
 
   trainset.batchSize(50)
 
@@ -67,8 +64,6 @@ object Minst extends App {
     graph.expect(testbatch.groundTruth)
     val (loss, acc) = graph.test
     println("Epoch %d, accuracy %d %f".format(i, acc, acc.doubleValue() / testbatch.size))
-
-    println(graph.b2.value)
   }
 
   testset.batchSize(Dataset.BATCH_ALL)
@@ -76,7 +71,6 @@ object Minst extends App {
   graph.pixelInput.setValue(testbatch2.data)
   graph.expect(testbatch2.groundTruth)
   val (loss2, acc2) = graph.test
-  println(acc2)
-  println(acc2.doubleValue() / testbatch2.size)
+  println("Final Accuracy: %f".format(acc.doubleValue() / testbatch.size))
 
 }
