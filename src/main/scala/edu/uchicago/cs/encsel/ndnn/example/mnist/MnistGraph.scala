@@ -34,6 +34,7 @@ import edu.uchicago.cs.encsel.ndnn.Zero
 import edu.uchicago.cs.encsel.ndnn.Add
 import edu.uchicago.cs.encsel.ndnn.Input
 import edu.uchicago.cs.encsel.ndnn.ReLU
+import edu.uchicago.cs.encsel.ndnn.Sigmoid
 
 class MnistGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
 
@@ -48,7 +49,7 @@ class MnistGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
 
     val wx = new DotMul(pixelInput, w1)
     val addb = new Add(wx, b1)
-    val relu = new ReLU(addb)
+    val relu = new Sigmoid(addb)
     val layer2 = new DotMul(relu, w2)
     val addb2 = new Add(layer2, b2)
     val softmax = new SoftMax(addb2)

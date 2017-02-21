@@ -147,20 +147,6 @@ abstract class Node(is: Node*) {
   def updateGrad: Map[Node, INDArray];
 }
 
-abstract class OpNode(op: TransformOp, input: Node) extends Node(input) {
-
-  def compute = {
-    op.init(input.value, null, input.value.dup(), input.value.lengthLong())
-    Nd4j.getExecutioner.execAndReturn(op)
-  }
-
-  def updateGrad = {
-    val derivative = op.derivative()
-    val derivalue = Nd4j.getExecutioner.execAndReturn(derivative)
-    Map((input, this.grad.mul(derivalue)))
-  }
-}
-
 class Input(n: String) extends Node {
   val name = n
   def this() = this("default_input")
@@ -243,7 +229,26 @@ class ReLU(input: Node) extends Node(input) {
   }
 }
 
-class Sigmoid(input: Node) extends OpNode(new org.nd4j.linalg.api.ops.impl.transforms.Sigmoid(), input)
+class Sigmoid(input: Node) extends Node(input) {
+  def compute: INDArray = {
+    Transforms.sigmoid(input.value)
+  }
+
+  def updateGrad = {
+    Map((input, grad.mul(value.mul(value.sub(1).negi()))))
+  }
+}
+
+class Tanh(input: Node) extends Node(input) {
+  def compute: INDArray = {
+    Transforms.tanh(input.value)
+  }
+
+  def updateGrad = {
+    val onelike = Nd4j.onesLike(grad)
+    Map((input, onelike.subi(value.mul(value)).muli(grad)))
+  }
+}
 
 class SoftMax(input: Node) extends Node(input) {
 
