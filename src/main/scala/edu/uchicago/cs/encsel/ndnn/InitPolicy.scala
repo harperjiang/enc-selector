@@ -35,7 +35,7 @@ trait InitPolicy {
 
 object Xavier extends InitPolicy {
   def init(shape: Array[Int]): INDArray = {
-    var n = shape.dropRight(1).product
+    var n = shape.product
     var sd = Math.sqrt(3d / n)
     new NormalDistribution(0, sd).sample(shape.toArray)
   }

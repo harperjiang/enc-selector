@@ -33,8 +33,9 @@ import edu.uchicago.cs.encsel.ndnn.SoftMax
 import edu.uchicago.cs.encsel.ndnn.Zero
 import edu.uchicago.cs.encsel.ndnn.Add
 import edu.uchicago.cs.encsel.ndnn.Input
+import edu.uchicago.cs.encsel.ndnn.ReLU
 
-class MinstGraph extends Graph(Xavier, new SGD(0.05, 1), new SoftMaxLogLoss) {
+class MinstGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
 
   def pixelInput = inputs(0)
   def w1 = params(0)
@@ -51,7 +52,8 @@ class MinstGraph extends Graph(Xavier, new SGD(0.05, 1), new SoftMaxLogLoss) {
 
     val wx = new DotMul(pixelInput, w1)
     val addb = new Add(wx, b1)
-    val layer2 = new DotMul(addb, w2)
+    val relu = new ReLU(addb)
+    val layer2 = new DotMul(relu, w2)
     val addb2 = new Add(layer2, b2)
     val softmax = new SoftMax(addb2)
     setOutput(softmax)
