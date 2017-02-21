@@ -71,7 +71,7 @@ class NodeTest {
 
   @Test
   def testBackward: Unit = {
-    val node1 = new Input()
+    val node1 = new Input("node1")
     val node2 = new Input()
     val node3 = new DummyNode(node1, node2)
     val node4 = new DummyNode(node3)
