@@ -295,5 +295,12 @@
 			<artifactId>deeplearning4j-core</artifactId>
 			<version>0.7.2</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.nd4j/nd4s_2.11 -->
+		<dependency>
+			<groupId>org.nd4j</groupId>
+			<artifactId>nd4s_2.11</artifactId>
+			<version>0.7.2</version>
+		</dependency>
+
 	</dependencies>
 </project>
