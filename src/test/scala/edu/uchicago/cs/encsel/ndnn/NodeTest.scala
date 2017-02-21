@@ -1,7 +1,6 @@
 package edu.uchicago.cs.encsel.ndnn
 
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
+import org.junit.Assert._
 import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.NDArrayIndex
@@ -124,6 +123,8 @@ class SoftMaxTest {
 
     val grad = Nd4j.create(Array(Array(0, 0, 1d / 3, 0, 0), Array(0, 2d / 3, 0, 0, 0), Array(0, 0, 0, 0, 1.5 / 3)))
 
+    val valbackup = softmax.value.dup()
+    
     softmax.backward(softmax, grad)
     val result = input.grad
 
@@ -134,7 +135,11 @@ class SoftMaxTest {
       Array(-0.01680867, -0.01680867, -0.04569069, -0.04569069, 0.12499872))
     for (i <- 0 until 3; j <- 0 until 5) {
       assertEquals(expected(i)(j), result.getDouble(i, j), 0.0001)
+      assertEquals(valbackup.getDouble(i,j), softmax.value.getDouble(i,j),0.0001)
     }
+
+    assertFalse(softmax.value.isCleanedUp())
+    assertFalse(softmax.grad.isCleanedUp())
   }
 }
 
@@ -164,12 +169,15 @@ class SigmoidTest {
     sigmoid.value = Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
       Array(0.90024951, 0.84553473, 0.62245933, 0.33181223)))
     val grad = Nd4j.create(Array(Array(1, 0, 2, 4d), Array(2, 1, 7, 5d)))
-    sigmoid.backward(sigmoid, grad)
     
+    val valbackup = sigmoid.value.dup()
+    sigmoid.backward(sigmoid, grad)
+
     val expected = grad.muli(sigmoid.value.mul(sigmoid.value.sub(1).negi()))
     println(input.grad)
     for (i <- 0 to 1; j <- 0 to 3) {
       assertEquals(expected.getDouble(i, j), input.grad.getDouble(i, j), 0.001)
+      assertEquals(valbackup.getDouble(i,j), sigmoid.value.getDouble(i,j),0.0001)
     }
   }
 

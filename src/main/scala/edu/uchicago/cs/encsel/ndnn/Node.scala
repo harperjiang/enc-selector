@@ -125,12 +125,12 @@ abstract class Node(is: Node*) {
   def backward(source: Node, grad: INDArray): Unit = {
     source match {
       case ths if ths == this => {
-        this.grad = grad
+        this.grad = grad.dup()
       }
       case out if outputs.contains(out) => {
         readyOutput += source
         this.grad match {
-          case null => this.grad = grad
+          case null => this.grad = grad.dup()
           case _ => this.grad.addi(grad)
         }
       }
