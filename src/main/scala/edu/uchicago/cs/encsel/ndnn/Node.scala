@@ -31,6 +31,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.api.ops.TransformOp
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
+import org.nd4j.linalg.indexing.NDArrayIndex
 
 object Node {
   /**
@@ -86,21 +87,24 @@ object Node {
       bpadded.zipAll(maxdim, 0, 0).zipWithIndex
       .filter(p => p._1._1 < p._1._2).map(_._2))
   }
+
 }
 
 abstract class Node(is: Node*) {
 
-  protected var inputs = new HashSet[Node]
-  protected var outputs = new HashSet[Node]
+  protected val inputs = new HashSet[Node]
+  protected val outputs = new HashSet[Node]
 
-  protected var readyInput = new HashSet[Node]
-  protected var readyOutput = new HashSet[Node]
+  protected val readyInput = new HashSet[Node]
+  protected val readyOutput = new HashSet[Node]
 
-  private[ndnn] var value: INDArray = null
-  private[ndnn] var grad: INDArray = null
+  private[ndnn] var value: INDArray = _
+  private[ndnn] var grad: INDArray = _
 
-  inputs ++= is
-  inputs.foreach(_.addOutput(this))
+  {
+    inputs ++= is
+    inputs.foreach(_.addOutput(this))
+  }
 
   def getInputs = inputs.clone()
   def getOutputs = outputs.clone()
@@ -143,17 +147,40 @@ abstract class Node(is: Node*) {
     }
   }
 
-  def compute: INDArray;
-  def updateGrad: Map[Node, INDArray];
+  def compute: INDArray
+  def updateGrad: Map[Node, INDArray]
 }
 
-class Input(n: String) extends Node {
+class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
   val name = n
+
+  {
+    if (srcs.length > 1)
+      throw new IllegalArgumentException("Input can have at most one source")
+  }
+
+  val source: Option[Node] = srcs.length match {
+    case 1 => Some(srcs(0))
+    case _ => None
+  }
+
   def this() = this("default_input")
+  def this(src: Node) = this("default_input", src)
+
   def getValue = this.value
   def setValue(value: INDArray) = this.value = value
-  def compute = this.value
-  def updateGrad = Map.empty[Node, INDArray]
+
+  def compute = source match {
+    case Some(x) => x.value
+    case None => this.value
+  }
+
+  def updateGrad = {
+    source match {
+      case Some(x) => Map((x, grad.dup()))
+      case None => Map.empty[Node, INDArray]
+    }
+  }
 }
 
 class Param(n: String) extends Input(n) {
@@ -161,9 +188,7 @@ class Param(n: String) extends Input(n) {
   def this() = this("default_param")
 }
 
-class Add(x: Node, y: Node) extends Node(x, y) {
-  protected val left = x
-  protected val right = y
+class Add(left: Node, right: Node) extends Node(left, right) {
 
   def compute: INDArray = {
     // Always assume y is a smaller
@@ -185,9 +210,7 @@ class Add(x: Node, y: Node) extends Node(x, y) {
   }
 }
 
-class Mul(x: Node, y: Node) extends Node(x, y) {
-  protected val left = x
-  protected val right = y
+class Mul(left: Node, right: Node) extends Node(left, right) {
 
   // Always assume y is smaller
   def compute: INDArray = {
@@ -208,10 +231,7 @@ class Mul(x: Node, y: Node) extends Node(x, y) {
   }
 }
 
-class DotMul(x: Node, y: Node) extends Node(x, y) {
-
-  protected val left = x
-  protected val right = y
+class DotMul(left: Node, right: Node) extends Node(left, right) {
 
   def compute: INDArray = left.value.mmul(right.value)
 
@@ -262,5 +282,16 @@ class SoftMax(input: Node) extends Node(input) {
     Map((input, this.value.mul(this.grad.sub(gvdot))))
   }
 }
-    
-    
+
+class Concat(left: Node, right: Node) extends Node(left, right) {
+  def compute: INDArray = Nd4j.concat(1, left.value, right.value)
+
+  def updateGrad = {
+    val leftgrad = this.grad.get(NDArrayIndex.all(),
+      NDArrayIndex.interval(0, left.value.shape()(1))).dup()
+    val rightgrad = this.grad.get(NDArrayIndex.all(),
+      NDArrayIndex.interval(left.value.shape()(1), this.value.shape()(1))).dup()
+    Map((left, leftgrad), (right, rightgrad))
+  }
+}
+

@@ -39,10 +39,6 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   protected val expected = new Input()
   protected var output: Node = null
 
-  build
-
-  def build: Unit = Unit
-
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
     val newparam = new Param(n)
     newparam.value = usePolicy.init(shape)

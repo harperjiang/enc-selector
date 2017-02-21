@@ -38,10 +38,9 @@ import edu.uchicago.cs.encsel.ndnn.Sigmoid
 
 class MnistGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
 
-  var pixelInput: Input = _
+  val pixelInput = input("pixel")
 
-  override def build: Unit = {
-    pixelInput = input("pixel")
+  {
     val w1 = param("w1", Array(28 * 28, 128))
     val b1 = param("b1", Array(1, 128))(Zero)
     val w2 = param("w2", Array(128, 10))

@@ -1,10 +1,11 @@
 package edu.uchicago.cs.encsel.ndnn
 
-import org.junit.Assert._
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.NDArrayIndex
-import org.nd4j.linalg.api.ops.impl.transforms.SoftMaxDerivative
 
 class NodeTest {
 
@@ -88,7 +89,36 @@ class NodeTest {
       assertEquals(3, node2.grad.getDouble(i, j, k), 0.001)
     }
   }
+}
 
+class InputTest {
+  @Test
+  def testCompute: Unit = {
+
+    val input1 = new Input()
+    val input2 = new Input(input1)
+
+    val value = Nd4j.create(Array(1d, 2d, 3))
+
+    input1.setValue(value)
+    input1.forward(input1)
+
+    for (i <- 0 to 2) {
+      assertEquals(input2.value.getDouble(i), value.getDouble(i), 0.001)
+    }
+  }
+
+  @Test
+  def testBackward: Unit = {
+    val input1 = new Input()
+    val input2 = new Input(input1)
+    val grad = Nd4j.create(Array(1d, 2d, 3))
+    input2.backward(input2, grad.dup())
+
+    for (i <- 0 to 2) {
+      assertEquals(grad.getDouble(i), input1.grad.getDouble(i), 0.001)
+    }
+  }
 }
 
 class SoftMaxTest {
@@ -124,7 +154,7 @@ class SoftMaxTest {
     val grad = Nd4j.create(Array(Array(0, 0, 1d / 3, 0, 0), Array(0, 2d / 3, 0, 0, 0), Array(0, 0, 0, 0, 1.5 / 3)))
 
     val valbackup = softmax.value.dup()
-    
+
     softmax.backward(softmax, grad)
     val result = input.grad
 
@@ -135,7 +165,7 @@ class SoftMaxTest {
       Array(-0.01680867, -0.01680867, -0.04569069, -0.04569069, 0.12499872))
     for (i <- 0 until 3; j <- 0 until 5) {
       assertEquals(expected(i)(j), result.getDouble(i, j), 0.0001)
-      assertEquals(valbackup.getDouble(i,j), softmax.value.getDouble(i,j),0.0001)
+      assertEquals(valbackup.getDouble(i, j), softmax.value.getDouble(i, j), 0.0001)
     }
 
     assertFalse(softmax.value.isCleanedUp())
@@ -169,7 +199,7 @@ class SigmoidTest {
     sigmoid.value = Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
       Array(0.90024951, 0.84553473, 0.62245933, 0.33181223)))
     val grad = Nd4j.create(Array(Array(1, 0, 2, 4d), Array(2, 1, 7, 5d)))
-    
+
     val valbackup = sigmoid.value.dup()
     sigmoid.backward(sigmoid, grad)
 
@@ -177,8 +207,57 @@ class SigmoidTest {
     println(input.grad)
     for (i <- 0 to 1; j <- 0 to 3) {
       assertEquals(expected.getDouble(i, j), input.grad.getDouble(i, j), 0.001)
-      assertEquals(valbackup.getDouble(i,j), sigmoid.value.getDouble(i,j),0.0001)
+      assertEquals(valbackup.getDouble(i, j), sigmoid.value.getDouble(i, j), 0.0001)
+    }
+  }
+}
+
+class ConcatTest {
+  @Test
+  def testCompute(): Unit = {
+    val a = new Input()
+    val b = new Input()
+
+    a.setValue(Nd4j.create(Array(Array(1d, 0, 2), Array(2d, 2, 1), Array(3d, 4, 7))))
+    b.setValue(Nd4j.create(Array(Array(3d, 9), Array(4d, 7), Array(5d, 1))))
+
+    val concat = new Concat(a, b)
+    a.forward(a)
+    b.forward(b)
+
+    assertArrayEquals(Array(3, 5), concat.value.shape)
+
+    for (i <- 0 to 2) {
+      for (j <- 0 to 2) {
+        assertEquals(concat.value.getDouble(i, j), a.value.getDouble(i, j), 0.001)
+      }
+      for (j <- 3 to 4) {
+        assertEquals(concat.value.getDouble(i, j), b.value.getDouble(i, j - 3), 0.001)
+      }
     }
   }
 
+  @Test
+  def testUpdateGrad: Unit = {
+    val a = new Input()
+    val b = new Input()
+
+    a.setValue(Nd4j.create(Array(Array(1d, 0, 2), Array(2d, 2, 1), Array(3d, 4, 7))))
+    b.setValue(Nd4j.create(Array(Array(3d, 9), Array(4d, 7), Array(5d, 1))))
+
+    val concat = new Concat(a, b)
+    a.forward(a)
+    b.forward(b)
+    val grad = Nd4j.create(Array(Array(3d, 2, 4, 5, 1), Array(3d, 24, 9, 5, 6), Array(31d, 2, 41, 5, 6)))
+    concat.backward(concat, grad.dup())
+    
+     for (i <- 0 to 2) {
+      for (j <- 0 to 2) {
+        assertEquals(grad.getDouble(i, j), a.grad.getDouble(i, j), 0.001)
+      }
+      for (j <- 3 to 4) {
+        assertEquals(grad.getDouble(i, j), b.grad.getDouble(i, j - 3), 0.001)
+      }
+    }
+  }
 }
