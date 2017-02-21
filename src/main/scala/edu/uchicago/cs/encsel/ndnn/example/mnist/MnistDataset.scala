@@ -37,7 +37,7 @@ object MinstDataset {
   val LABEL_MAGIC = 2049
 }
 
-class MinstDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset(Array(28 * 28), Array(1)) {
+class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset(Array(28 * 28), Array(1)) {
 
   def load(): (Int, Array[INDArray], Array[INDArray]) = {
     val datais = new DataInputStream(new FileInputStream(trainFile))
