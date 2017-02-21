@@ -27,7 +27,7 @@ package edu.uchicago.cs.encsel.ndnn.example.mnist
 import edu.uchicago.cs.encsel.ndnn.Dataset
 
 object Minst extends App {
-  val folder = "/home/harper"
+  val folder = "C:/Users/Cathy"
 
   val trainDataFile = folder + "/dataset/mnist/train-images.idx3-ubyte"
   val trainLabelFile = folder + "/dataset/mnist/train-labels.idx1-ubyte"
@@ -39,16 +39,16 @@ object Minst extends App {
 
   val graph = new MinstGraph()
 
-//  testset.batchSize(Dataset.BATCH_ALL)
-//  val testbatch = testset.batches.next()
-//  graph.pixelInput.setValue(testbatch.data)
-//  graph.expect(testbatch.groundTruth)
-//  val (loss, acc) = graph.test
-//
-//  println(graph.b2.value)
-//  println(graph.b2.grad)
-//  println(acc)
-//  println(acc.doubleValue() / testbatch.size)
+  //  testset.batchSize(Dataset.BATCH_ALL)
+  //  val testbatch = testset.batches.next()
+  //  graph.pixelInput.setValue(testbatch.data)
+  //  graph.expect(testbatch.groundTruth)
+  //  val (loss, acc) = graph.test
+  //
+  //  println(graph.b2.value)
+  //  println(graph.b2.grad)
+  //  println(acc)
+  //  println(acc.doubleValue() / testbatch.size)
 
   trainset.batchSize(50)
 
@@ -66,9 +66,9 @@ object Minst extends App {
     graph.pixelInput.setValue(testbatch.data)
     graph.expect(testbatch.groundTruth)
     val (loss, acc) = graph.test
-    println(graph.b2.value)
-    println(graph.b2.grad)
     println("Epoch %d, accuracy %d %f".format(i, acc, acc.doubleValue() / testbatch.size))
+
+    println(graph.b2.value)
   }
 
   testset.batchSize(Dataset.BATCH_ALL)

@@ -30,6 +30,7 @@ import scala.collection.mutable.HashSet
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.api.ops.TransformOp
 import org.nd4j.linalg.factory.Nd4j
+import org.nd4j.linalg.ops.transforms.Transforms
 
 object Node {
   /**
@@ -189,7 +190,7 @@ class Add(x: Node, y: Node) extends Node(x, y) {
     val diff = Node.diff(left.value.shape, right.value.shape)
     var leftgrad = this.grad.dup()
     if (diff._1.length != 0)
-      leftgrad = left.grad.sum(diff._1: _*)
+      leftgrad = leftgrad.sum(diff._1: _*)
     var rightgrad = this.grad.dup()
     if (diff._2.length != 0)
       rightgrad = rightgrad.sum(diff._2: _*)
@@ -230,6 +231,14 @@ class DotMul(x: Node, y: Node) extends Node(x, y) {
   def updateGrad = {
     Map((left, this.grad.mmul(right.value.transpose())),
       (right, left.value.transpose().mmul(this.grad)))
+  }
+}
+
+class ReLU(input: Node) extends Node(input) {
+  def compute: INDArray = Transforms.relu(input.value)
+
+  def updateGrad = {
+    Map((input, this.grad.mul(this.value.gt(0))))
   }
 }
 
