@@ -37,7 +37,7 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   protected val inputs = new ArrayBuffer[Input]
   protected val params = new ArrayBuffer[Param]
   protected val expected = new Input()
-  protected var output: Node = null
+  protected val outputs = new ArrayBuffer[Node]
 
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
     val newparam = new Param(n)
@@ -53,11 +53,15 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   }
 
   def expect(value: INDArray) = expected.setValue(value)
-  def setOutput(node: Node): Unit = { output = node }
+  def output(node: Node): Unit = outputs += node
 
   def getInputs = inputs.clone()
   def getParams = params.clone()
-  def getOutput = output
+  def getOutputs = outputs.clone()
+  def getOutput = outputs.length match {
+    case 0 => null
+    case _ => outputs(0)
+  }
 
   def train: Double = {
     // TODO Validate the network
@@ -66,9 +70,13 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
     inputs.foreach { input => input.forward(input) }
     params.foreach { p => p.forward(p) }
     // Compute Loss
-    val loss = lossFunction.loss(output.value, expected.value)
+    val loss = outputs.length match {
+      case gt if gt >= 1 => lossFunction.loss(outputs.map(_.value).toArray, expected.value)
+      case _ => throw new IllegalArgumentException("No output")
+    }
+
     // Backward
-    output.backward(output, lossFunction.gradient)
+    outputs.zip(lossFunction.gradient).foreach(pair => pair._1.backward(pair._1, pair._2))
     // Update Parameters and Decay Weight
     params.foreach { updatePolicy.update(_) }
     updatePolicy.weightDecay()
@@ -80,7 +88,7 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
     inputs.foreach { input => input.forward(input) }
     params.foreach { p => p.forward(p) }
     // Compute Loss
-    val loss = lossFunction.loss(output.value, expected.value, true)
+    val loss = lossFunction.loss(outputs.map(_.value).toArray, expected.value, true)
 
     (loss, lossFunction.accuracy)
   }
