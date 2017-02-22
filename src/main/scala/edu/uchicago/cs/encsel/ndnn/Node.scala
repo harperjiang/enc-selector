@@ -195,6 +195,16 @@ class ReLU(input: Node) extends Node(input) {
   }
 }
 
+class LeakyReLU(input: Node) extends Node(input) {
+  def compute: INDArray = Transforms.leakyRelu(input.value)
+
+  def updateGrad = {
+    val op = new org.nd4j.linalg.api.ops.impl.transforms.LeakyReLUDerivative(this.value)
+    val derivative = Nd4j.getExecutioner.execAndReturn(op)
+    Map((input, this.grad.mul(derivative)))
+  }
+}
+
 class Sigmoid(input: Node) extends Node(input) {
   def compute: INDArray = {
     Transforms.sigmoid(input.value)
