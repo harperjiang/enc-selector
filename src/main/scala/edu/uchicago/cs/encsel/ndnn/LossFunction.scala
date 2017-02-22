@@ -31,20 +31,29 @@ import org.nd4j.linalg.factory.Nd4j
 
 trait LossFunction {
   def forClassification: Boolean
-  def loss(actual: INDArray, expected: INDArray, fortest: Boolean = false): Double
-  def gradient: INDArray
+  def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double
+  def gradient: Array[INDArray]
   def accuracy: Int
 }
 
-abstract class LossFunctionBase extends LossFunction {
-  protected var grad: INDArray = null
+/**
+ * Loss function dealing with a single output
+ */
+abstract class SimpleLoss extends LossFunction {
+  protected var grad: INDArray = _
   protected var acc: Int = -1
 
-  def gradient = grad
+  override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double = {
+    loss(actual(0), expected, fortest)
+  }
+
+  def gradient = Array(grad)
   def accuracy = acc
+
+  def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double
 }
 
-class SquareLoss extends LossFunctionBase {
+class SquareLoss extends SimpleLoss {
 
   def forClassification = false
   /**
@@ -70,38 +79,40 @@ object SoftMaxLogLoss {
   val clip = 1e-12
 }
 
-class SoftMaxLogLoss extends LossFunctionBase {
+class SoftMaxLogLoss extends SimpleLoss {
 
   def forClassification = true
   /**
    * @param	actual		Probability of each label. This is an <code>INDArray</code>
-   * 									of shape [B, N], where B is the batch size, N is the dimension
+   * 									of shape [B,..., N], where B is the batch size, N is the dimension
    * @param	expected	The ground truth label. This is an <code>INDArray</code> of
-   * 									shape [B, 1]
+   * 									shape [B,..., 1]
    * @return 	mean of log loss of ground truth label in actual probability
    *
    */
   def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double = {
     val shape = actual.shape()
     val b = shape(0)
-    val n = shape(1)
+    val n = shape.last
+    val expectedSize = expected.shape.product
 
-    val fetch = Indexer.get(actual, expected)
-    val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip)
+    val fetch = Index.get(actual, expected)
+    val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip, false)
     if (!fortest) {
       // Compute gradient
-      grad = Nd4j.createUninitialized(b, n).assign(0)
-      val allone = Nd4j.create((0 to b - 1).map(i => 1d / b).toArray).reshape(b, -1)
-
+      grad = Nd4j.zerosLike(actual)
       // -log(x) gradient
+      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / expectedSize)
 
-      Indexer.put(grad, expected, allone.div(clipval).neg())
-    } else if (forClassification) {
-      // Accuracy for classification
-      val predict = Nd4j.argMax(actual, 1)
-      acc = predict.eq(expected).sumNumber().intValue()
+      Index.put(grad, expected, allone.divi(clipval).negi())
     }
-    Transforms.log(clipval).neg().meanNumber().doubleValue()
+    if (forClassification) {
+      // Accuracy for classification
+      val predict = Nd4j.argMax(actual, actual.shape.length - 1)
+      val eq = predict.eqi(expected)
+      acc = eq.sumNumber().intValue()
+    }
+    Transforms.log(clipval, false).negi().meanNumber().doubleValue()
   }
 
 }

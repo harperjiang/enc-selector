@@ -22,21 +22,12 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.ndnn.example.mnist
+package edu.uchicago.cs.encsel.ndnn.example.lstm
 
-import edu.uchicago.cs.encsel.ndnn.Dataset
+import edu.uchicago.cs.encsel.ndnn.rnn.LSTMCell
 
-object Mnist extends App {
-  val folder = "/home/harper"
-
-  val trainDataFile = folder + "/dataset/mnist/train-images.idx3-ubyte"
-  val trainLabelFile = folder + "/dataset/mnist/train-labels.idx1-ubyte"
-  val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
-  val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
-
-  val trainset = new MnistDataset(trainDataFile, trainLabelFile)
-  val testset = new MnistDataset(testDataFile, testLabelFile)
-
-  val trainer = new MnistTrainer(trainset, testset, 30, true)
-  trainer.train
+object LSTM extends App {
+  
+//  var cell:LSTMCell = new LSTMCell(null,null,null,null,null,null,null,null,null,null)
+//  cell.
 }

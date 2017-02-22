@@ -24,71 +24,17 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 
 import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.api.ops.TransformOp
 import org.nd4j.linalg.factory.Nd4j
-import org.nd4j.linalg.ops.transforms.Transforms
+import org.nd4j.linalg.indexing.INDArrayIndex
 import org.nd4j.linalg.indexing.NDArrayIndex
-
-object Node {
-  /**
-   * Broadcast a to the given shape.
-   *
-   * This method support broadcast from lower dimension to higher dimension.
-   * E.g., [a,b] -> [x,y,a,b], but no [a,b]-> [a,b,c,d]
-   * 1 can be broadcasted to bigger numbers, e.g., [1,b]->[c,a,b]
-   *
-   * For same num of dimension, it can do [1,b]->[a,b] and [b,1]->[b,a]
-   */
-  def broadcast(a: INDArray, shape: Array[Int]): INDArray = {
-    var originShape = a.shape()
-
-    if (originShape.sameElements(shape))
-      return a
-
-    if (originShape.length == shape.length)
-      return a.broadcast(shape: _*)
-
-    val originProd = originShape.product
-    val shapeProd = shape.product
-    if (originProd > shapeProd || shapeProd % originProd != 0)
-      throw new IllegalArgumentException("Cannot broadcast, [%d]->[%d]".format(originProd, shapeProd))
-
-    var newProd = 1
-
-    var lengthDiff = shape.length - originShape.length
-    for (i <- shape.length - 1 to 0 by -1) {
-      var offsetIdx = i - lengthDiff
-      if (offsetIdx >= 0 && originShape(offsetIdx) != 1 && shape(i) != originShape(offsetIdx)) {
-        throw new IllegalArgumentException("Different shape: %d@%d<->%d@%d"
-          .format(shape(i), i, originShape(offsetIdx), offsetIdx))
-      }
-      if (offsetIdx < 0 || originShape(offsetIdx) == 1) {
-        newProd *= shape(i)
-      }
-    }
-    a.reshape(1, -1).broadcast(newProd, originProd).reshape(shape: _*)
-  }
-
-  /**
-   * Assume the arrays are broadcast-able. Compute the different axis
-   */
-  def diff(ashape: Array[Int], bshape: Array[Int]): (Array[Int], Array[Int]) = {
-    val maxlen = Math.max(ashape.length, bshape.length)
-    val apadded = ashape.reverse.padTo(maxlen, 0).reverse
-    val bpadded = bshape.reverse.padTo(maxlen, 0).reverse
-    val maxdim = apadded.zipAll(bpadded, 0, 0).map(p => Math.max(p._1, p._2))
-
-    (apadded.zipAll(maxdim, 0, 0).zipWithIndex
-      .filter(p => p._1._1 < p._1._2).map(_._2),
-      bpadded.zipAll(maxdim, 0, 0).zipWithIndex
-      .filter(p => p._1._1 < p._1._2).map(_._2))
-  }
-
-}
+import org.nd4j.linalg.indexing.SpecifiedIndex
+import org.nd4j.linalg.ops.transforms.Transforms
+import org.nd4j.linalg.util.NDArrayUtil
 
 abstract class Node(is: Node*) {
 
@@ -194,12 +140,12 @@ class Add(left: Node, right: Node) extends Node(left, right) {
     // Always assume y is a smaller
     if (left.value.shape.product < right.value.shape.product)
       throw new IllegalArgumentException()
-    left.value.add(Node.broadcast(right.value, left.value.shape))
+    left.value.add(Broadcast.broadcast(right.value, left.value.shape))
   }
 
   def updateGrad = {
     // Sum along dimension
-    val diff = Node.diff(left.value.shape, right.value.shape)
+    val diff = Broadcast.diff(left.value.shape, right.value.shape)
     var leftgrad = this.grad.dup()
     if (diff._1.length != 0)
       leftgrad = leftgrad.sum(diff._1: _*)
@@ -216,12 +162,12 @@ class Mul(left: Node, right: Node) extends Node(left, right) {
   def compute: INDArray = {
     if (left.value.shape.product < right.value.shape.product)
       throw new IllegalArgumentException()
-    left.value.mul(Node.broadcast(right.value, left.value.shape))
+    left.value.mul(Broadcast.broadcast(right.value, left.value.shape))
   }
 
   def updateGrad = {
-    val diff = Node.diff(left.value.shape, right.value.shape)
-    var leftgrad = this.grad.mul(Node.broadcast(right.value, left.value.shape))
+    val diff = Broadcast.diff(left.value.shape, right.value.shape)
+    var leftgrad = this.grad.mul(Broadcast.broadcast(right.value, left.value.shape))
     if (diff._1.length > 0)
       leftgrad = leftgrad.sum(diff._1: _*)
     var rightgrad = this.grad.mul(left.value)
@@ -278,13 +224,15 @@ class SoftMax(input: Node) extends Node(input) {
   }
 
   def updateGrad = {
-    val gvdot = Node.broadcast(this.value.mul(this.grad).sum(1), this.grad.shape)
+    val gvdot = Broadcast.broadcast(this.value.mul(this.grad).sum(1), this.grad.shape)
     Map((input, this.value.mul(this.grad.sub(gvdot))))
   }
 }
 
-class Concat(left: Node, right: Node) extends Node(left, right) {
-  def compute: INDArray = Nd4j.concat(1, left.value, right.value)
+class Concat(left: Node, right: Node, idx: Int = 1) extends Node(left, right) {
+  def compute: INDArray = {
+    Nd4j.concat(idx, left.value, right.value)
+  }
 
   def updateGrad = {
     val leftgrad = this.grad.get(NDArrayIndex.all(),
@@ -292,6 +240,64 @@ class Concat(left: Node, right: Node) extends Node(left, right) {
     val rightgrad = this.grad.get(NDArrayIndex.all(),
       NDArrayIndex.interval(left.value.shape()(1), this.value.shape()(1))).dup()
     Map((left, leftgrad), (right, rightgrad))
+  }
+}
+
+/**
+ * [B,1] [C,N] => [B,N]
+ */
+class Embed(idx: Node, map: Node) extends Node(idx, map) {
+  def compute: INDArray = {
+    map.value.get(new SpecifiedIndex(NDArrayUtil.toInts(idx.value): _*),
+      NDArrayIndex.all())
+  }
+
+  def updateGrad = {
+    val grad = Nd4j.zerosLike(map.value)
+    grad.put(Array(new SpecifiedIndex(NDArrayUtil.toInts(idx.value): _*),
+      NDArrayIndex.all()), this.grad)
+    Map((map, grad))
+  }
+}
+
+class Slice(input: Node, axis: Int, idx: Int) extends Node(input) {
+  def compute: INDArray = {
+    input.value.get(Index.index(input.value.shape.length, axis, idx): _*)
+  }
+
+  def updateGrad = {
+    val grad = Nd4j.zerosLike(input.value)
+    grad.put(Index.index(input.value.shape.length, axis, idx), this.grad)
+    Map((input, grad))
+  }
+}
+
+class NewAxis(input: Node, idx: Int) extends Node(input) {
+  def compute: INDArray = {
+    val idices = new ArrayBuffer[INDArrayIndex]()
+    idices ++= (0 until idx).map(i => NDArrayIndex.all())
+    idices += NDArrayIndex.newAxis()
+    idices ++= (idx until input.value.shape.length).map(i => NDArrayIndex.all())
+    input.value.get(idices: _*).dup()
+  }
+
+  def updateGrad = {
+    val idices = new ArrayBuffer[INDArrayIndex]()
+    idices ++= (0 until idx).map(i => NDArrayIndex.all())
+    idices += NDArrayIndex.point(0)
+    idices ++= (idx until input.value.shape.length).map(i => NDArrayIndex.all())
+    Map((input, this.value.get(idices: _*)))
+  }
+}
+
+class Reshape(input: Node, shape: Array[Int]) extends Node(input) {
+
+  def compute: INDArray = {
+    input.value.dup().reshape(shape: _*)
+  }
+
+  def updateGrad = {
+    Map((input, grad.dup().reshape(input.value.shape(): _*)))
   }
 }
 

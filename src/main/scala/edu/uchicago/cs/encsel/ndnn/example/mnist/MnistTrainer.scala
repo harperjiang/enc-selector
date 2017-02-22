@@ -24,19 +24,13 @@
  */
 package edu.uchicago.cs.encsel.ndnn.example.mnist
 
-import edu.uchicago.cs.encsel.ndnn.Dataset
+import edu.uchicago.cs.encsel.ndnn.Graph
+import edu.uchicago.cs.encsel.ndnn.Batch
 
-object Mnist extends App {
-  val folder = "/home/harper"
+class MnistTrainer(trainset: MnistDataset, testset: MnistDataset, epoches: Int, profiling: Boolean)
+    extends Trainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph(), epoches, profiling) {
 
-  val trainDataFile = folder + "/dataset/mnist/train-images.idx3-ubyte"
-  val trainLabelFile = folder + "/dataset/mnist/train-labels.idx1-ubyte"
-  val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
-  val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
-
-  val trainset = new MnistDataset(trainDataFile, trainLabelFile)
-  val testset = new MnistDataset(testDataFile, testLabelFile)
-
-  val trainer = new MnistTrainer(trainset, testset, 30, true)
-  trainer.train
+  def setInput(batch: Batch, graph: MnistGraph) = {
+    graph.pixelInput.setValue(batch.data)
+  }
 }

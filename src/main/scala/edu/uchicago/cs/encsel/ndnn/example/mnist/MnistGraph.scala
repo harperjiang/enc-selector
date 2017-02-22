@@ -52,6 +52,6 @@ class MnistGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
     val layer2 = new DotMul(relu, w2)
     val addb2 = new Add(layer2, b2)
     val softmax = new SoftMax(addb2)
-    setOutput(softmax)
+    output(softmax)
   }
 }

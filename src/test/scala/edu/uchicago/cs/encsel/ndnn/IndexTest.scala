@@ -12,7 +12,7 @@ class IndexerTest {
     val a = Nd4j.create(Array(Array(3d, 4d, 5d), Array(1d, 6d, 7d)))
     val b = Nd4j.create(Array(2d, 1d)).reshape(2, 1)
 
-    val fetched = Indexer.get(a, b)
+    val fetched = Index.get(a, b)
     assertArrayEquals(Array(2, 1), fetched.shape)
     assertEquals(5d, fetched.getDouble(0, 0), 0.001)
     assertEquals(6d, fetched.getDouble(1, 0), 0.001)
@@ -24,7 +24,7 @@ class IndexerTest {
     val b = Nd4j.create(Array(2d, 1d)).reshape(2, 1)
     val value = Nd4j.create(Array(3d, 5d)).reshape(2, 1)
 
-    Indexer.put(a, b, value)
+    Index.put(a, b, value)
 
     assertEquals(3d, a.getDouble(0, 2), 0.001)
     assertEquals(5d, a.getDouble(1, 1), 0.001)
