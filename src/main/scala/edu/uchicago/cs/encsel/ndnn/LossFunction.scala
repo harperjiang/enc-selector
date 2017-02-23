@@ -28,6 +28,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.indexing.NDArrayIndex
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.factory.Nd4j
+import scala.collection.mutable.ArrayBuffer
 
 trait LossFunction {
   def forClassification: Boolean
@@ -81,6 +82,8 @@ object SoftMaxLogLoss {
 
 class SoftMaxLogLoss extends SimpleLoss {
 
+  private val gradients = new ArrayBuffer[INDArray]()
+
   def forClassification = true
   /**
    * @param	actual		Probability of each label. This is an <code>INDArray</code>
@@ -105,6 +108,7 @@ class SoftMaxLogLoss extends SimpleLoss {
       val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / expectedSize)
 
       Index.put(grad, expected, allone.divi(clipval).negi())
+      this.gradients += grad
     }
     if (forClassification) {
       // Accuracy for classification
@@ -115,4 +119,29 @@ class SoftMaxLogLoss extends SimpleLoss {
     Transforms.log(clipval, false).negi().meanNumber().doubleValue()
   }
 
+  /**
+   * Multi-output loss
+   *
+   * @param actual		Array of output result. Length L, Each of shape [B,M], corresponding to
+   * 									one batch of sigmoid result
+   * @param expected	Array of expected result. Shape [L,B]. Each [i,:] is a label for a batch
+   *
+   * @return mean of log loss in batch and length
+   */
+  override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean): Double = {
+    this.gradients.clear
+
+    val (lossval, accval) = actual.zipWithIndex.map {
+      actpair =>
+        {
+          val idx = actpair._2
+          val expect = expected.get(Index.index(2, 1, idx): _*)
+          (loss(actpair._1, expect, fortest), this.acc)
+        }
+    }.reduce((a, b) => (a._1 + b._1, a._2 + b._2))
+    this.acc = accval
+    lossval
+  }
+
+  override def gradient = gradients.toArray
 }

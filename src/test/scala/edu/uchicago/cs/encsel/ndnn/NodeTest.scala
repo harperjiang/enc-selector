@@ -220,3 +220,112 @@ class ConcatTest {
     }
   }
 }
+
+class EmbedTest {
+
+  @Test
+  def testCompute: Unit = {
+    val data = new Input()
+    val idx = new Input()
+    val embed = new Embed(idx, data)
+
+    data.setValue(Nd4j.create(Array(
+      Array(4d, 1, 2, 3),
+      Array(5d, 6, 0, 7),
+      Array(1d, 9, 3, 8),
+      Array(3d, 2, 2, 1),
+      Array(2d, 1, 2, 7))))
+    idx.setValue(Nd4j.create(Array(2d, 0, 1, 3, 4, 0, 1, 2)))
+
+    data.forward
+    idx.forward
+
+    assertArrayEquals(Array(8, 4), embed.value.shape)
+
+    val value = Nd4j.create(Array(
+      Array(1d, 9, 3, 8), Array(4d, 1, 2, 3),
+      Array(5d, 6, 0, 7),
+      Array(3d, 2, 2, 1),
+      Array(2d, 1, 2, 7),
+      Array(4d, 1, 2, 3),
+      Array(5d, 6, 0, 7),
+      Array(1d, 9, 3, 8)))
+
+    for (i <- 0 to 7; j <- 0 to 3) {
+      assertEquals(value.getDouble(i, j), embed.value.getDouble(i, j), 0.001)
+    }
+  }
+
+  @Test
+  def testUpdateGrad: Unit = {
+    val data = new Input()
+    val idx = new Input()
+    val embed = new Embed(idx, data)
+
+    data.setValue(Nd4j.create(Array(
+      Array(4d, 1, 2, 3),
+      Array(5d, 6, 0, 7),
+      Array(1d, 9, 3, 8),
+      Array(3d, 2, 2, 1),
+      Array(2d, 1, 2, 7))))
+    idx.setValue(Nd4j.create(Array(2d, 0, 1, 3, 4, 0, 1, 2)))
+
+    data.forward
+    idx.forward
+
+    val grad = Nd4j.create(Array(
+      Array(1d, 1, 2, 3),
+      Array(2d, 2, 1, 7),
+      Array(1d, 0, 2, 9),
+      Array(3d, 0, 1, 1),
+      Array(4d, 8, 5, 7),
+      Array(4d, 9, 2, 3),
+      Array(0d, 1, 0, 7),
+      Array(1d, 9, 3, 5)))
+    val backup = grad.dup()
+
+    embed.backward(embed, grad)
+    
+    val datagrad = Nd4j.create(Array(
+      Array(6d, 11, 3, 10),
+      Array(1d, 1, 2, 16),
+      Array(2d, 10, 5, 8),
+      Array(3d, 0, 1, 1),
+      Array(4d, 8, 5, 7)
+    ))
+    
+    println(data.grad)
+    assertArrayEquals(Array(5,4), data.grad.shape)
+    for (i <- 0 to 4; j <- 0 to 3) {
+      assertEquals(datagrad.getDouble(i, j), data.grad.getDouble(i, j), 0.001)
+    }
+  }
+}
+
+class SliceTest {
+  @Test
+  def testCompute: Unit = {
+
+  }
+
+  @Test
+  def testUpdateGrad: Unit = {
+
+  }
+}
+
+class NewAxisTest {
+  @Test
+  def testCompute: Unit = {
+
+  }
+
+  @Test
+  def testUpdateGrad: Unit = {
+
+  }
+}
+
+class ReshapeTest {
+
+}

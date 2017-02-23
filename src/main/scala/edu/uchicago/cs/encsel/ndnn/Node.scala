@@ -127,6 +127,8 @@ class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
       case None => Map.empty[Node, INDArray]
     }
   }
+
+  def forward: Unit = forward(this)
 }
 
 class Param(n: String) extends Input(n) {
@@ -263,13 +265,17 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
   }
 
   def updateGrad = {
-    val grad = Nd4j.zerosLike(map.value)
-    grad.put(Array(new SpecifiedIndex(NDArrayUtil.toInts(idx.value): _*),
-      NDArrayIndex.all()), this.grad)
-    Map((map, grad))
+    val allones = Nd4j.onesLike(idx.value)
+    val permu = Nd4j.zeros(this.value.shape()(0), map.value.shape()(0))
+    Index.put(permu, idx.value.transpose(), allones.transposei())
+
+    Map((map, permu.transpose().mmul(this.grad)))
   }
 }
 
+/**
+ * Fetch a slice on the given index
+ */
 class Slice(input: Node, axis: Int, idx: Int) extends Node(input) {
   def compute: INDArray = {
     input.value.get(Index.index(input.value.shape.length, axis, idx): _*)
@@ -303,11 +309,11 @@ class NewAxis(input: Node, idx: Int) extends Node(input) {
 class Reshape(input: Node, shape: Array[Int]) extends Node(input) {
 
   def compute: INDArray = {
-    input.value.dup().reshape(shape: _*)
+    input.value.reshape(shape: _*)
   }
 
   def updateGrad = {
-    Map((input, grad.dup().reshape(input.value.shape(): _*)))
+    Map((input, grad.reshape(input.value.shape(): _*)))
   }
 }
 
