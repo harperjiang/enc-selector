@@ -28,7 +28,7 @@ import edu.uchicago.cs.encsel.ndnn.Graph
 import edu.uchicago.cs.encsel.ndnn.Batch
 
 class MnistTrainer(trainset: MnistDataset, testset: MnistDataset, epoches: Int, profiling: Boolean)
-    extends Trainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph(), epoches, profiling) {
+    extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph(), epoches, profiling) {
 
   def setInput(batch: Batch, graph: MnistGraph) = {
     graph.pixelInput.setValue(batch.data)

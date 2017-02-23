@@ -29,25 +29,22 @@ import edu.uchicago.cs.encsel.ndnn.Graph
 import edu.uchicago.cs.encsel.ndnn.Batch
 import org.slf4j.LoggerFactory
 
-abstract class Trainer[T <: Dataset, G <: Graph](trainset: T, testset: T, grh: G, epoches: Int, p: Boolean) {
-
+trait Trainer {
   val logger = LoggerFactory.getLogger(getClass)
 
-  val trainSet = trainset
-  val testSet = testset
+  def train: Unit
+  def test: Unit
+}
+
+abstract class SimpleTrainer[T <: Dataset, G <: Graph](trainset: T, testset: T, grh: G, epoches: Int, p: Boolean) extends Trainer {
+
   val graph = grh
   val profiling = p
 
   def setInput(batch: Batch, graph: G)
 
   def train: Unit = {
-    testset.batchSize(Dataset.BATCH_ALL)
-    val testbatch = testset.batches.next()
-    setInput(testbatch, graph)
-    graph.expect(testbatch.groundTruth)
-    val (loss, acc) = graph.test
-
-    logger.info("Initial Accuracy: %f".format(acc.doubleValue() / testbatch.size))
+    test
 
     trainset.batchSize(50)
 
@@ -73,12 +70,16 @@ abstract class Trainer[T <: Dataset, G <: Graph](trainset: T, testset: T, grh: G
       val (loss, acc) = graph.test
       logger.info("Epoch %d, accuracy %d %f".format(i, acc, acc.doubleValue() / testbatch.size))
     }
+    test
+  }
 
+  def test: Unit = {
     testset.batchSize(Dataset.BATCH_ALL)
-    val testbatch2 = testset.batches.next()
-    setInput(testbatch2, graph)
-    graph.expect(testbatch2.groundTruth)
-    val (loss2, acc2) = graph.test
-    logger.info("Final Accuracy: %f".format(acc2.doubleValue() / testbatch2.size))
+    val testbatch = testset.batches.next()
+    setInput(testbatch, graph)
+    graph.expect(testbatch.groundTruth)
+    val (loss, acc) = graph.test
+
+    logger.info("Accuracy: %f".format(acc.doubleValue() / testbatch.size))
   }
 }
