@@ -41,11 +41,15 @@ abstract class Node(is: Node*) {
   protected val inputs = new HashSet[Node]
   protected val outputs = new HashSet[Node]
 
+  protected var numConnectedOutput = 0
   protected val readyInput = new HashSet[Node]
   protected val readyOutput = new HashSet[Node]
 
   private[ndnn] var value: INDArray = _
   private[ndnn] var grad: INDArray = _
+
+  // Dangling node will not have backprop
+  var dangling = false
 
   {
     inputs ++= is
@@ -65,6 +69,11 @@ abstract class Node(is: Node*) {
 
     if (readyInput.size == inputs.size) {
       this.value = compute
+      numConnectedOutput = outputs.toList
+        .map(_.dangling match {
+          case true => 0
+          case _ => 1
+        }).sum
       outputs.foreach { _.forward(this) }
       readyInput.clear()
       // Clear gradient for backward
@@ -87,7 +96,7 @@ abstract class Node(is: Node*) {
     }
     grad.cleanup()
 
-    if (readyOutput.size == outputs.size) {
+    if (readyOutput.size == numConnectedOutput) {
       updateGrad.foreach(pair => pair._1.backward(this, pair._2))
       readyOutput.clear()
     }
