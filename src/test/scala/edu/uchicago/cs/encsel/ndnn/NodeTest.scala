@@ -38,8 +38,8 @@ class NodeTest {
     val node6 = new DummyNode(node4)
     val node7 = new DummyNode(node2, node5, node6)
 
-    node1.setValue(Nd4j.zeros(2,3))
-    node2.setValue(Nd4j.zeros(2,3))
+    node1.setValue(Nd4j.zeros(2, 3))
+    node2.setValue(Nd4j.zeros(2, 3))
     node1.forward
     node2.forward
     node7.backward(node7, Nd4j.createUninitialized(Array(3, 2, 7)).assign(1))
@@ -121,8 +121,6 @@ class SoftMaxTest {
     softmax.backward(softmax, grad)
     val result = input.grad
 
-    println(softmax.value)
-
     val expected = Array(Array(-0.00033464, -0.00090966, 0.02623681, -0.00672152, -0.01827098),
       Array(-0.0022929, 0.13600643, -0.1251879, -0.0022929, -0.00623274),
       Array(-0.01680867, -0.01680867, -0.04569069, -0.04569069, 0.12499872))
@@ -167,7 +165,7 @@ class SigmoidTest {
     sigmoid.backward(sigmoid, grad)
 
     val expected = grad.muli(sigmoid.value.mul(sigmoid.value.sub(1).negi()))
-    println(input.grad)
+
     for (i <- 0 to 1; j <- 0 to 3) {
       assertEquals(expected.getDouble(i, j), input.grad.getDouble(i, j), 0.001)
       assertEquals(valbackup.getDouble(i, j), sigmoid.value.getDouble(i, j), 0.0001)
@@ -272,7 +270,7 @@ class EmbedTest {
       Array(1d, 9, 3, 8),
       Array(3d, 2, 2, 1),
       Array(2d, 1, 2, 7))))
-    idx.setValue(Nd4j.create(Array(2d, 0, 1, 3, 4, 0, 1, 2)))
+    idx.setValue(Nd4j.create(Array(2d, 0, 1, 3, 4, 0, 1, 2)).transpose())
 
     data.forward
     idx.forward
@@ -289,17 +287,15 @@ class EmbedTest {
     val backup = grad.dup()
 
     embed.backward(embed, grad)
-    
+
     val datagrad = Nd4j.create(Array(
       Array(6d, 11, 3, 10),
       Array(1d, 1, 2, 16),
       Array(2d, 10, 5, 8),
       Array(3d, 0, 1, 1),
-      Array(4d, 8, 5, 7)
-    ))
-    
-    println(data.grad)
-    assertArrayEquals(Array(5,4), data.grad.shape)
+      Array(4d, 8, 5, 7)))
+
+    assertArrayEquals(Array(5, 4), data.grad.shape)
     for (i <- 0 to 4; j <- 0 to 3) {
       assertEquals(datagrad.getDouble(i, j), data.grad.getDouble(i, j), 0.001)
     }

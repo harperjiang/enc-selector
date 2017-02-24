@@ -27,6 +27,7 @@ package edu.uchicago.cs.encsel.ndnn
 import scala.collection.mutable.ArrayBuffer
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.api.ndarray.INDArray
+import scala.collection.GenIterable
 
 class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
 
@@ -92,4 +93,7 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
 
     (loss, lossFunction.accuracy)
   }
+
+  def dump(): Array[INDArray] = this.params.map { _.value }.toArray
+  def load(params: GenIterable[INDArray]) = this.params.zip(params).foreach(p => p._1.value = p._2)
 }

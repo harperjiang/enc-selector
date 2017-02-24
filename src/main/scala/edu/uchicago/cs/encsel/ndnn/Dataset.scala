@@ -37,9 +37,15 @@ object Dataset {
 }
 
 trait Dataset {
-  def size: Int
-  def batchSize(size: Int): Unit
-  def batchSize(): Int
+  
+  protected var dataSize = -1
+  protected var bSize = -1
+  
+  def size: Int = dataSize
+
+  def batchSize(size: Int) = bSize = size
+  def batchSize() = bSize
+  
   def newEpoch(): Unit
   def batches: Iterator[Batch]
 }
@@ -55,11 +61,9 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends Dataset {
   protected val dataShape = ds
   protected val gtShape = gts
 
-  protected var dataSize = -1
   protected var datas: Array[INDArray] = null
   protected var groundTruths: Array[INDArray] = null
 
-  protected var bSize = -1
   protected var permuteIdx: Buffer[Int] = null
 
   init
@@ -76,10 +80,6 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends Dataset {
     Collections.shuffle(permuteIdx)
   }
 
-  def size: Int = dataSize
-
-  def batchSize(size: Int) = bSize = size
-  def batchSize() = bSize
 
   def newEpoch() = {
     // Shuffle data, generate random batch
