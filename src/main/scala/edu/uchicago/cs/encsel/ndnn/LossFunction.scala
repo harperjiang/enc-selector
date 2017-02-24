@@ -45,12 +45,16 @@ abstract class SimpleLoss extends LossFunction {
   protected var grads = new ArrayBuffer[INDArray]
   protected var acc = 0
 
+  /**
+   * @param expected		The last index is expected to correspond to array length
+   */
   override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double = {
     grads.clear()
+    val expshape = expected.shape
     actual.length match {
       case gt1 if gt1 > 1 => {
         val expectedlist = (0 until actual.length).map(i => {
-          val indices = Index.index(expected.shape.length, 0, i)
+          val indices = Index.index(expshape.length, expshape.length - 1, i)
           expected.get(indices: _*)
         })
         actual.zip(expectedlist).map(pair => loss(pair._1, pair._2, fortest)).sum / actual.length

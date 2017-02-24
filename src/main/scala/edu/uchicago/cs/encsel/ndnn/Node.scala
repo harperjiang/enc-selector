@@ -274,9 +274,14 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
   }
 
   def updateGrad = {
-    val allones = Nd4j.onesLike(idx.value)
+    // Support only column vectors
+    val idxval = idx.value.isRowVector() match {
+      case true => idx.value.transpose()
+      case false => idx.value
+    }
+    val allones = Nd4j.onesLike(idxval)
     val permu = Nd4j.zeros(this.value.shape()(0), map.value.shape()(0))
-    Index.put(permu, idx.value.transpose(), allones.transposei())
+    Index.put(permu, idxval, allones)
 
     Map((map, permu.transpose().mmul(this.grad)))
   }

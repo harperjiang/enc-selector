@@ -26,11 +26,12 @@ package edu.uchicago.cs.encsel.ndnn.example.mnist
 
 import edu.uchicago.cs.encsel.ndnn.Graph
 import edu.uchicago.cs.encsel.ndnn.Batch
+import edu.uchicago.cs.encsel.ndnn.SimpleTrainer
 
-class MnistTrainer(trainset: MnistDataset, testset: MnistDataset, epoches: Int, profiling: Boolean)
-    extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph(), epoches, profiling) {
+class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
+    extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
 
-  def setInput(batch: Batch, graph: MnistGraph) = {
+  protected override def setInput(batch: Batch, graph: MnistGraph): Unit = {
     graph.pixelInput.setValue(batch.data)
   }
 }

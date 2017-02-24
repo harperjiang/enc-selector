@@ -39,12 +39,11 @@ import edu.uchicago.cs.encsel.ndnn.Tanh
 import edu.uchicago.cs.encsel.ndnn.Mul
 
 class LSTMCell(wf: Param, bf: Param, wi: Param, bi: Param, wc: Param, bc: Param, wo: Param, bo: Param, in: Node, h: Node, c: Node) {
-  val x = new Input("x", in)
   private var co: Node = _
-  private var ho: Node = _
-
+  private var ho: Node = _ 
+  
   {
-    val concat = new Concat(h, x)
+    val concat = new Concat(h, in)
     val fgate = new Sigmoid(new Add(new DotMul(concat, wf), bf))
     val igate = new Sigmoid(new Add(new DotMul(concat, wi), bi))
     val cgate = new Mul(new Tanh(new Add(new DotMul(concat, wc), bc)), igate)
@@ -53,7 +52,6 @@ class LSTMCell(wf: Param, bf: Param, wi: Param, bi: Param, wc: Param, bc: Param,
     co = new Add(new Mul(c, fgate), cgate)
     ho = new Mul(new Tanh(co), ogate)
   }
-
   def cout = co
   def hout = ho
 }

@@ -39,6 +39,7 @@ object Index {
    *
    * @param data of shape [A,B,C,D,...,M,N]
    * @param idx  of shape [A,B,C,D,...,M,1?]
+   * @return			  shape [A,B,C,D,...,M,1?]
    */
   def get(data: INDArray, idx: INDArray): INDArray = {
 
@@ -61,6 +62,7 @@ object Index {
   }
 
   def put(data: INDArray, idx: INDArray, toput: INDArray): Unit = {
+
     val datashape = data.shape
     val idxshape = idx.shape
     val toputshape = toput.shape
@@ -124,6 +126,8 @@ object Broadcast {
    * 1 can be broadcasted to bigger numbers, e.g., [1,b]->[c,a,b]
    *
    * For same num of dimension, it can do [1,b]->[a,b] and [b,1]->[b,a]
+   *
+   * Vector can be broadcast to higher dimensions
    */
   def broadcast(a: INDArray, shape: Array[Int]): INDArray = {
     var originShape = a.shape()
