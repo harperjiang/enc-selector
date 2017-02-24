@@ -115,4 +115,10 @@ class SoftMaxLogLossTest {
 
     assertEquals(2, sloss.accuracy)
   }
+
+  @Test
+  def testMultiOutputLoss:Unit = {
+    var sloss = new SoftMaxLogLoss()
+
+  }
 }
