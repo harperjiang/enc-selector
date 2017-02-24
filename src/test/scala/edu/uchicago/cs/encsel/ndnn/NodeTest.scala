@@ -31,13 +31,17 @@ class NodeTest {
   @Test
   def testBackward: Unit = {
     val node1 = new Input("node1")
-    val node2 = new Input()
+    val node2 = new Input("node2")
     val node3 = new DummyNode(node1, node2)
     val node4 = new DummyNode(node3)
     val node5 = new DummyNode(node3)
     val node6 = new DummyNode(node4)
     val node7 = new DummyNode(node2, node5, node6)
 
+    node1.setValue(Nd4j.zeros(2,3))
+    node2.setValue(Nd4j.zeros(2,3))
+    node1.forward
+    node2.forward
     node7.backward(node7, Nd4j.createUninitialized(Array(3, 2, 7)).assign(1))
 
     assertArrayEquals(Array(3, 2, 7), node1.grad.shape)

@@ -42,21 +42,24 @@ trait LossFunction {
  * Loss function dealing with a single output
  */
 abstract class SimpleLoss extends LossFunction {
-  protected var grad: INDArray = _
-  protected var acc: Int = -1
+  protected var grads = new ArrayBuffer[INDArray]
+  protected var acc = 0
 
   override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double = {
-    val combined = actual.length match {
+    grads.clear()
+    actual.length match {
       case gt1 if gt1 > 1 => {
-        val a =  Array(actual.length, actual(0).shape:_*)
-        Nd4j.create(actual.toList, a)
+        val expectedlist = (0 until actual.length).map(i => {
+          val indices = Index.index(expected.shape.length, 0, i)
+          expected.get(indices: _*)
+        })
+        actual.zip(expectedlist).map(pair => loss(pair._1, pair._2, fortest)).sum / actual.length
       }
-      case _ => actual(0)
+      case _ => loss(actual(0), expected, fortest)
     }
-    loss(combined, expected, fortest)
   }
 
-  def gradient = Array(grad)
+  def gradient = grads.toArray
   def accuracy = acc
 
   protected def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double
@@ -75,7 +78,7 @@ class SquareLoss extends SimpleLoss {
 
     if (!fortest) {
       // Compute Gradient
-      grad = actual.sub(expected).mul(1d / b)
+      grads += actual.sub(expected).mul(1d / b)
     }
 
     // Loss
@@ -111,45 +114,19 @@ class SoftMaxLogLoss extends SimpleLoss {
     val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip, false)
     if (!fortest) {
       // Compute gradient
-      grad = Nd4j.zerosLike(actual)
+      val grad = Nd4j.zerosLike(actual)
       // -log(x) gradient
       val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / expectedSize)
 
       Index.put(grad, expected, allone.divi(clipval).negi())
-      this.gradients += grad
+      this.grads += grad
     }
     if (forClassification) {
       // Accuracy for classification
       val predict = Nd4j.argMax(actual, actual.shape.length - 1)
       val eq = predict.eqi(expected)
-      acc = eq.sumNumber().intValue()
+      acc += eq.sumNumber().intValue()
     }
     Transforms.log(clipval, false).negi().meanNumber().doubleValue()
   }
-
-  /**
-   * Multi-output loss
-   *
-   * @param actual		Array of output result. Length L, Each of shape [B,M], corresponding to
-   * 									one batch of sigmoid result
-   * @param expected	Array of expected result. Shape [L,B]. Each [i,:] is a label for a batch
-   *
-   * @return mean of log loss in batch and length
-   */
-  override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean): Double = {
-    this.gradients.clear
-
-    val (lossval, accval) = actual.zipWithIndex.map {
-      actpair =>
-        {
-          val idx = actpair._2
-          val expect = expected.get(Index.index(2, 1, idx): _*)
-          (loss(actpair._1, expect, fortest), this.acc)
-        }
-    }.reduce((a, b) => (a._1 + b._1, a._2 + b._2))
-    this.acc = accval
-    lossval
-  }
-
-  override def gradient = gradients.toArray
 }
