@@ -29,6 +29,7 @@ import org.nd4j.linalg.indexing.NDArrayIndex
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.factory.Nd4j
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConversions._
 
 trait LossFunction {
   def forClassification: Boolean
@@ -45,13 +46,20 @@ abstract class SimpleLoss extends LossFunction {
   protected var acc: Int = -1
 
   override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double = {
-    loss(actual(0), expected, fortest)
+    val combined = actual.length match {
+      case gt1 if gt1 > 1 => {
+        val a =  Array(actual.length, actual(0).shape:_*)
+        Nd4j.create(actual.toList, a)
+      }
+      case _ => actual(0)
+    }
+    loss(combined, expected, fortest)
   }
 
   def gradient = Array(grad)
   def accuracy = acc
 
-  def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double
+  protected def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double
 }
 
 class SquareLoss extends SimpleLoss {
@@ -62,7 +70,7 @@ class SquareLoss extends SimpleLoss {
    * @param	expected	Shape [B, N]
    * @return	The averaged squared difference of actual - expected
    */
-  def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double = {
+  protected def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double = {
     val b = actual.shape()(0)
 
     if (!fortest) {
