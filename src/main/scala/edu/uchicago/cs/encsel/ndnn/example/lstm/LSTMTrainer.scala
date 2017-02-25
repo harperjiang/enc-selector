@@ -68,7 +68,7 @@ class LSTMTrainer(dataset: LSTMDataset, layer: Int, hiddenDim: Int)
     currentGraph.h0.foreach { _.setValue(emptyInit) }
     currentGraph.c0.foreach { _.setValue(emptyInit) }
     // Expect value is the second to last char
-    val s2l = textarray.get(NDArrayIndex.all(), NDArrayIndex.interval(1, lstmbatch.length - 1))
+    val s2l = textarray.get(NDArrayIndex.all(), NDArrayIndex.interval(1, lstmbatch.length - 1)).transposei()
     currentGraph.expect(s2l)
     currentGraph
   }
