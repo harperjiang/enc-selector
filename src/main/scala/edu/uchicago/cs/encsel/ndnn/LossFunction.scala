@@ -46,7 +46,7 @@ abstract class SimpleLoss extends LossFunction {
   protected var acc = 0
 
   /**
-   * @param expected		The last index is expected to correspond to array length
+   * @param expected		The first index is expected to correspond to array length
    */
   override def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double = {
     grads.clear()
@@ -54,7 +54,7 @@ abstract class SimpleLoss extends LossFunction {
     actual.length match {
       case gt1 if gt1 > 1 => {
         val expectedlist = (0 until actual.length).map(i => {
-          val indices = Index.index(expshape.length, expshape.length - 1, i)
+          val indices = Index.index(expshape.length, 0, i)
           expected.get(indices: _*)
         })
         actual.zip(expectedlist).map(pair => loss(pair._1, pair._2, fortest)).sum / actual.length
@@ -97,8 +97,6 @@ object SoftMaxLogLoss {
 
 class SoftMaxLogLoss extends SimpleLoss {
 
-  private val gradients = new ArrayBuffer[INDArray]()
-
   def forClassification = true
   /**
    * @param	actual		Probability of each label. This is an <code>INDArray</code>
@@ -125,12 +123,44 @@ class SoftMaxLogLoss extends SimpleLoss {
       Index.put(grad, expected, allone.divi(clipval).negi())
       this.grads += grad
     }
-    if (forClassification) {
-      // Accuracy for classification
-      val predict = Nd4j.argMax(actual, actual.shape.length - 1)
-      val eq = predict.eqi(expected)
-      acc += eq.sumNumber().intValue()
-    }
+    // Accuracy for classification
+    val predict = Nd4j.argMax(actual, actual.shape.length - 1)
+    val eq = predict.eqi(expected)
+    acc += eq.sumNumber().intValue()
+
     Transforms.log(clipval, false).negi().meanNumber().doubleValue()
+  }
+  /**
+    * @param	actual		Probability of each label. This is an array of L <code>INDArray</code>
+    * 									of shape [B,..., N], where B is the batch size, N is the dimension
+    * @param	expected	The ground truth label. This is an <code>INDArray</code> of
+    * 									shape [L, B,..., 1]
+    * @return 	mean of log loss of ground truth label in actual probability
+    *
+    */
+  def loss2(actual:Array[INDArray], expected: INDArray, fortest: Boolean): Double = {
+    val merged = Nd4j.create(actual.toList, Array(actual.length, actual(0).shape:_*))
+
+    val fetch = Index.get(merged, expected)
+    val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip, false)
+    val idxlength = expected.shape.size
+    val expectedSize = expected.shape.product
+    if (!fortest) {
+      // Compute Gradient
+      val grad = Nd4j.zerosLike(merged)
+      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d/expectedSize)
+      Index.put(grad, expected, allone.divi(clipval).negi)
+
+      // Separate gradient for each input
+      grads.clear
+      grads ++= actual.indices.map(i=> grad.get(Index.index(idxlength, 0, i)))
+    }
+    // Accuracy for classification
+
+    val predict = Nd4j.argMax(actual, actual.shape.length - 1)
+    val eq = predict.eqi(expected)
+    acc = eq.sumNumber().intValue
+
+    Transforms.log(clipval, false).negi.meanNumber.doubleValue
   }
 }
