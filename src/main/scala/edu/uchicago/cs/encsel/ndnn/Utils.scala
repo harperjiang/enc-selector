@@ -107,13 +107,29 @@ object Index {
     }
   }
 
-  def index(total: Int, axis: Int, idx: Int): Array[INDArrayIndex] = {
-    val result = new ArrayBuffer[INDArrayIndex]()
-    result ++= (0 until axis).map(i => NDArrayIndex.all())
-    result += NDArrayIndex.point(idx)
-    result ++= (axis + 1 until total).map(i => NDArrayIndex.all())
+  def point(total: Int, axis: Int, idx: Int): Array[INDArrayIndex] = {
+    point(total, Map((axis, idx)))
+  }
 
-    result.toArray
+  def point(total: Int, idices: Map[Int, Int]): Array[INDArrayIndex] = {
+    (0 until total).map(i => i match {
+      case in if idices.contains(in) => NDArrayIndex.point(idices.getOrElse(in, -1))
+      case _ => NDArrayIndex.all()
+    }).toArray
+  }
+
+  def range(total: Int, axis: Int, rge: (Int, Int)): Array[INDArrayIndex] = {
+    range(total, Map((axis, rge)))
+  }
+
+  def range(total: Int, idices: Map[Int, (Int, Int)]): Array[INDArrayIndex] = {
+    (0 until total).map(i => i match {
+      case in if idices.contains(in) => {
+        val range = idices.getOrElse(in, throw new RuntimeException())
+        NDArrayIndex.interval(range._1, range._2)
+      }
+      case _ => NDArrayIndex.all()
+    }).toArray
   }
 }
 

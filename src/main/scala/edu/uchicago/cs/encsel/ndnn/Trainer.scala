@@ -34,6 +34,7 @@ trait Trainer[T <: Dataset, G <: Graph] {
   def getGraph(batch: Batch): G
 
   def train(epoches: Int, profiling: Boolean): Unit = {
+    logger.info("[Initial Result]")
     test
 
     val trainset = getTrainset
@@ -42,6 +43,7 @@ trait Trainer[T <: Dataset, G <: Graph] {
     trainset.batchSize(50)
 
     for (i <- 1 to epoches) { // Epoches
+      logger.info("[Epoch %d]".format(i))
       val startTime = profiling match { case false => 0 case _ => System.currentTimeMillis() }
 
       trainset.newEpoch()
@@ -54,17 +56,10 @@ trait Trainer[T <: Dataset, G <: Graph] {
       }
       if (profiling) {
         val stopTime = System.currentTimeMillis()
-        logger.info("Epoch %d, training time %f secs".format(stopTime - startTime))
+        logger.info("Training time %f mins".format((stopTime - startTime) / 60000d))
       }
-
-      testset.batchSize(Dataset.BATCH_ALL)
-      val testbatch = testset.batches.next()
-      val graph = getGraph(testbatch)
-      graph.expect(testbatch.groundTruth)
-      val (loss, acc) = graph.test
-      logger.info("Epoch %d, accuracy %d %f".format(i, acc, acc.doubleValue() / testbatch.size))
+      test
     }
-    test
   }
 
   def test: Unit = {

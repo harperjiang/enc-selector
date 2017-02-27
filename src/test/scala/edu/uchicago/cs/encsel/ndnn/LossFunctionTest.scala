@@ -93,12 +93,12 @@ class SoftMaxLogLossTest {
     assertArrayEquals(Array(2, 3, 5), grad.shape())
     for (i <- 0 to 1; j <- 0 to 2; k <- 0 to 4) {
       (i, j, k) match {
-        case (0, 0, 3) => assertEquals(-1 / (6 * 0.25), grad.getDouble(i, j, k), 0.01)
-        case (0, 1, 2) => assertEquals(-1 / (6 * 0.1), grad.getDouble(i, j, k), 0.01)
-        case (0, 2, 4) => assertEquals(-1 / (6 * 0.4), grad.getDouble(i, j, k), 0.01)
-        case (1, 0, 1) => assertEquals(-1 / (6 * 0.1), grad.getDouble(i, j, k), 0.01)
-        case (1, 1, 1) => assertEquals(-1 / (6 * 0.3), grad.getDouble(i, j, k), 0.01)
-        case (1, 2, 0) => assertEquals(-1 / (6 * 0.3), grad.getDouble(i, j, k), 0.01)
+        case (0, 0, 3) => assertEquals(-1 / (2 * 0.25), grad.getDouble(i, j, k), 0.01)
+        case (0, 1, 2) => assertEquals(-1 / (2 * 0.1), grad.getDouble(i, j, k), 0.01)
+        case (0, 2, 4) => assertEquals(-1 / (2 * 0.4), grad.getDouble(i, j, k), 0.01)
+        case (1, 0, 1) => assertEquals(-1 / (2 * 0.1), grad.getDouble(i, j, k), 0.01)
+        case (1, 1, 1) => assertEquals(-1 / (2 * 0.3), grad.getDouble(i, j, k), 0.01)
+        case (1, 2, 0) => assertEquals(-1 / (2 * 0.3), grad.getDouble(i, j, k), 0.01)
         case _ => assertEquals(0, grad.getDouble(i, j, k), 0.01)
       }
     }
@@ -117,8 +117,32 @@ class SoftMaxLogLossTest {
   }
 
   @Test
-  def testMultiOutputLoss:Unit = {
-    var sloss = new SoftMaxLogLoss()
+  def testMultiOutputLoss: Unit = {
+    val sloss = new SoftMaxLogLoss()
 
+    val actual = Array(Nd4j.create(Array(0.3, 0.3, 0.4, 0.5, 0.2, 0.3), Array(2, 3)),
+      Nd4j.create(Array(0.3, 0.3, 0.4, 0.3, 0.4, 0.3), Array(2, 3)),
+      Nd4j.create(Array(0.6, 0.1, 0.3, 0.8, 0.1, 0.1), Array(2, 3)),
+      Nd4j.create(Array(0.5, 0.4, 0.1, 0.3, 0.2, 0.5), Array(2, 3)))
+    val expected = Nd4j.create(Array(2d, 1, 2, 2, 0, 0, 1, 2), Array(4, 2))
+    val loss = sloss.loss2(actual, expected, false)
+
+    assertEquals(Array(0.4, 0.2, 0.4, 0.3, 0.6, 0.8, 0.4, 0.5).map(-Math.log(_) / 8).sum, loss, 0.001)
+    assertEquals(5, sloss.accuracy)
+
+    val grads = sloss.gradient
+    assertEquals(4, grads.length)
+
+    val realgrads = Array(Nd4j.create(Array(0, 0, -1 / 0.8, 0, -1 / 0.4, 0), Array(2, 3)),
+      Nd4j.create(Array(0, 0, -1 / 0.8, 0, 0, -1 / 0.6), Array(2, 3)),
+      Nd4j.create(Array(-1 / 1.2, 0, 0, -1 / 1.6, 0, 0), Array(2, 3)),
+      Nd4j.create(Array(0, -1 / 0.8, 0, 0, 0, -1), Array(2, 3)))
+
+    for (i <- 0 to 3) {
+      assertArrayEquals(Array(2, 3), grads(i).shape)
+      for (k <- 0 to 1; j <- 0 to 2) {
+        assertEquals(realgrads(i).getDouble(k, j), grads(i).getDouble(k, j), 0.001)
+      }
+    }
   }
 }

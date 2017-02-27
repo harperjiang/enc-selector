@@ -67,6 +67,9 @@ abstract class Node(is: Node*) {
     if (inputs.contains(source))
       readyInput += source
 
+    if (outputs.contains(this)) {
+      throw new RuntimeException();
+    }
     if (readyInput.size == inputs.size) {
       this.value = compute
       numConnectedOutput = outputs.toList
@@ -292,12 +295,25 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
  */
 class Slice(input: Node, axis: Int, idx: Int) extends Node(input) {
   def compute: INDArray = {
-    input.value.get(Index.index(input.value.shape.length, axis, idx): _*)
+    input.value.get(Index.point(input.value.shape.length, axis, idx): _*)
   }
 
   def updateGrad = {
     val grad = Nd4j.zerosLike(input.value)
-    grad.put(Index.index(input.value.shape.length, axis, idx), this.grad)
+    grad.put(Index.point(input.value.shape.length, axis, idx), this.grad)
+    Map((input, grad))
+  }
+}
+
+class ArgMax(input: Node) extends Node(input) {
+
+  def compute: INDArray = {
+    Nd4j.argMax(input.value, 1)
+  }
+
+  def updateGrad = {
+    val grad = Nd4j.zerosLike(input.value)
+    Index.put(grad, this.value, this.grad)
     Map((input, grad))
   }
 }
