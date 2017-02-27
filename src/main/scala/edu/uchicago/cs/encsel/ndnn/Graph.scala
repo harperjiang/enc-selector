@@ -77,7 +77,10 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
     }
 
     // Backward
-    outputs.zip(lossFunction.gradient).foreach(pair => pair._1.backward(pair._1, pair._2))
+    outputs.zip(lossFunction.gradient).foreach(pair => {
+      pair._1.grad = pair._2
+      pair._1.backward(pair._1)
+    })
     // Update Parameters and Decay Weight
     params.foreach { updatePolicy.update(_) }
     updatePolicy.weightDecay()

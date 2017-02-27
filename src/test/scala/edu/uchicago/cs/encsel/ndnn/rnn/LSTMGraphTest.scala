@@ -13,7 +13,7 @@ class LSTMGraphTest {
     val ds = new LSTMDataset(file)
     ds.batchSize(batchsize)
     val batch = ds.batches.next().asInstanceOf[LSTMBatch]
-    val hiddendim = 600
+    val hiddendim = 200
     val graph = new LSTMGraph(ds.numChars, hiddendim, batch.length, 0)
     // Set X input
     graph.xs.indices.foreach { i =>
@@ -37,7 +37,7 @@ class LSTMGraphTest {
     val alla = (0 until predictLength).map(i => 0d).toArray
     graph2.expect(Nd4j.create(alla, Array(predictLength, 1)))
 
-    for (i <- 0 to 100) {
+    for (i <- 0 to 10) {
       graph.train
       graph2.load(graph.dump())
       graph2.test

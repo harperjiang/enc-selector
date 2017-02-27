@@ -30,6 +30,8 @@ object UpdatePolicy {
   val etaDefault = 0.05
   val etaDecay = 1
 
+  val gradClip = -1
+
   val momentumKey = "momentum"
 
   val rmspropKey = "rmsprop"
@@ -39,10 +41,10 @@ object UpdatePolicy {
   val adamvarKey = "adamvar"
 }
 
-abstract class UpdatePolicy(e: Double, d: Double) {
+abstract class UpdatePolicy(e: Double, d: Double, gc: Double) {
   protected var eta = e
   protected val decay = d
-  val gradClip = 10
+  val gradClip = gc
 
   def update(p: Param): Unit = {
     clipGrad(p)
@@ -62,10 +64,11 @@ abstract class UpdatePolicy(e: Double, d: Double) {
   protected def innerUpdate(p: Param): Unit
 }
 
-class SGD(e: Double, d: Double) extends UpdatePolicy(e, d) {
+class SGD(e: Double, d: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
 
-  def this() = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay)
-  def this(e: Double) = this(e, UpdatePolicy.etaDecay)
+  def this() = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, UpdatePolicy.gradClip)
+  def this(e: Double) = this(e, UpdatePolicy.etaDecay, UpdatePolicy.gradClip)
+  def this(e: Double, d: Double) = this(e, d, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
     p.value.subi(p.grad.mul(eta))
@@ -73,12 +76,12 @@ class SGD(e: Double, d: Double) extends UpdatePolicy(e, d) {
 
 }
 
-class Momentum(e: Double, d: Double, m: Double) extends UpdatePolicy(e, d) {
+class Momentum(e: Double, d: Double, m: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
 
   private val mu = m
 
-  def this(e: Double, m: Double) = this(e, UpdatePolicy.etaDecay, m)
-  def this(m: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, m)
+  def this(e: Double, m: Double) = this(e, UpdatePolicy.etaDecay, m, UpdatePolicy.gradClip)
+  def this(m: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, m, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
     val grad = p.grad
@@ -90,12 +93,12 @@ class Momentum(e: Double, d: Double, m: Double) extends UpdatePolicy(e, d) {
 
 }
 
-class RMSProp(e: Double, d: Double, b: Double) extends UpdatePolicy(e, d) {
+class RMSProp(e: Double, d: Double, b: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
 
   private val beta = b
 
-  def this(e: Double, b: Double) = this(e, UpdatePolicy.etaDecay, b)
-  def this(b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, b)
+  def this(e: Double, b: Double) = this(e, UpdatePolicy.etaDecay, b, UpdatePolicy.gradClip)
+  def this(b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, b, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
     val grad = p.grad
@@ -108,13 +111,13 @@ class RMSProp(e: Double, d: Double, b: Double) extends UpdatePolicy(e, d) {
 
 }
 
-class Adam(e: Double, d: Double, a: Double, b: Double) extends UpdatePolicy(e, d) {
+class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
 
   private val alpha = a
   private val beta = b
 
-  def this(e: Double, a: Double, b: Double) = this(e, UpdatePolicy.etaDecay, a, b)
-  def this(a: Double, b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, a, b)
+  def this(e: Double, a: Double, b: Double) = this(e, UpdatePolicy.etaDecay, a, b, UpdatePolicy.gradClip)
+  def this(a: Double, b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, a, b, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
     val grad = p.grad

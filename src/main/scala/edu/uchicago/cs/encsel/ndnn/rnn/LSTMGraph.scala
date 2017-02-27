@@ -39,7 +39,7 @@ import edu.uchicago.cs.encsel.ndnn.DotMul
 import edu.uchicago.cs.encsel.ndnn.ArgMax
 
 class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int, prefixlength: Int = -1)
-    extends Graph(Xavier, new SGD(0.5, 0.95), new SoftMaxLogLoss) {
+    extends Graph(Xavier, new SGD(0.5, 0.95, 10), new SoftMaxLogLoss) {
 
   val length = len
 

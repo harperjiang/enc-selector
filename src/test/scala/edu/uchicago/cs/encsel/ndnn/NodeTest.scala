@@ -38,8 +38,8 @@ class NodeTest {
     val node6 = new DummyNode(node4)
     val node7 = new DummyNode(node2, node5, node6)
 
-    node1.setValue(Nd4j.zeros(2, 3))
-    node2.setValue(Nd4j.zeros(2, 3))
+    node1.setValue(Nd4j.zeros(3, 2, 7))
+    node2.setValue(Nd4j.zeros(3, 2, 7))
     node1.forward
     node2.forward
     node7.backward(node7, Nd4j.createUninitialized(Array(3, 2, 7)).assign(1))
@@ -75,7 +75,11 @@ class InputTest {
   def testBackward: Unit = {
     val input1 = new Input()
     val input2 = new Input(input1)
+
     val grad = Nd4j.create(Array(1d, 2d, 3))
+
+    input1.setValue(grad.dup())
+    input1.forward(input1)
     input2.backward(input2, grad.dup())
 
     for (i <- 0 to 2) {
@@ -92,7 +96,7 @@ class SoftMaxTest {
 
     input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
     val inputbackup = input.value.dup()
-    softmax.forward(input)
+    input.forward(input)
 
     val result = softmax.value
     assertArrayEquals(Array(3, 5), result.shape())
@@ -111,8 +115,7 @@ class SoftMaxTest {
     val softmax = new SoftMax(input)
 
     input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
-
-    softmax.forward(input)
+    input.forward(input)
 
     val grad = Nd4j.create(Array(Array(0, 0, 1d / 3, 0, 0), Array(0, 2d / 3, 0, 0, 0), Array(0, 0, 0, 0, 1.5 / 3)))
 
@@ -157,6 +160,10 @@ class SigmoidTest {
   def testUpdateGrad: Unit = {
     val input = new Input()
     val sigmoid = new Sigmoid(input)
+    input.setValue(Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
+      Array(0.90024951, 0.84553473, 0.62245933, 0.33181223))))
+    input.forward(input)
+
     sigmoid.value = Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
       Array(0.90024951, 0.84553473, 0.62245933, 0.33181223)))
     val grad = Nd4j.create(Array(Array(1, 0, 2, 4d), Array(2, 1, 7, 5d)))
