@@ -31,6 +31,7 @@ import org.nd4j.linalg.indexing.SpecifiedIndex
 import org.nd4j.linalg.util.NDArrayUtil
 import org.nd4j.linalg.indexing.INDArrayIndex
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConversions._
 
 object Index {
 
@@ -52,13 +53,16 @@ object Index {
     val rownum = datashape.dropRight(1).product
     val rowlength = datashape.last
 
-    val flatten = data.reshape(datashape.product, -1)
-    val idxflatten = idx.dup.reshape(idxshape.product, -1)
+    val flatten = data.reshape(datashape.product, 1)
+    val idxflatten = idx.dup.reshape(idxshape.product, 1)
     val offset = Nd4j.create((0 until rownum)
       .map(_.doubleValue() * rowlength).toArray).reshape(rownum, -1)
     idxflatten.addi(offset)
 
-    Nd4j.create(NDArrayUtil.toInts(idxflatten).map { flatten.getDouble(_) }, idxshape)
+    //    flatten.get(new SpecifiedIndex(NDArrayUtil.toInts(idxflatten): _*),
+    //      NDArrayIndex.all()).reshape(idxshape: _*)
+    Nd4j.create(NDArrayUtil.toInts(idxflatten)
+      .map { flatten.getScalar(_) }.toList, idxshape)
   }
 
   def put(data: INDArray, idx: INDArray, toput: INDArray): Unit = {

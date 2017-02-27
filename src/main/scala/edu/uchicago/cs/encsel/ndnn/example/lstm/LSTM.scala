@@ -4,7 +4,7 @@ import edu.uchicago.cs.encsel.ndnn.rnn.LSTMDataset
 
 object LSTM extends App {
 
-  val datafile = "C:/Users/Cathy/dataset/lstm/ptb.train.txt"
+  val datafile = "/home/harper/dataset/lstm/ptb.train.txt"
 
   val lstmds = new LSTMDataset(datafile)
 
