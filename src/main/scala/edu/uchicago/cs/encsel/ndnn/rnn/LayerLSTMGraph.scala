@@ -35,8 +35,10 @@ import edu.uchicago.cs.encsel.ndnn.SoftMaxLogLoss
 import edu.uchicago.cs.encsel.ndnn.Xavier
 import edu.uchicago.cs.encsel.ndnn.Zero
 import edu.uchicago.cs.encsel.ndnn.SoftMax
+import edu.uchicago.cs.encsel.ndnn.DotMul
+import edu.uchicago.cs.encsel.ndnn.ArgMax
 
-class LayerLSTMGraph(layer: Int, numChar: Int, hiddenDim: Int, len: Int)
+class LayerLSTMGraph(layer: Int, numChar: Int, hiddenDim: Int, len: Int, prefixlength: Int = -1)
     extends Graph(Xavier, new SGD(0.05, 1), new SoftMaxLogLoss) {
 
   val length = len
@@ -79,22 +81,30 @@ class LayerLSTMGraph(layer: Int, numChar: Int, hiddenDim: Int, len: Int)
   // Extend RNN to the expected size and build connections between cells
   def extend(length: Int): Unit = {
     // Expand the network
-    for (i <- cells.length until length - 1) {
+    for (i <- cells.length until length) {
       val newNodes = new Array[LSTMCell](layer)
       for (j <- 0 until layer) {
         val h = i match { case 0 => h0(j) case x => cells(i - 1)(j).hout }
         val c = i match { case 0 => c0(j) case x => cells(i - 1)(j).cout }
         val in = j match {
           case 0 => {
-            val in = input("%d".format(i))
+            val in =
+              i match {
+                case gt if prefixlength > 0 && gt >= prefixlength => {
+                  val pred = new ArgMax(outputs(i - 1))
+                  input("%d".format(i), pred)
+                }
+                case _ => input("%d".format(i))
+              }
             val mapped = new Embed(in, c2v)
             xs += in
             mapped
           } case x => newNodes(j - 1).hout
         }
-        newNodes(j) = new LSTMCell(wf(j), bf(j), wi(j), bi(j), wc(j), bc(j), wo(j), bo(j), in, h, c)
+        newNodes(j) = new LSTMCell(wf(j), bf(j), wi(j), bi(j),
+          wc(j), bc(j), wo(j), bo(j), in, h, c)
       }
-      output(new SoftMax(newNodes(layer - 1).hout))
+      output(new SoftMax(new DotMul(newNodes(layer - 1).hout, v2c)))
       cells += newNodes
     }
   }

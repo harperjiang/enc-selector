@@ -31,9 +31,20 @@ import org.nd4j.linalg.factory.Nd4j
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions._
 
+/**
+ *
+ */
 trait LossFunction {
   def forClassification: Boolean
+  /**
+   * @return average loss within a given batch
+   */
   def loss(actual: Array[INDArray], expected: INDArray, fortest: Boolean = false): Double
+  /**
+   * @return the gradients correspond to each input. The gradient return here should
+   * 				 be averaged on each batch, thus the backprop result can be directly sum
+   * 				 in a batch
+   */
   def gradient: Array[INDArray]
   def accuracy: Int
 }
@@ -54,8 +65,7 @@ abstract class SimpleLoss extends LossFunction {
     actual.length match {
       case gt1 if gt1 > 1 => {
         val expectedlist = (0 until actual.length).map(i => {
-          val indices = Index.index(expshape.length, 0, i)
-          expected.get(indices: _*)
+          expected.get(Index.point(expshape.length, 0, i): _*)
         })
         actual.zip(expectedlist).map(pair => loss(pair._1, pair._2, fortest)).sum / actual.length
       }
@@ -110,7 +120,6 @@ class SoftMaxLogLoss extends SimpleLoss {
     val shape = actual.shape()
     val b = shape(0)
     val n = shape.last
-    val expectedSize = expected.shape.product
 
     val fetch = Index.get(actual, expected)
     val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip, false)
@@ -118,7 +127,7 @@ class SoftMaxLogLoss extends SimpleLoss {
       // Compute gradient
       val grad = Nd4j.zerosLike(actual)
       // -log(x) gradient
-      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / expectedSize)
+      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / b)
 
       Index.put(grad, expected, allone.divi(clipval).negi())
       this.grads += grad
@@ -131,33 +140,33 @@ class SoftMaxLogLoss extends SimpleLoss {
     Transforms.log(clipval, false).negi().meanNumber().doubleValue()
   }
   /**
-    * @param	actual		Probability of each label. This is an array of L <code>INDArray</code>
-    * 									of shape [B,..., N], where B is the batch size, N is the dimension
-    * @param	expected	The ground truth label. This is an <code>INDArray</code> of
-    * 									shape [L, B,..., 1]
-    * @return 	mean of log loss of ground truth label in actual probability
-    *
-    */
-  def loss2(actual:Array[INDArray], expected: INDArray, fortest: Boolean): Double = {
-    val merged = Nd4j.create(actual.toList, Array(actual.length, actual(0).shape:_*))
+   * @param	actual		Probability of each label. This is an array of L <code>INDArray</code>
+   * 									of shape [B,..., N], where B is the batch size, N is the dimension
+   * @param	expected	The ground truth label. This is an <code>INDArray</code> of
+   * 									shape [L, B,..., 1]
+   * @return 	mean of log loss of ground truth label in actual probability
+   *
+   */
+  def loss2(actual: Array[INDArray], expected: INDArray, fortest: Boolean): Double = {
+    val merged = Nd4j.create(actual.toList, Array(actual.length, actual(0).shape: _*))
 
     val fetch = Index.get(merged, expected)
     val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip, false)
     val idxlength = expected.shape.size
-    val expectedSize = expected.shape.product
+    val batchSize = expected.shape()(1)
     if (!fortest) {
       // Compute Gradient
       val grad = Nd4j.zerosLike(merged)
-      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d/expectedSize)
+      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / batchSize)
       Index.put(grad, expected, allone.divi(clipval).negi)
 
       // Separate gradient for each input
       grads.clear
-      grads ++= actual.indices.map(i=> grad.get(Index.index(idxlength, 0, i)))
+      grads ++= actual.indices.map(i => grad.get(Index.point(idxlength, 0, i): _*))
     }
     // Accuracy for classification
 
-    val predict = Nd4j.argMax(actual, actual.shape.length - 1)
+    val predict = Nd4j.argMax(merged, merged.shape.length - 1)
     val eq = predict.eqi(expected)
     acc = eq.sumNumber().intValue
 

@@ -42,8 +42,24 @@ object UpdatePolicy {
 abstract class UpdatePolicy(e: Double, d: Double) {
   protected var eta = e
   protected val decay = d
-  def update(p: Param): Unit
+  val gradClip = 10
+
+  def update(p: Param): Unit = {
+    clipGrad(p)
+    innerUpdate(p)
+  }
+
   def weightDecay() = eta *= decay
+
+  protected def clipGrad(p: Param) = {
+    if (gradClip > 0) {
+      val norm = p.grad.norm2Number().doubleValue()
+      if (norm >= gradClip)
+        p.grad.muli(gradClip / norm)
+    }
+  }
+
+  protected def innerUpdate(p: Param): Unit
 }
 
 class SGD(e: Double, d: Double) extends UpdatePolicy(e, d) {
@@ -51,9 +67,8 @@ class SGD(e: Double, d: Double) extends UpdatePolicy(e, d) {
   def this() = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay)
   def this(e: Double) = this(e, UpdatePolicy.etaDecay)
 
-  def update(p: Param) = {
-    if (p.grad != null)
-      p.value.subi(p.grad.mul(eta))
+  def innerUpdate(p: Param) = {
+    p.value.subi(p.grad.mul(eta))
   }
 
 }
@@ -65,14 +80,12 @@ class Momentum(e: Double, d: Double, m: Double) extends UpdatePolicy(e, d) {
   def this(e: Double, m: Double) = this(e, UpdatePolicy.etaDecay, m)
   def this(m: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, m)
 
-  def update(p: Param) = {
-    if (p.grad != null) {
-      val grad = p.grad
-      val oldmomen = p.context.getOrElse(UpdatePolicy.momentumKey, grad)
-      val momentum = oldmomen.mul(mu).add(grad.mul(1 - mu))
-      p.value.subi(momentum.mul(eta))
-      p.context.put(UpdatePolicy.momentumKey, momentum)
-    }
+  def innerUpdate(p: Param) = {
+    val grad = p.grad
+    val oldmomen = p.context.getOrElse(UpdatePolicy.momentumKey, grad)
+    val momentum = oldmomen.mul(mu).add(grad.mul(1 - mu))
+    p.value.subi(momentum.mul(eta))
+    p.context.put(UpdatePolicy.momentumKey, momentum)
   }
 
 }
@@ -84,16 +97,15 @@ class RMSProp(e: Double, d: Double, b: Double) extends UpdatePolicy(e, d) {
   def this(e: Double, b: Double) = this(e, UpdatePolicy.etaDecay, b)
   def this(b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, b)
 
-  def update(p: Param) = {
-    if (p.grad != null) {
-      val grad = p.grad
-      val gradsqr = Transforms.pow(grad, 2)
-      val oldrms = p.context.getOrElse(UpdatePolicy.rmspropKey, gradsqr)
-      val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
-      p.value.subi(grad.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
-      p.context.put(UpdatePolicy.rmspropKey, rms)
-    }
+  def innerUpdate(p: Param) = {
+    val grad = p.grad
+    val gradsqr = Transforms.pow(grad, 2)
+    val oldrms = p.context.getOrElse(UpdatePolicy.rmspropKey, gradsqr)
+    val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
+    p.value.subi(grad.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
+    p.context.put(UpdatePolicy.rmspropKey, rms)
   }
+
 }
 
 class Adam(e: Double, d: Double, a: Double, b: Double) extends UpdatePolicy(e, d) {
@@ -104,19 +116,17 @@ class Adam(e: Double, d: Double, a: Double, b: Double) extends UpdatePolicy(e, d
   def this(e: Double, a: Double, b: Double) = this(e, UpdatePolicy.etaDecay, a, b)
   def this(a: Double, b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, a, b)
 
-  def update(p: Param) = {
-    if (p.grad != null) {
-      val grad = p.grad
-      val gradsqr = Transforms.pow(grad, 2)
-      val oldmomen = p.context.getOrElse(UpdatePolicy.adammeanKey, grad)
-      val momentum = oldmomen.mul(alpha).add(grad.mul(1 - alpha))
+  def innerUpdate(p: Param) = {
+    val grad = p.grad
+    val gradsqr = Transforms.pow(grad, 2)
+    val oldmomen = p.context.getOrElse(UpdatePolicy.adammeanKey, grad)
+    val momentum = oldmomen.mul(alpha).add(grad.mul(1 - alpha))
 
-      val oldrms = p.context.getOrElse(UpdatePolicy.adamvarKey, gradsqr)
-      val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
-      p.value.subi(momentum.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
+    val oldrms = p.context.getOrElse(UpdatePolicy.adamvarKey, gradsqr)
+    val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
+    p.value.subi(momentum.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
 
-      p.context.put(UpdatePolicy.adammeanKey, momentum)
-      p.context.put(UpdatePolicy.adamvarKey, rms)
-    }
+    p.context.put(UpdatePolicy.adammeanKey, momentum)
+    p.context.put(UpdatePolicy.adamvarKey, rms)
   }
 }

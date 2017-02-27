@@ -47,8 +47,8 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
     newparam
   }
 
-  def input(n: String): Input = {
-    val newinput = new Input(n)
+  def input(n: String, src: Node*): Input = {
+    val newinput = new Input(n, src: _*)
     inputs += newinput
     newinput
   }
