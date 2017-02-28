@@ -56,7 +56,7 @@ def Eval(ds):
 
 epoch = 30
 
-# initial Perplexity and loss
+#initial Perplexity and loss
 # loss, acc = Eval(validds)
 # print("Initial: Perplexity: - Avg loss = %0.5f, accuracy %0.5f" % (loss, acc))
 # best_loss = loss
@@ -79,8 +79,8 @@ for ep in range(epoch):
     
     param_store = graph.dump()
     
-    loss = Eval(validds)
-    print("Epoch %d: Perplexity: - Avg loss = %0.5f [%.3f mins]" % (ep, loss, duration))
+    loss, acc = Eval(validds)
+    print("Epoch %d: Perplexity: - Avg loss = %0.5f, accuracy %0.5f [%.3f mins]" % (ep, loss, acc, duration))
 
     # generate some text given the prefix and trained model
     prefix = 'the agreements bring'

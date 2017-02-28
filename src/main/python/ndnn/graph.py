@@ -8,19 +8,20 @@ class Graph(object):
         self.out = None
         self.loss = loss
         self.update = update
+        self.nodes = []
     
     def input(self):
-        x = Input()
+        x = Input(self)
         self.inputs.append(x)
         return x
     
     def param(self):
-        param = Param()
+        param = Param(self)
         self.params.append(param)
         return param
     
     def param_of(self, shape, init=Xavier()):
-        param = Param()
+        param = Param(self)
         param.value = init.apply(shape)
         self.params.append(param)
         return param
@@ -31,25 +32,30 @@ class Graph(object):
     def expect(self, value):
         self.expect_val = value
 
+    # Trace all nodes attached to the inputs
+    def attach_node(self, node):
+        self.nodes.append(node)
+            
+            
     def train(self):
-        for x in self.inputs:
-            x.forward(x)
-        for p in self.params:
-            p.forward(p)
-        # Compute loss
+        # Forward
+        for node in self.nodes:
+            node.forward()
+        # Compute loss and set gradient
         loss_val = self.loss.loss(self.out.value, self.expect_val, False)
+        self.out.grad = self.loss.grad
         # Backward
-        self.out.backward(self.out, self.loss.grad)
+        for node in self.nodes[::-1]:
+            node.backward()
+            
         for p in self.params:
             self.update.update(p) 
         return loss_val, self.loss.accuracy()
     
     def test(self):
-        for x in self.inputs:
-            x.forward(x)
-        for p in self.params:
-            p.forward(p)
-        # Compute loss
+        for node in self.nodes:
+            node.forward()
+        # Compute loss if a loss function is available
         if self.loss is not None:
             loss_val = self.loss.loss(self.out.value, self.expect_val, True)
             return loss_val, self.loss.accuracy()

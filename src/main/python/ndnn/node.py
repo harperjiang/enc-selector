@@ -20,39 +20,37 @@ class Node(object):
     def __init__(self, inputs):
         self.inputs = inputs
         self.outputs = []
-        self.readyInputs = set()
-        self.readyOutputs = set()
+        contexts = set([x.context for x in inputs])
+        if len(contexts) > 1:
+            # Multiple context is not allowed
+            raise Exception('Different Context Not Allowed')
+        if len(contexts) > 0:
+            context = list(contexts)[0]
+            context.attach_node(self)
+            self.context = context 
         for x in inputs:
             x.outputs.append(self)
+            
     
-    def forward(self, src):
-        if src in self.inputs:
-            self.readyInputs.add(src)
+    def forward(self):
+        self.value = self.compute()
+        self.grad = dt(0)
+    
+    def backward(self):
+        for node, grad in self.updateGrad().items():
+            node.grad += grad
         
-        if len(self.readyInputs) == len(self.inputs):
-            self.value = self.compute()
-            self.readyInputs.clear()
-            self.grad = dt(0)
-            for o in self.outputs:
-                o.forward(self)
-    
-    def backward(self, src, grad):
-        if self == src:
-            self.grad = grad
-        if src in self.outputs:
-            self.readyOutputs.add(src)
-            self.grad += grad
-        if len(self.outputs) == len(self.readyOutputs):
-            for node, grad in self.updateGrad().items():
-                node.backward(self, grad)
-    
+        
 class Input(Node):
-    def __init__(self, x=None):
+    def __init__(self, context, x=None):
         if x is not None:
             Node.__init__(self, [x])
         else:
             Node.__init__(self, [])
         self.x = x
+        self.context = context
+        context.attach_node(self)
+        
         
     def compute(self):
         if self.x is not None:
@@ -67,8 +65,8 @@ class Input(Node):
             return {}
     
 class Param(Input):
-    def __init__(self):
-        Input.__init__(self, None)
+    def __init__(self, context):
+        Input.__init__(self, context, None)
         self.env = {}
     
 class Add(Node):
