@@ -61,24 +61,24 @@ class LSTMTrainGraph(Graph):
         self.h0.value = np.zeros((B, hidden_dim))
         self.c0.value = np.zeros((B, hidden_dim))
         
-        outputs = []
+        collect = []
+        h = self.h0
+        c = self.c0
         for t in range(T - 1):
             x = self.input()
             x.value = data[:, t]
             wordvec = Embed(x, self.C2V)
-            h = self.h0
-            c = self.c0
             
             cell = LSTMCell(self.wf, self.bf,
                             self.wi, self.bi,
                             self.wc, self.bc, self.wo, self.bo, wordvec, h, c)
             
-            outputs.append(SoftMax(Dot(cell.hout, self.V)))
+            collect.append(SoftMax(Dot(cell.hout, self.V)))
             
             h = cell.hout
             c = cell.cout
         
-        self.output(Collect(outputs))
+        self.output(Collect(collect))
         self.expect(data[:, 1:T].T)
         
 class LSTMPredictGraph(LSTMTrainGraph):
@@ -94,9 +94,9 @@ class LSTMPredictGraph(LSTMTrainGraph):
         self.h0.value = np.zeros((1, hidden_dim))
         self.c0.value = np.zeros((1, hidden_dim))
         self.predicts = []
+        h = self.h0
+        c = self.c0
         for t in range(expect_length):
-            h = self.h0
-            c = self.c0
             if t < prefix_len:
                 x = self.input()
                 x.value = prefix[t]
