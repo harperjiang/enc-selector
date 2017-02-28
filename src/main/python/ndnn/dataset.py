@@ -38,9 +38,7 @@ class LSTMDataSet:
         return ''.join([self.idx[n] for n in numarray])
     
     def translate_to_num(self, string):
-        nums = []
-        for c in [char for char in string]:
-            nums.append(self.vocab[c])
+        return [self.vocab[c] for c in [char for char in string]]
     
     def batches(self, batch_size):
         batch_range = range(0, len(self.datas), batch_size)

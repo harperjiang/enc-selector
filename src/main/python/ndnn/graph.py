@@ -39,10 +39,9 @@ class Graph(object):
         # Compute loss
         loss_val = self.loss.loss(self.out.value, self.expect_val, False)
         # Backward
-        self.output.backward(self.output, self.loss.grad)
+        self.out.backward(self.out, self.loss.grad)
         for p in self.params:
             self.update.update(p) 
-        self.update.weightDecay()
         return loss_val, self.loss.accuracy()
     
     def test(self):
@@ -53,7 +52,9 @@ class Graph(object):
         # Compute loss
         if self.loss is not None:
             loss_val = self.loss.loss(self.out.value, self.expect_val, True)
-        return loss_val
+            return loss_val, self.loss.accuracy()
+        else:
+            return -1., -1
     
     def dump(self):
         return [p.value for p in self.params]
