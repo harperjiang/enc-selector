@@ -30,7 +30,7 @@ class Node(object):
             self.readyInputs.add(src)
         
         if len(self.readyInputs) == len(self.inputs):
-            self.value = self.compute
+            self.value = self.compute()
             self.readyInputs.clear()
             self.grad = dt(0)
             for o in self.outputs:
@@ -58,7 +58,7 @@ class Input(Node):
         if self.x is not None:
             return self.x.value
         else:
-            self.value
+            return self.value
     
     def updateGrad(self):
         if self.x is not None:
@@ -205,7 +205,7 @@ class Collect(Node):
         self.nodes = nodes
     
     def compute(self):
-        withNewAxis = [n.value.get[np.newaxis, :] for n in self.nodes]
+        withNewAxis = [n.value[np.newaxis, :] for n in self.nodes]
         return np.concatenate(withNewAxis, 0)
     
     def updateGrad(self):
