@@ -218,16 +218,17 @@ class Collect(Node):
 
 class Embed(Node):
     def __init__(self, idx, w2v):
-        super(Embed, self).__init__([w2v])
+        super(Embed, self).__init__([idx, w2v])
         self.idx = idx
         self.w2v = w2v
 
     def compute(self):
-        return self.w2v.value[np.int32(self.idx.value), :]
+        hidden_dim = self.w2v.value.shape[1]
+        return self.w2v.value[np.int32(self.idx.value), :].reshape(-1, hidden_dim)
     def updateGrad(self):
         grad = np.zeros_like(self.w2v.value)
         grad[np.int32(self.idx.value), :] += self.grad
-        return {self.w2v, grad}
+        return {self.w2v: grad}
             
 class ArgMax(Node):
     def __init__(self, x):

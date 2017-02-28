@@ -48,7 +48,7 @@ class LogLoss(Loss):
         inner_dim = len(xflat) / outer_dim
         idx = np.int32(np.array(range(outer_dim)) * inner_dim + iflat)
         fetch = xflat[idx].reshape(expect.shape)
-        clipval = np.max(fetch, clip)
+        clipval = np.maximum(fetch, clip)
         
         if not fortest:
             # Compute Gradient
@@ -59,6 +59,6 @@ class LogLoss(Loss):
         # Accuracy for classification
     
         predict = np.argmax(actual, axis=-1)
-        self.acc = np.equal(predict, expect).sum
+        self.acc = np.equal(predict, expect).sum()
         
         return -np.log(clipval).mean()

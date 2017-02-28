@@ -39,15 +39,17 @@ def Predict(max_step, prefix):
         return idx
 
 def Eval(ds):
-
+    total_num = 0
+    total_acc = 0
     for batch in ds.batches(batch_size):
         graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
         if len(param_store) > 0:
             graph.load(param_store)
         graph.build(batch)
         loss, acc = graph.test()
-
-    return loss
+        total_num += np.product(batch.data.shape)
+        total_acc += acc
+    return loss, total_acc / total_num
 
 
 ############################################### training loop #####################################################
@@ -55,9 +57,9 @@ def Eval(ds):
 epoch = 30
 
 # initial Perplexity and loss
-loss = Eval(validds)
-print("Initial: Perplexity: - Avg loss = %0.5f" % (loss))
-best_loss = loss
+# loss, acc = Eval(validds)
+# print("Initial: Perplexity: - Avg loss = %0.5f, accuracy %0.5f" % (loss, acc))
+# best_loss = loss
 prefix = 'the agreements bring'
 generation = Predict(400, trainds.translate_to_num(prefix))
 print("Initial generated sentence ")
@@ -72,7 +74,7 @@ for ep in range(epoch):
         graph.build(batch)
         graph.train()
         
-
+    graph.update.weight_decay()
     duration = (time() - stime) / 60.
     
     param_store = graph.dump()

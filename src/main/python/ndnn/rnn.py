@@ -79,7 +79,7 @@ class LSTMTrainGraph(Graph):
             c = cell.cout
         
         self.output(Collect(outputs))
-        self.expect(data[:, 1:T])
+        self.expect(data[:, 1:T].T)
         
 class LSTMPredictGraph(LSTMTrainGraph):
     def __init__(self, num_char, hidden_dim):
@@ -88,7 +88,7 @@ class LSTMPredictGraph(LSTMTrainGraph):
         self.loss = None
             
     def build(self, prefix, expect_length):
-        prefix_len = prefix.shape()[0]
+        prefix_len = len(prefix)
         hidden_dim = self.hidden_dim
     
         self.h0.value = np.zeros((1, hidden_dim))
