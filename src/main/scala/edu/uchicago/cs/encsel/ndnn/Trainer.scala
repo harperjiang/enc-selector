@@ -40,7 +40,7 @@ trait Trainer[T <: Dataset, G <: Graph] {
     val trainset = getTrainset
     val testset = getTestset
 
-    trainset.batchSize(50)
+    trainset.batchSize(100)
 
     for (i <- 1 to epoches) { // Epoches
       logger.info("[Epoch %d]".format(i))
