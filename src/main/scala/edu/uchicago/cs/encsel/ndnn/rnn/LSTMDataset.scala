@@ -71,13 +71,13 @@ class LSTMDataset(file: String) extends Dataset {
       val slice = lines.slice(from, to)
       val maxlength = slice.map(_.length).max
 
-      val tondarray = slice.map(line => Nd4j.create(line
-        .padTo(maxlength, dict.getOrElse('\0', -1)).map(_.toDouble))).toList
+      val tondarray = slice.map(line => line
+        .padTo(maxlength, dict.getOrElse('\0', -1)).map(_.toDouble)).toArray
 
       val indices = Array(NDArrayIndex.all(), NDArrayIndex.all(),
         NDArrayIndex.newAxis())
       // Shape L,B,1
-      val data = Nd4j.create(tondarray, Array(slice.size, maxlength))
+      val data = Nd4j.create(tondarray).reshape(slice.size, maxlength)
         .transposei.get(indices: _*)
       // Both have Shape (L-1),B,1
       val droplast = data.get(Index.range(3, 0, (0, maxlength - 1)): _*)

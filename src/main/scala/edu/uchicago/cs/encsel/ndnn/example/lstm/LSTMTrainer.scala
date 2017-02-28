@@ -100,6 +100,6 @@ class LSTMTrainer(dataset: LSTMDataset, layer: Int, hiddenDim: Int)
     testGraph.expect(Nd4j.zeros(predictLength, 1, 1))
     testGraph.test
 
-    logger.info(testGraph.xs.map(x => dataset.translate(x.value.getDouble(0, 0))).mkString(""))
+    logger.info(testGraph.xs.map(x => dataset.translate(x.value.getFloat(0, 0))).mkString(""))
   }
 }

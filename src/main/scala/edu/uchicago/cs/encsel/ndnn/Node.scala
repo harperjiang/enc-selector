@@ -68,9 +68,6 @@ abstract class Node(is: Node*) {
     if (inputs.contains(source))
       readyInput += source
 
-    if (outputs.contains(this)) {
-      throw new RuntimeException();
-    }
     if (readyInput.size == inputs.size) {
       compute
       numConnectedOutput = outputs.toList
@@ -78,7 +75,21 @@ abstract class Node(is: Node*) {
           case true => 0
           case _ => 1
         }).sum
-      outputs.foreach { _.forward(this) }
+
+      outputs.foreach { o =>
+        {
+          try {
+            o.forward(this)
+          } catch {
+            case e: StackOverflowError => {
+              println(this.getClass.getSimpleName)
+              println(o.getClass.getSimpleName)
+              throw new RuntimeException()
+            }
+
+          }
+        }
+      }
       readyInput.clear()
       // Clear gradient for backward
       if (grad != null)
