@@ -18,18 +18,10 @@ def diff(x, y):
 class Node(object):
     
     def __init__(self, inputs):
-        self.inputs = inputs
-        self.outputs = []
-        contexts = set([x.context for x in inputs])
-        if len(contexts) > 1:
-            # Multiple context is not allowed
-            raise Exception('Different Context Not Allowed')
-        if len(contexts) > 0:
-            context = list(contexts)[0]
+        if len(inputs) > 0:
+            context = inputs[0].context
             context.attach_node(self)
-            self.context = context 
-        for x in inputs:
-            x.outputs.append(self)
+            self.context = context
             
     
     def forward(self):
