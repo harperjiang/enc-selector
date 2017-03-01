@@ -37,8 +37,7 @@ class Node(object):
         self.grad = dt(0)
     
     def backward(self):
-        for node, grad in self.updateGrad().items():
-            node.grad += grad
+        self.updateGrad()
         
         
 class Input(Node):
@@ -60,10 +59,8 @@ class Input(Node):
     
     def updateGrad(self):
         if self.x is not None:
-            return {self.x : self.grad}
-        else:
-            return {}
-    
+            self.x.grad += self.grad
+            
 class Param(Input):
     def __init__(self, context):
         Input.__init__(self, context, None)
@@ -81,12 +78,11 @@ class Add(Node):
     def updateGrad(self):
         xdiff, ydiff = diff(self.left.value, self.right.value)
         
-        lgrad = np.reshape(np.sum(self.grad, axis=xdiff, keepdims=True),
+        self.left.grad += np.reshape(np.sum(self.grad, axis=xdiff, keepdims=True),
                 self.left.value.shape)
 
-        rgrad = np.reshape(np.sum(self.grad, axis=ydiff, keepdims=True),
+        self.right.grad += np.reshape(np.sum(self.grad, axis=ydiff, keepdims=True),
                 self.right.value.shape)
-        return {self.left: lgrad, self.right:rgrad }
 
 class Mul(Node):
     def __init__(self, l, r):
@@ -99,11 +95,10 @@ class Mul(Node):
     
     def updateGrad(self):
         xdiff, ydiff = diff(self.left.value, self.right.value)
-        lgrad = np.reshape(np.sum(self.grad * self.right.value, axis=xdiff, keepdims=True),
+        self.left.grad += np.reshape(np.sum(self.grad * self.right.value, axis=xdiff, keepdims=True),
                 self.left.value.shape)
-        rgrad = np.reshape(np.sum(self.grad * self.left.value, axis=ydiff, keepdims=True),
+        self.right.grad += np.reshape(np.sum(self.grad * self.left.value, axis=ydiff, keepdims=True),
                 self.right.value.shape)
-        return {self.left:lgrad, self.right:rgrad }
 
 class Dot(Node):  # Matrix multiply (fully-connected layer)
     def __init__(self, x, y):
@@ -114,8 +109,8 @@ class Dot(Node):  # Matrix multiply (fully-connected layer)
     def compute(self):
         return np.matmul(self.x.value, self.y.value)
     def updateGrad(self):
-        return {self.x: np.matmul(self.y.value, self.grad.T).T,
-                self.y: np.matmul(self.x.value.T, self.grad)}
+        self.x.grad += np.matmul(self.y.value, self.grad.T).T
+        self.y.grad += np.matmul(self.x.value.T, self.grad)
 
 class Sigmoid(Node):
     def __init__(self, x):
@@ -126,7 +121,7 @@ class Sigmoid(Node):
         return 1. / (1. + np.exp(-self.x.value))
 
     def updateGrad(self):
-        return {self.x: self.grad * self.value * (1. - self.value)}
+        self.x.grad += self.grad * self.value * (1. - self.value)
 
 
 class Tanh(Node):
@@ -141,7 +136,7 @@ class Tanh(Node):
         return (x_exp - x_neg_exp) / (x_exp + x_neg_exp)
 
     def updateGrad(self):
-        return {self.input: self.grad * (1 - self.value * self.value)}
+        self.input.grad += self.grad * (1 - self.value * self.value)
 
 class ReLU(Node):
     def __init__(self, x):
@@ -152,7 +147,7 @@ class ReLU(Node):
         return np.maximum(self.x.value, 0)
 
     def updateGrad(self):
-        return {self.x: self.grad * (self.value > 0)}
+        self.x.grad += self.grad * (self.value > 0)
 
 class LeakyReLU(Node):
     def __init__(self, x):
@@ -163,7 +158,7 @@ class LeakyReLU(Node):
         return np.maximum(self.x.value, 0.01 * self.x.value)
 
     def updateGrad(self):
-        return {self.x: self.grad * np.maximum(0.01, self.value > 0)}
+        self.x.grad += self.grad * np.maximum(0.01, self.value > 0)
 
 class SoftMax(Node):
     def __init__(self, x):
@@ -177,7 +172,7 @@ class SoftMax(Node):
 
     def updateGrad(self):
         gvdot = np.matmul(self.grad[..., np.newaxis, :], self.value[..., np.newaxis]).squeeze(-1)
-        return {self.x: self.value * (self.grad - gvdot)}
+        self.x.grad += self.value * (self.grad - gvdot)
 
 class Concat(Node):
 
@@ -194,8 +189,8 @@ class Concat(Node):
         dim_x = self.x.value.shape[1]
         dim_y = self.y.value.shape[1]
         
-        return {self.x: self.grad[:, 0:dim_x],
-                self.y:self.grad[:, dim_x:dim_x + dim_y]}
+        self.x.grad += self.grad[:, 0:dim_x]
+        self.y.grad += self.grad[:, dim_x:dim_x + dim_y]
 
 class Collect(Node):
     def __init__(self, nodes):
@@ -207,12 +202,10 @@ class Collect(Node):
         return np.concatenate(withNewAxis, 0)
     
     def updateGrad(self):
-        gradmap = {}
         idx = 0
         for n in self.nodes:
-            gradmap[n] = self.grad[idx, :]
+            n.grad += self.grad[idx, :]
             idx += 1
-        return gradmap
 
 class Embed(Node):
     def __init__(self, idx, w2v):
@@ -226,7 +219,7 @@ class Embed(Node):
     def updateGrad(self):
         grad = np.zeros_like(self.w2v.value)
         grad[np.int32(self.idx.value), :] += self.grad
-        return {self.w2v: grad}
+        self.w2v.grad += grad
             
 class ArgMax(Node):
     def __init__(self, x):
