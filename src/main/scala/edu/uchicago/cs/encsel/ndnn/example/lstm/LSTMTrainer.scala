@@ -36,6 +36,7 @@ import org.nd4j.linalg.factory.Nd4j
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
+import edu.uchicago.cs.encsel.ndnn.rnn.LSTMPredictGraph
 
 class LSTMTrainer(dataset: LSTMDataset, layer: Int, hiddenDim: Int)
     extends TrainerBase[LSTMDataset, LSTMGraph](dataset, dataset) {
@@ -77,7 +78,7 @@ class LSTMTrainer(dataset: LSTMDataset, layer: Int, hiddenDim: Int)
   val prefix = "the agreement shows"
   val predictLength = 300
 
-  val testGraph = new LSTMGraph(dataset.numChars, hiddenDim, predictLength, prefix.length())
+  val testGraph = new LSTMPredictGraph(dataset.numChars, hiddenDim, predictLength, prefix.length())
 
   // Override the test function to do a prediction of text
   override def test: Unit = {

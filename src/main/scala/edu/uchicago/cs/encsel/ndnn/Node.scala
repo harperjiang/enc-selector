@@ -36,88 +36,46 @@ import org.nd4j.linalg.indexing.SpecifiedIndex
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.util.NDArrayUtil
 
+trait NodeEnv {
+  protected val nodeBuffer = new ArrayBuffer[Node]
+  def attach(n: Node) = { nodeBuffer += n }
+
+  def forward: Unit =
+    nodeBuffer.foreach { _.forward }
+
+  def backward: Unit =
+    nodeBuffer.reverseIterator.foreach(_.backward)
+}
+
 abstract class Node(is: Node*) {
-
-  protected val inputs = new HashSet[Node]
-  protected val outputs = new HashSet[Node]
-
-  protected var numConnectedOutput = 0
-  protected val readyInput = new HashSet[Node]
-  protected val readyOutput = new HashSet[Node]
 
   private[ndnn] var value: INDArray = _
   private[ndnn] var grad: INDArray = _
   private[ndnn] var scratchPad: INDArray = _
 
-  // Dangling node will not have backprop
-  var dangling = false
+  private[ndnn] var env: NodeEnv = null
 
-  {
-    inputs ++= is
-    inputs.foreach(_.addOutput(this))
+  if (is.length > 0) {
+    attachTo(is(0).env)
   }
 
-  def getInputs = inputs.clone()
-  def getOutputs = outputs.clone()
-
-  def addInput(input: Node) = inputs += input
-  def addOutput(output: Node) = outputs += output
-
-  def forward(source: Node): Unit = {
-    // Wait for all input to be ready
-    if (inputs.contains(source))
-      readyInput += source
-
-    if (readyInput.size == inputs.size) {
-      compute
-      numConnectedOutput = outputs.toList
-        .map(_.dangling match {
-          case true => 0
-          case _ => 1
-        }).sum
-
-      outputs.foreach { o =>
-        {
-          try {
-            o.forward(this)
-          } catch {
-            case e: StackOverflowError => {
-              println(this.getClass.getSimpleName)
-              println(o.getClass.getSimpleName)
-              throw new RuntimeException()
-            }
-
-          }
-        }
-      }
-      readyInput.clear()
-      // Clear gradient for backward
-      if (grad != null)
-        grad.assign(0)
-    }
+  protected def attachTo(e: NodeEnv): Unit = {
+    e.attach(this)
+    this.env = e
   }
 
-  def backward(source: Node, grad: INDArray): Unit = {
-    if (source != this)
-      throw new IllegalArgumentException("Only for self backward grad assignment")
-    source.grad = grad
-    backward(this)
+  def forward: Unit = {
+    compute
+    grad = value.dup().assign(0)
+    scratchPad = value.dup().assign(0)
   }
 
-  def backward(source: Node): Unit = {
-    source match {
-      case out if outputs.contains(out) => {
-        readyOutput += source
-      }
-      case _ => {}
-    }
-
-    if (readyOutput.size == numConnectedOutput) {
-      updateGrad
-      inputs.foreach { _.backward(this) }
-      readyOutput.clear()
-    }
+  def backward(grad: INDArray): Unit = {
+    this.grad = grad
+    backward
   }
+
+  def backward: Unit = updateGrad
 
   def compute: Unit
   def updateGrad: Unit
@@ -142,21 +100,18 @@ abstract class Node(is: Node*) {
   }
 }
 
-class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
+class Input(n: String, e: NodeEnv, srcs: Node*) extends Node(srcs: _*) {
   val name = n
-
-  {
-    if (srcs.length > 1)
-      throw new IllegalArgumentException("Input can have at most one source")
-  }
-
   val source: Option[Node] = srcs.length match {
     case 1 => Some(srcs(0))
-    case _ => None
+    case _ => {
+      attachTo(e)
+      None
+    }
   }
 
-  def this() = this("default_input")
-  def this(src: Node) = this("default_input", src)
+  def this(env: NodeEnv) = this("default_input", env)
+  def this(src: Node) = this("default_input", src.env, src)
 
   def getValue = this.value
   def setValue(value: INDArray) = this.value = value
@@ -173,13 +128,11 @@ class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
       case None => {}
     }
   }
-
-  def forward: Unit = forward(this)
 }
 
-class Param(n: String) extends Input(n) {
-  var context = new HashMap[String, INDArray]()
-  def this() = this("default_param")
+class Param(n: String, env: NodeEnv) extends Input(n, env) {
+  val context = new HashMap[String, INDArray]()
+  def this(env: NodeEnv) = this("default_param", env)
 }
 
 class Add(left: Node, right: Node) extends Node(left, right) {
@@ -335,6 +288,24 @@ class Concat(left: Node, right: Node, idx: Int = 1) extends Node(left, right) {
       NDArrayIndex.interval(0, left.value.shape()(1))))
     right.grad.addi(this.grad.get(NDArrayIndex.all(),
       NDArrayIndex.interval(left.value.shape()(1), this.value.shape()(1))))
+  }
+}
+
+class Collect(nodes: Node*) extends Node(nodes: _*) {
+  def compute: Unit = {
+    val valueList = nodes.map(n => {
+      n.value.get((NDArrayIndex.newAxis() +: NDArrayIndex.allFor(n.value)): _*)
+    })
+    assignValue(Nd4j.concat(0, valueList.toArray: _*))
+  }
+
+  def updateGrad = {
+    val total = this.grad.shape.length - 1
+    nodes.zipWithIndex.foreach { n =>
+      {
+        n._1.grad = this.grad.get(Index.point(total + 1, 0, n._2): _*)
+      }
+    }
   }
 }
 

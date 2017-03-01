@@ -1,9 +1,8 @@
 package edu.uchicago.cs.encsel.ndnn.rnn
 
 import org.junit.Test
-import org.nd4j.linalg.indexing.NDArrayIndex
 import org.nd4j.linalg.factory.Nd4j
-import org.nd4j.linalg.util.NDArrayUtil
+import org.nd4j.linalg.indexing.NDArrayIndex
 
 class LSTMGraphTest {
   @Test
@@ -14,7 +13,7 @@ class LSTMGraphTest {
     ds.batchSize(batchsize)
     val batch = ds.batches.next().asInstanceOf[LSTMBatch]
     val hiddendim = 200
-    val graph = new LSTMGraph(ds.numChars, hiddendim, batch.length, 0)
+    val graph = new LSTMGraph(ds.numChars, hiddendim, batch.length)
     // Set X input
     graph.xs.indices.foreach { i =>
       {
@@ -28,7 +27,7 @@ class LSTMGraphTest {
     graph.c0.setValue(emptyInit)
     graph.expect(batch.groundTruth)
 
-    val graph2 = new LSTMGraph(ds.numChars, hiddendim, 50, 1)
+    val graph2 = new LSTMPredictGraph(ds.numChars, hiddendim, 50, 1)
     val emptyInit2 = Nd4j.zeros(1, hiddendim)
     graph2.h0.setValue(emptyInit2)
     graph2.c0.setValue(emptyInit2)
@@ -37,19 +36,17 @@ class LSTMGraphTest {
     val alla = (0 until predictLength).map(i => 0d).toArray
     graph2.expect(Nd4j.create(alla, Array(predictLength, 1)))
 
-    for (i <- 0 to 10) {
-      graph.train
-      graph2.load(graph.dump())
-      graph2.test
+    graph.train
+    graph2.load(graph.dump())
+    graph2.test
 
-      println(graph2.xs.map {
-        i =>
-          {
-            val char = i.value.getDouble(0, 0)
-            ds.translate(char)
-          }
-      }.mkString(""))
-    }
+    println(graph2.xs.map {
+      i =>
+        {
+          val char = i.value.getDouble(0, 0)
+          ds.translate(char)
+        }
+    }.mkString(""))
   }
 
   @Test
@@ -60,7 +57,7 @@ class LSTMGraphTest {
     ds.batchSize(batchsize)
     val batch = ds.batches.next().asInstanceOf[LSTMBatch]
     val hiddendim = 500
-    val graph = new LSTMGraph(ds.numChars, hiddendim, 10, 1)
+    val graph = new LSTMPredictGraph(ds.numChars, hiddendim, 10, 1)
     // Set X input
     val a = ds.translate("a")(0)
     graph.xs(0).setValue(Nd4j.create(Array(a), Array(1, 1)))

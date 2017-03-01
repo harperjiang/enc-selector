@@ -5,25 +5,28 @@ import org.junit.Assert._
 import edu.uchicago.cs.encsel.ndnn.Param
 import edu.uchicago.cs.encsel.ndnn.Input
 import org.nd4j.linalg.factory.Nd4j
+import edu.uchicago.cs.encsel.ndnn.NodeEnv
 
 class LSTMCellTest {
 
   @Test
   def testBuildCell: Unit = {
+    val env = new NodeEnv() {
 
+    }
     val hd = 3
-    val wf = new Param("wf")
-    val bf = new Param("bf")
-    val wi = new Param("wi")
-    val bi = new Param("bi")
-    val wc = new Param("wc")
-    val bc = new Param("bc")
-    val wo = new Param("wo")
-    val bo = new Param("bo")
+    val wf = new Param("wf", env)
+    val bf = new Param("bf", env)
+    val wi = new Param("wi", env)
+    val bi = new Param("bi", env)
+    val wc = new Param("wc", env)
+    val bc = new Param("bc", env)
+    val wo = new Param("wo", env)
+    val bo = new Param("bo", env)
 
-    val x = new Input("x")
-    val h = new Input("h")
-    val c = new Input("c")
+    val x = new Input("x", env)
+    val h = new Input("h", env)
+    val c = new Input("c", env)
 
     val cell = new LSTMCell(wf, bf, wi, bi, wc, bc, wo, bo, x, h, c)
 
@@ -44,7 +47,7 @@ class LSTMCellTest {
     h.setValue(Nd4j.zeros(2, 3))
     c.setValue(Nd4j.ones(2, 3))
 
-    Array(x, h, c, wf, bf, wi, bi, wc, bc, wo, bo).foreach(_.forward)
+    env.forward
 
     val hout = cell.hout.value
     val cout = cell.cout.value

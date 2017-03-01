@@ -8,12 +8,12 @@ class UpdatePolicyTest {
 
   @Test
   def testSGDUpdate: Unit = {
-
-    var param = new Param
+    val env = new NodeEnv {}
+    val param = new Param(env)
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
-    var sgd = new SGD(0.2)
+    val sgd = new SGD(0.2)
     sgd.update(param)
 
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
@@ -35,12 +35,12 @@ class UpdatePolicyTest {
 
   @Test
   def testMomentumUpdate: Unit = {
-
-    var param = new Param
+    val env = new NodeEnv {}
+    val param = new Param(env)
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
-    var momentum = new Momentum(0.2, 0.9)
+    val momentum = new Momentum(0.2, 0.9)
 
     momentum.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
@@ -63,11 +63,12 @@ class UpdatePolicyTest {
   @Test
   def testRmsPropUpdate: Unit = {
 
-    var param = new Param
+    val env = new NodeEnv {}
+    val param = new Param(env)
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
-    var rms = new RMSProp(0.2, 0.9)
+    val rms = new RMSProp(0.2, 0.9)
 
     rms.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
@@ -90,11 +91,12 @@ class UpdatePolicyTest {
   @Test
   def testAdamUpdate: Unit = {
 
-    var param = new Param
+    val env = new NodeEnv {}
+    val param = new Param(env)
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
-    var adam = new Adam(0.2, 0.9, 0.8)
+    val adam = new Adam(0.2, 0.9, 0.8)
 
     adam.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
