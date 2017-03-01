@@ -39,8 +39,9 @@ class LogLoss(Loss):
     Should return an gradient of shape [A, B,...,M]    
     ''' 
     def loss(self, actual, expect, fortest):
-        shape_length = len(actual.shape)
-        batch_size = actual.shape[shape_length - 2]
+        # The average loss is averaged to each slice
+#         all_batch_size = np.product(expect.shape)
+        all_batch_size = expect.shape[1]
          
         xflat = actual.reshape(-1)
         iflat = expect.reshape(-1)
@@ -52,7 +53,7 @@ class LogLoss(Loss):
         
         if not fortest:
             # Compute Gradient
-            slgrad = -np.ones_like(expect) / (clipval * batch_size)
+            slgrad = -np.ones_like(expect) / (clipval * all_batch_size)
             self.grad = np.zeros_like(actual)
             self.grad.reshape(-1)[idx] = slgrad
                 

@@ -54,9 +54,9 @@ def Eval(ds):
 
 ############################################### training loop #####################################################
 
-epoch = 1
+epoch = 10
 
-#initial Perplexity and loss
+# initial Perplexity and loss
 # loss, acc = Eval(validds)
 # print("Initial: Perplexity: - Avg loss = %0.5f, accuracy %0.5f" % (loss, acc))
 # best_loss = loss
@@ -66,22 +66,25 @@ print("Initial generated sentence ")
 print (trainds.translate_to_str(generation))
 
 for ep in range(epoch):
-
+ 
     stime = time()
-
+ 
     for batch in trainds.batches(batch_size):
         graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
+        if len(param_store) > 0:
+            graph.load(param_store)
         graph.build(batch)
         graph.train()
-        
+        param_store = graph.dump()
+         
     graph.update.weight_decay()
     duration = (time() - stime) / 60.
-    
+     
     param_store = graph.dump()
-    
+     
     loss, acc = Eval(validds)
     print("Epoch %d: Perplexity: - Avg loss = %0.5f, accuracy %0.5f [%.3f mins]" % (ep, loss, acc, duration))
-
+ 
     # generate some text given the prefix and trained model
     prefix = 'the agreements bring'
     generation = Predict(400, trainds.translate_to_num(prefix))
