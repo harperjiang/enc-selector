@@ -54,7 +54,7 @@ def Eval(ds):
 
 ############################################### training loop #####################################################
 
-epoch = 30
+epoch = 1
 
 #initial Perplexity and loss
 # loss, acc = Eval(validds)
