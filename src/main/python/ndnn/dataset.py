@@ -40,9 +40,13 @@ class LSTMDataSet:
     def translate_to_num(self, string):
         return [self.vocab[c] for c in [char for char in string]]
     
+    def num_batch(self):
+        return self.numbatch
+    
     def batches(self, batch_size):
         batch_range = range(0, len(self.datas), batch_size)
         batches = [self.datas[idx:idx + batch_size] for idx in batch_range]
+        self.numbatch = len(batches)
         perm = np.random.permutation(len(batches)).tolist()
         for p in perm:
             batch = batches[p]

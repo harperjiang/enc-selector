@@ -41,6 +41,7 @@ def Predict(max_step, prefix):
 def Eval(ds):
     total_num = 0
     total_acc = 0
+    total_loss = 0
     for batch in ds.batches(batch_size):
         graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
         if len(param_store) > 0:
@@ -49,7 +50,8 @@ def Eval(ds):
         loss, acc = graph.test()
         total_num += np.product(batch.data.shape)
         total_acc += acc
-    return loss, total_acc / total_num
+        total_loss += loss
+    return total_loss / ds.num_batch() , total_acc / total_num
 
 
 ############################################### training loop #####################################################

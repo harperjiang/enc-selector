@@ -26,19 +26,20 @@ package edu.uchicago.cs.encsel.ndnn.rnn
 
 import scala.collection.mutable.ArrayBuffer
 
+import edu.uchicago.cs.encsel.ndnn.ArgMax
+import edu.uchicago.cs.encsel.ndnn.Collect
+import edu.uchicago.cs.encsel.ndnn.DotMul
 import edu.uchicago.cs.encsel.ndnn.Embed
 import edu.uchicago.cs.encsel.ndnn.Graph
 import edu.uchicago.cs.encsel.ndnn.Input
-import edu.uchicago.cs.encsel.ndnn.Param
+import edu.uchicago.cs.encsel.ndnn.Node
 import edu.uchicago.cs.encsel.ndnn.SGD
+import edu.uchicago.cs.encsel.ndnn.SoftMax
 import edu.uchicago.cs.encsel.ndnn.SoftMaxLogLoss
 import edu.uchicago.cs.encsel.ndnn.Xavier
 import edu.uchicago.cs.encsel.ndnn.Zero
-import edu.uchicago.cs.encsel.ndnn.SoftMax
-import edu.uchicago.cs.encsel.ndnn.DotMul
-import edu.uchicago.cs.encsel.ndnn.ArgMax
 
-class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int, prefixlength: Int = -1)
+class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int)
     extends Graph(Xavier, new SGD(0.5, 0.95, 10), new SoftMaxLogLoss) {
 
   val length = len
@@ -62,24 +63,50 @@ class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int, prefixlength: Int = -1)
 
   val cells = new ArrayBuffer[LSTMCell]()
 
-  {
+  build
+
+  protected def build: Unit = {
+    val collected = new ArrayBuffer[Node]()
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
       val h = i match { case 0 => h0 case x => cells(i - 1).hout }
       val c = i match { case 0 => c0 case x => cells(i - 1).cout }
-      val in = i match {
-        case gt if prefixlength > 0 && gt >= prefixlength => {
-          val pred = new ArgMax(outputs(i - 1))
-          input("%d".format(i), pred)
-        }
-        case _ => input("%d".format(i))
-      }
+      val in = input("%d".format(i))
       val mapped = new Embed(in, c2v)
       xs += in
 
       val newNode = new LSTMCell(wf, bf, wi, bi,
         wc, bc, wo, bo, mapped, h, c)
-      output(new SoftMax(new DotMul(newNode.hout, v2c)))
+      collected += new SoftMax(new DotMul(newNode.hout, v2c))
+      cells += newNode
+    }
+    output(new Collect(collected: _*))
+  }
+}
+
+class LSTMPredictGraph(numChar: Int, hiddenDim: Int, len: Int, predictLength: Int)
+    extends LSTMGraph(numChar, hiddenDim, len) {
+
+  override protected def build: Unit = {
+    // Extend RNN to the expected size and build connections between cells
+    for (i <- 0 until length) {
+      val h = i match { case 0 => h0 case x => cells(i - 1).hout }
+      val c = i match { case 0 => c0 case x => cells(i - 1).cout }
+
+      val in = i match {
+        case gt if gt >= predictLength => {
+          new ArgMax(new SoftMax(new DotMul(cells(i - 1).hout, v2c)))
+        }
+        case _ => {
+          val realin = input("%d".format(i))
+          xs += realin
+          realin
+        }
+      }
+      val mapped = new Embed(in, c2v)
+
+      val newNode = new LSTMCell(wf, bf, wi, bi,
+        wc, bc, wo, bo, mapped, h, c)
       cells += newNode
     }
   }

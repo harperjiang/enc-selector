@@ -24,12 +24,12 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
-import scala.collection.mutable.ArrayBuffer
-import org.nd4j.linalg.factory.Nd4j
-import org.nd4j.linalg.api.ndarray.INDArray
 import scala.collection.GenIterable
+import scala.collection.mutable.ArrayBuffer
 
-class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
+import org.nd4j.linalg.api.ndarray.INDArray
+
+class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEnv {
 
   val initPolicy = ip
   val updatePolicy = up
@@ -37,50 +37,37 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
 
   protected val inputs = new ArrayBuffer[Input]
   protected val params = new ArrayBuffer[Param]
-  protected val expected = new Input()
-  protected val outputs = new ArrayBuffer[Node]
+  protected val expected = new Input(this)
+  protected var out: Node = null
 
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
-    val newparam = new Param(n)
+    val newparam = new Param(n, this)
     newparam.value = usePolicy.init(shape)
     params += newparam
     newparam
   }
 
   def input(n: String, src: Node*): Input = {
-    val newinput = new Input(n, src: _*)
+    val newinput = new Input(n, this, src: _*)
     inputs += newinput
     newinput
   }
 
   def expect(value: INDArray) = expected.setValue(value)
-  def output(node: Node): Unit = outputs += node
+  def output(node: Node): Unit = out = node
 
   def getInputs = inputs.clone()
   def getParams = params.clone()
-  def getOutputs = outputs.clone()
-  def getOutput = outputs.length match {
-    case 0 => null
-    case _ => outputs(0)
-  }
+  def getOutput = out
 
   def train: Double = {
-    // TODO Validate the network
-
-    // Forward
-    inputs.foreach { input => input.forward(input) }
-    params.foreach { p => p.forward(p) }
+    forward
     // Compute Loss
-    val loss = outputs.length match {
-      case gt if gt >= 1 => lossFunction.loss(outputs.map(_.value).toArray, expected.value)
-      case _ => throw new IllegalArgumentException("No output")
-    }
+    val loss = lossFunction.loss(out.value, expected.value)
 
     // Backward
-    outputs.zip(lossFunction.gradient).foreach(pair => {
-      pair._1.grad = pair._2
-      pair._1.backward(pair._1)
-    })
+    out.grad = lossFunction.gradient
+    backward
     // Update Parameters and Decay Weight
     params.foreach { updatePolicy.update(_) }
     updatePolicy.weightDecay()
@@ -88,13 +75,14 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) {
   }
 
   def test: (Double, Int) = {
-    // Forward
-    inputs.foreach { input => input.forward(input) }
-    params.foreach { p => p.forward(p) }
+    forward
     // Compute Loss
-    val loss = lossFunction.loss(outputs.map(_.value).toArray, expected.value, true)
-
-    (loss, lossFunction.accuracy)
+    if (out != null && lossFunction != null) {
+      val loss = lossFunction.loss(out.value, expected.value, true)
+      (loss, lossFunction.accuracy)
+    } else {
+      (-1, -1)
+    }
   }
 
   def dump(): Array[INDArray] = this.params.map { _.value }.toArray
