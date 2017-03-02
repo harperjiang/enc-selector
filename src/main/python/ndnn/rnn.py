@@ -33,7 +33,7 @@ class LSTMCell(object):
 
 class LSTMTrainGraph(Graph):
     def __init__(self, num_char, hidden_dim):
-        Graph.__init__(self, LogLoss(), SGD(eta=0.005, decay=0.95, gc=10))
+        Graph.__init__(self, LogLoss(), SGD(eta=0.5, decay=0.95, gc=10))
         
         self.hidden_dim = hidden_dim
         self.num_char = num_char
