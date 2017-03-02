@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import pickle
 from time import time
 from ndnn.dataset import LSTMDataSet
 from ndnn.rnn import LSTMTrainGraph, LSTMPredictGraph
@@ -19,6 +21,13 @@ decay = 0.9
 np.random.seed(0)
 
 param_store = []
+# Load model if exists
+if os.path.exists(model):
+    with open(model, 'rb') as f:
+        p_value = pickle.load(f)
+        for p in p_value:
+            param_store.append(p)
+                    
 
 def Predict(max_step, prefix):
 
@@ -59,9 +68,9 @@ def Eval(ds):
 epoch = 10
 
 # initial Perplexity and loss
-# loss, acc = Eval(validds)
-# print("Initial: Perplexity: - Avg loss = %0.5f, accuracy %0.5f" % (loss, acc))
-# best_loss = loss
+loss, acc = Eval(validds)
+print("Initial: Perplexity: - Avg loss = %0.5f, accuracy %0.5f" % (loss, acc))
+best_loss = loss
 prefix = 'the agreements bring'
 generation = Predict(400, trainds.translate_to_num(prefix))
 print("Initial generated sentence ")
