@@ -40,8 +40,8 @@ class LogLoss(Loss):
     ''' 
     def loss(self, actual, expect, fortest):
         # The average loss is averaged to each slice
-#         all_batch_size = np.product(expect.shape)
-        all_batch_size = expect.shape[1]
+        all_batch_size = np.product(expect.shape)
+#        all_batch_size = expect.shape[1]
          
         xflat = actual.reshape(-1)
         iflat = expect.reshape(-1)
