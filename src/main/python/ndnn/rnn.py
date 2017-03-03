@@ -21,7 +21,7 @@ class LSTMCell(object):
         self.h = h
         self.c = c
   
-        concat = Concat(h, x)
+        concat = Concat(x, h)
         fgate = Sigmoid(Add(Dot(concat, wf), bf))
         igate = Sigmoid(Add(Dot(concat, wi), bi))
         cgate = Mul(Tanh(Add(Dot(concat, wc), bc)), igate)
