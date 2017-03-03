@@ -9,11 +9,16 @@ class Batch:
     
 
 class LSTMDataSet:
-    def __init__(self, filename):
-        self.vocab = {}
-        self.vocab['@'] = 0
-        self.idx = []
-        self.idx.append('@')
+    def __init__(self, filename, ds=None):
+        if ds is None:
+            self.vocab = {}
+            self.vocab['@'] = 0
+            self.idx = []
+            self.idx.append('@')
+        else:
+            self.vocab = ds.vocab
+            self.idx = ds.idx
+            
         self.datas = []
         lines = open(filename, "rb").readlines()
     
@@ -30,7 +35,7 @@ class LSTMDataSet:
                 idx[i] = self.vocab[char]
             self.datas.append(idx)
         self.datas.sort(key=len)
-    
+
     def num_char(self):
         return len(self.vocab)
     
@@ -47,7 +52,8 @@ class LSTMDataSet:
         batch_range = range(0, len(self.datas), batch_size)
         batches = [self.datas[idx:idx + batch_size] for idx in batch_range]
         self.numbatch = len(batches)
-        perm = np.random.permutation(len(batches)).tolist()
+#         perm = np.random.permutation(len(batches)).tolist()
+        perm = range(len(batches))
         for p in perm:
             batch = batches[p]
             # Pad data

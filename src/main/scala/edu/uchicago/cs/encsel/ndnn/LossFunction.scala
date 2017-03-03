@@ -24,12 +24,11 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
-import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.indexing.NDArrayIndex
-import org.nd4j.linalg.ops.transforms.Transforms
-import org.nd4j.linalg.factory.Nd4j
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions._
+
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
+import org.nd4j.linalg.ops.transforms.Transforms
 
 /**
  *
@@ -98,7 +97,7 @@ class SoftMaxLogLoss extends LossFunction {
       // Compute gradient
       val grad = Nd4j.zerosLike(actual)
       // -log(x) gradient
-      val allone = Nd4j.createUninitialized(expected.shape()).assign(1d / b)
+      val allone = Nd4j.ones(expected.shape(): _*).div(expected.shape.product)
 
       Index.put(grad, expected, allone.divi(clipval).negi())
       this.grad = grad

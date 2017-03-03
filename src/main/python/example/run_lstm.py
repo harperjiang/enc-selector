@@ -7,8 +7,8 @@ from ndnn.rnn import LSTMTrainGraph, LSTMPredictGraph
 
 
 trainds = LSTMDataSet('data/ptb.train.txt')
-validds = LSTMDataSet('data/ptb.valid.txt')
-testds = LSTMDataSet('data/ptb.test.txt')
+validds = LSTMDataSet('data/ptb.valid.txt', trainds)
+testds = LSTMDataSet('data/ptb.test.txt', trainds)
 
 
 hidden_dim = 200
