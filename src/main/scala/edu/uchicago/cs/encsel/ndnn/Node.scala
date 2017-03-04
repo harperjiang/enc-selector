@@ -24,10 +24,11 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
+import edu.uchicago.cs.encsel.ndnn.example.lstm.GCounter
+
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
-
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.INDArrayIndex
@@ -149,12 +150,14 @@ class Add(left: Node, right: Node) extends Node(left, right) {
     // Always assume y is a smaller
     val axis = Broadcast.axis(left.value.shape, right.value.shape)
 
+
     assignValue(
       axis.length match {
         case eq if eq == left.value.shape.length => left.value.add(right.value)
         case gt if gt > 0 => Nd4j.getExecutioner.execAndReturn(
           new BroadcastAddOp(left.value, right.value, left.value.dup(), axis: _*))
       })
+
   }
 
   def updateGrad: Unit = {
@@ -173,6 +176,7 @@ class Add(left: Node, right: Node) extends Node(left, right) {
 class Mul(left: Node, right: Node) extends Node(left, right) {
   // Always assume y is smaller
   def compute: Unit = {
+
     val axis = Broadcast.axis(left.value.shape, right.value.shape)
 
     assignValue(
@@ -181,6 +185,7 @@ class Mul(left: Node, right: Node) extends Node(left, right) {
         case gt if gt > 0 => Nd4j.getExecutioner.execAndReturn(
           new BroadcastMulOp(left.value, right.value, left.value.dup(), axis: _*))
       })
+
   }
 
   def updateGrad = {
@@ -285,7 +290,7 @@ class SoftMax(input: Node) extends Node(input) {
 
   def compute: Unit = {
     assignValue(input.value)
-    Operations.softmax(this.value)
+    //Operations.softmax(this.value)
   }
 
   def updateGrad = {

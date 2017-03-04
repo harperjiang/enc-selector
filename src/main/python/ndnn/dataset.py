@@ -34,7 +34,7 @@ class LSTMDataSet:
                     self.idx.append(char)
                 idx[i] = self.vocab[char]
             self.datas.append(idx)
-        self.datas.sort(key=len)
+        self.datas.sort(key=len,reverse=True)
 
     def num_char(self):
         return len(self.vocab)
