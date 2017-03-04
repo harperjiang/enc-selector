@@ -24,7 +24,7 @@ object LSTM extends App {
 
     trainGraph.h0.value = zeroinit
     trainGraph.c0.value = zeroinit
-    trainGraph.xs.zip(data).foreach(pair => pair._1.setRaw(pair._2))
+    trainGraph.xs.zip(data).foreach(pair => pair._1.set(pair._2))
 
     trainGraph.expect(groundTruth)
 
