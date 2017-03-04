@@ -17,13 +17,13 @@ import java.util.Arrays
 class DummyDataset extends DefaultDataset(Array(4, 3), Array(2, 2)) {
   def permuteIdx4Test = permuteIdx
 
-  def load(): (Int, Array[INDArray], Array[INDArray]) = {
-    val data = new Array[INDArray](100)
-    val gt = new Array[INDArray](100)
+  def load(): (Int, Array[Array[Double]], Array[Array[Double]]) = {
+    val data = new Array[Array[Double]](100)
+    val gt = new Array[Array[Double]](100)
 
     for (i <- 0 until 100) {
-      data(i) = Nd4j.createUninitialized(dataShape).assign(i)
-      gt(i) = Nd4j.createUninitialized(gtShape).assign(i)
+      data(i) = (0 to 9).map(_.toDouble).toArray
+      gt(i) = (0 to 9).map(_.toDouble).toArray
     }
     (100, data, gt)
   }

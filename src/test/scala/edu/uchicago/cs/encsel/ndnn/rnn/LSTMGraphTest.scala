@@ -11,14 +11,14 @@ class LSTMGraphTest {
     val batchsize = 50
     val ds = new LSTMDataset(file)
     ds.batchSize(batchsize)
-    val batch = ds.batches.next().asInstanceOf[LSTMBatch]
+    val batch = ds.batches.next()
+    val data = batch.data
     val hiddendim = 200
-    val graph = new LSTMGraph(ds.numChars, hiddendim, batch.length)
+    val graph = new LSTMGraph(ds.numChars, hiddendim, data.length)
     // Set X input
-    graph.xs.indices.foreach { i =>
+    graph.xs.zip(data).foreach { pair =>
       {
-        val data = batch.data.get(NDArrayIndex.point(i), NDArrayIndex.all(), NDArrayIndex.all())
-        graph.xs(i).setValue(data)
+        pair._1.setRaw(pair._2)
       }
     }
     // Set H0 and C0
@@ -33,8 +33,8 @@ class LSTMGraphTest {
     graph2.c0.setValue(emptyInit2)
     graph2.xs(0).setValue(Nd4j.create(Array(0d), Array(1, 1)))
     val predictLength = 50
-    val alla = (0 until predictLength).map(i => 0d).toArray
-    graph2.expect(Nd4j.create(alla, Array(predictLength, 1)))
+    val alla = (0 until predictLength).map(i => Array(0)).toArray
+    graph2.expect(alla)
 
     graph.train
     graph2.load(graph.dump())
@@ -55,7 +55,7 @@ class LSTMGraphTest {
     val batchsize = 50
     val ds = new LSTMDataset(file)
     ds.batchSize(batchsize)
-    val batch = ds.batches.next().asInstanceOf[LSTMBatch]
+    val batch = ds.batches.next()
     val hiddendim = 500
     val graph = new LSTMPredictGraph(ds.numChars, hiddendim, 10, 1)
     // Set X input
@@ -65,8 +65,8 @@ class LSTMGraphTest {
     val emptyInit = Nd4j.zeros(1, hiddendim)
     graph.h0.setValue(emptyInit)
     graph.c0.setValue(emptyInit)
-    val alla = (0 until 10).map(i => a).toArray
-    graph.expect(Nd4j.create(alla, Array(10, 1)))
+    val alla = (0 until 10).map(i => Array(a)).toArray
+    graph.expect(alla)
 
     graph.test
 

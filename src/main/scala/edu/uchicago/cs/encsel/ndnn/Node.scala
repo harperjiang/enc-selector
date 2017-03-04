@@ -35,6 +35,8 @@ import org.nd4j.linalg.indexing.NDArrayIndex
 import org.nd4j.linalg.indexing.SpecifiedIndex
 import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.util.NDArrayUtil
+import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastAddOp
+import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastMulOp
 
 trait NodeEnv {
   protected val nodeBuffer = new ArrayBuffer[Node]
@@ -45,6 +47,18 @@ trait NodeEnv {
 
   def backward: Unit =
     nodeBuffer.reverseIterator.foreach(_.backward)
+
+  def param(n: String): Param = {
+    val newparam = new Param(n)
+    newparam.setEnv(this)
+    newparam
+  }
+
+  def input(n: String, src: Node*): Input = {
+    val newinput = new Input(n, src: _*)
+    newinput.setEnv(this)
+    newinput
+  }
 }
 
 abstract class Node(is: Node*) {
@@ -66,60 +80,60 @@ abstract class Node(is: Node*) {
 
   def forward: Unit = {
     compute
-    grad = value.dup().assign(0)
-    scratchPad = value.dup().assign(0)
+    if (this.grad != null)
+      this.grad.assign(0)
   }
-
-  def backward(grad: INDArray): Unit = {
-    this.grad = grad
-    backward
-  }
-
   def backward: Unit = updateGrad
 
   def compute: Unit
   def updateGrad: Unit
 
-  protected def initValue(shape: Array[Int]) = {
-    this.value match {
-      case x if x != null && x.shape().sameElements(shape) => {}
-      case _ => {
-        this.value = Nd4j.createUninitialized(shape)
-      }
+  protected def initShape(shape: Array[Int]): Unit = {
+    if (this.value == null || !this.value.shape.sameElements(shape)) {
+      this.value = Nd4j.zeros(shape: _*)
     }
-    if (this.grad == null)
-      this.grad = Nd4j.createUninitialized(shape)
-    if (this.scratchPad == null)
-      this.scratchPad = Nd4j.createUninitialized(shape)
+    if (this.grad == null || !this.grad.shape.sameElements(shape)) {
+      this.grad = Nd4j.zerosLike(this.value)
+    }
+    if (this.scratchPad == null || !this.scratchPad.shape.sameElements(shape)) {
+      this.scratchPad = Nd4j.zerosLike(this.value)
+    }
   }
 
   protected def assignValue(in: INDArray): INDArray = {
-    initValue(in.shape)
+    initShape(in.shape)
     this.value.assign(in)
-    this.value
   }
 }
 
-class Input(n: String, e: NodeEnv, srcs: Node*) extends Node(srcs: _*) {
+class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
   val name = n
   val source: Option[Node] = srcs.length match {
     case 1 => Some(srcs(0))
-    case _ => {
-      attachTo(e)
-      None
-    }
+    case _ => None
+  }
+  def this() = this("default_input")
+  def this(src: Node) = this("default_input", src)
+
+  def setEnv(e: NodeEnv): Unit = {
+    this.env = e;
+    e.attach(this)
   }
 
-  def this(env: NodeEnv) = this("default_input", env)
-  def this(src: Node) = this("default_input", src.env, src)
+  protected var rawValue: Any = _
 
   def getValue = this.value
   def setValue(value: INDArray) = this.value = value
+  def getRaw = this.rawValue
+  def setRaw(value: Any) = this.rawValue = value
 
   def compute: Unit = {
     source match {
       case Some(x) => assignValue(x.value)
-      case None => { assignValue(this.value) }
+      case None => {
+        if (this.value != null)
+          assignValue(this.value)
+      }
     }
   }
   def updateGrad: Unit = {
@@ -130,9 +144,8 @@ class Input(n: String, e: NodeEnv, srcs: Node*) extends Node(srcs: _*) {
   }
 }
 
-class Param(n: String, env: NodeEnv) extends Input(n, env) {
+class Param(n: String) extends Input(n) {
   val context = new HashMap[String, INDArray]()
-  def this(env: NodeEnv) = this("default_param", env)
 }
 
 class Add(left: Node, right: Node) extends Node(left, right) {
@@ -141,24 +154,29 @@ class Add(left: Node, right: Node) extends Node(left, right) {
     // Always assume y is a smaller
     if (left.value.shape.product < right.value.shape.product)
       throw new IllegalArgumentException()
-    assignValue(left.value).addi(Broadcast.broadcast(right.value, left.value.shape))
+    val diff = Broadcast.diff(left.value.shape, right.value.shape)
+
+    assignValue(
+      diff._2.length match {
+        case gt if gt > 0 => Nd4j.getExecutioner.execAndReturn(new BroadcastAddOp(left.value, right.value, left.value.dup(), 1))
+        case _ => left.value.add(right.value)
+      })
   }
 
   def updateGrad: Unit = {
     // Sum along dimension
     val diff = Broadcast.diff(left.value.shape, right.value.shape)
-    left.grad.assign(this.grad)
+    left.grad.addi(this.grad)
 
     val rightgrad = diff._2.length match {
       case 0 => { this.grad }
       case _ => { this.grad.sum(diff._2: _*) }
     }
-    right.grad.assign(rightgrad)
+    right.grad.addi(rightgrad)
   }
 }
 
 class Mul(left: Node, right: Node) extends Node(left, right) {
-
   // Always assume y is smaller
   def compute: Unit = {
     if (left.value.shape.product < right.value.shape.product)
@@ -169,18 +187,20 @@ class Mul(left: Node, right: Node) extends Node(left, right) {
   def updateGrad = {
     val diff = Broadcast.diff(left.value.shape, right.value.shape)
 
-    left.grad.assign(this.grad)
-    left.grad.muli(Broadcast.broadcast(right.value, left.value.shape))
+    left.scratchPad.assign(this.grad)
+
+    val leftmul = new BroadcastMulOp(left.scratchPad, right.value, left.grad, diff._2: _*)
+    Nd4j.getExecutioner.execAndReturn(leftmul)
 
     diff._2.length match {
       case 0 => {
-        right.grad.assign(this.grad)
-        right.grad.muli(left.value)
+        this.scratchPad.assign(this.grad)
+        right.grad.addi(this.scratchPad.muli(left.value))
       }
       case _ => {
         this.scratchPad.assign(this.grad)
         this.scratchPad.muli(left.value)
-        right.grad.assign(this.scratchPad.sum(diff._2: _*))
+        right.grad.addi(this.scratchPad.sum(diff._2: _*))
       }
     }
   }
@@ -189,7 +209,7 @@ class Mul(left: Node, right: Node) extends Node(left, right) {
 class DotMul(left: Node, right: Node) extends Node(left, right) {
 
   def compute: Unit = {
-    initValue(Array(left.value.shape()(0), right.value.shape()(1)))
+    initShape(Array(left.value.shape()(0), right.value.shape()(1)))
     assignValue(left.value.mmul(right.value, this.scratchPad))
   }
 
@@ -212,7 +232,7 @@ class DotMul(left: Node, right: Node) extends Node(left, right) {
 
 class ReLU(input: Node) extends Node(input) {
   def compute: Unit = {
-    initValue(input.value.shape)
+    initShape(input.value.shape)
     Operations.relu(input.value, this.value)
   }
 
@@ -224,7 +244,7 @@ class ReLU(input: Node) extends Node(input) {
 
 class LeakyReLU(input: Node) extends Node(input) {
   def compute: Unit = {
-    initValue(input.value.shape)
+    initShape(input.value.shape)
     Operations.leakyRelu(input.value, this.value)
   }
 
@@ -238,7 +258,7 @@ class LeakyReLU(input: Node) extends Node(input) {
 
 class Sigmoid(input: Node) extends Node(input) {
   def compute: Unit = {
-    initValue(input.value.shape)
+    initShape(input.value.shape)
     Operations.sigmoid(input.value, this.value)
   }
 
@@ -250,7 +270,7 @@ class Sigmoid(input: Node) extends Node(input) {
 
 class Tanh(input: Node) extends Node(input) {
   def compute: Unit = {
-    initValue(input.value.shape)
+    initShape(input.value.shape)
     Operations.tanh(input.value, this.value)
   }
 
@@ -314,23 +334,30 @@ class Collect(nodes: Node*) extends Node(nodes: _*) {
  */
 class Embed(idx: Node, map: Node) extends Node(idx, map) {
 
+  var fwdmap: INDArray = null
+  var bwdmap: INDArray = null
+
   def compute: Unit = {
-    assignValue(map.value.get(new SpecifiedIndex(NDArrayUtil.toInts(idx.value): _*),
-      NDArrayIndex.all()))
+
+    val indexval = idx match {
+      case input: Input => input.getRaw.asInstanceOf[Array[Int]]
+      case _ => NDArrayUtil.toInts(idx.value)
+    }
+    val mapsize = map.value.shape()
+    if (fwdmap == null || fwdmap.shape().sameElements(Array(indexval, mapsize(0)))) {
+      fwdmap = Nd4j.zeros(indexval.length, mapsize(0))
+    } else {
+      fwdmap.assign(0)
+    }
+    indexval.zipWithIndex.foreach(p => fwdmap.putScalar(Array(p._2, p._1), 1))
+    bwdmap = fwdmap.transpose()
+    initShape(Array(indexval.length, mapsize(1)))
+    assignValue(fwdmap.mmuli(map.value, this.value))
   }
 
   def updateGrad = {
     // Support only column vectors
-    val idxval = idx.value.isRowVector() match {
-      case true => idx.value.transpose()
-      case false => idx.value
-    }
-    idx.scratchPad.assign(1)
-    val permu = Nd4j.zeros(this.value.shape()(0), map.value.shape()(0))
-    Index.put(permu, idxval, idx.scratchPad)
-
-    permu.permutei(1, 0).mmul(this.grad, map.scratchPad)
-    map.grad.addi(map.scratchPad)
+    map.grad.addi(bwdmap.mmul(this.grad))
   }
 }
 
@@ -355,7 +382,7 @@ class ArgMax(input: Node) extends Node(input) {
     // Shape is [A,B,C,...,1]
     // TODO Not in-place
     //    val shape = this.input.value.shape()
-    //    initValue(shape.dropRight(1) :+ 1)
+    //    initShape(shape.dropRight(1) :+ 1)
     assignValue(Nd4j.argMax(input.value, 1))
   }
 

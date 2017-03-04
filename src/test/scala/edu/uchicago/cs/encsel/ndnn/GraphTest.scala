@@ -25,7 +25,9 @@ class GraphTest {
     for (i <- 0 to 100) {
       loss = graph.train
     }
-
+    /*
+     * If this test doesnot converge, most probably because the gradient on node was not cleaned on forward
+     */
     assertEquals(0, loss, 0.1)
   }
 

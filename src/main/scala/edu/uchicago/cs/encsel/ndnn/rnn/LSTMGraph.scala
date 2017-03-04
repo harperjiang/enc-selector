@@ -40,7 +40,7 @@ import edu.uchicago.cs.encsel.ndnn.Xavier
 import edu.uchicago.cs.encsel.ndnn.Zero
 
 class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int)
-    extends Graph(Xavier, new SGD(0.5, 0.95, 10), new SoftMaxLogLoss) {
+    extends Graph[Array[Array[Int]]](Xavier, new SGD(0.5, 0.95, 10), new LSTMLoss) {
 
   val length = len
 

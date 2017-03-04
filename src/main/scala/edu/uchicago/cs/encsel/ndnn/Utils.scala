@@ -148,7 +148,10 @@ object Broadcast {
    * For same num of dimension, it can do [1,b]->[a,b] and [b,1]->[b,a]
    *
    * Vector can be broadcast to higher dimensions
+   * 
+   * @deprecated Use operator instead
    */
+  @Deprecated
   def broadcast(a: INDArray, shape: Array[Int]): INDArray = {
     var originShape = a.shape()
 
@@ -182,10 +185,10 @@ object Broadcast {
   /**
    * Assume the arrays are broadcast-able. Compute the different axis
    */
-  def diff(ashape: Array[Int], bshape: Array[Int]): (Array[Int], Array[Int]) = {
-    val maxlen = Math.max(ashape.length, bshape.length)
-    val apadded = ashape.reverse.padTo(maxlen, 0).reverse
-    val bpadded = bshape.reverse.padTo(maxlen, 0).reverse
+  def diff(larger: Array[Int], smaller: Array[Int]): (Array[Int], Array[Int]) = {
+    val maxlen = larger.length
+    val apadded = larger.reverse.padTo(maxlen, 0).reverse
+    val bpadded = smaller.reverse.padTo(maxlen, 0).reverse
     val maxdim = apadded.zipAll(bpadded, 0, 0).map(p => Math.max(p._1, p._2))
 
     (apadded.zipAll(maxdim, 0, 0).zipWithIndex

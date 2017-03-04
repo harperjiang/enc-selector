@@ -11,22 +11,30 @@ class LSTMCellTest {
 
   @Test
   def testBuildCell: Unit = {
-    val env = new NodeEnv() {
-
-    }
+    val env = new NodeEnv() {}
     val hd = 3
-    val wf = new Param("wf", env)
-    val bf = new Param("bf", env)
-    val wi = new Param("wi", env)
-    val bi = new Param("bi", env)
-    val wc = new Param("wc", env)
-    val bc = new Param("bc", env)
-    val wo = new Param("wo", env)
-    val bo = new Param("bo", env)
-
-    val x = new Input("x", env)
-    val h = new Input("h", env)
-    val c = new Input("c", env)
+    val wf = new Param("wf")
+    wf.setEnv(env)
+    val bf = new Param("bf")
+    bf.setEnv(env)
+    val wi = new Param("wi")
+    wi.setEnv(env)
+    val bi = new Param("bi")
+    bi.setEnv(env)
+    val wc = new Param("wc")
+    wc.setEnv(env)
+    val bc = new Param("bc")
+    bc.setEnv(env)
+    val wo = new Param("wo")
+    wo.setEnv(env)
+    val bo = new Param("bo")
+    bo.setEnv(env)
+    val x = new Input("x")
+    x.setEnv(env)
+    val h = new Input("h")
+    h.setEnv(env)
+    val c = new Input("c")
+    c.setEnv(env)
 
     val cell = new LSTMCell(wf, bf, wi, bi, wc, bc, wo, bo, x, h, c)
 

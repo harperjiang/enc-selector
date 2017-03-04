@@ -29,7 +29,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import org.nd4j.linalg.api.ndarray.INDArray
 
-class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEnv {
+class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends NodeEnv {
 
   val initPolicy = ip
   val updatePolicy = up
@@ -37,23 +37,23 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEn
 
   protected val inputs = new ArrayBuffer[Input]
   protected val params = new ArrayBuffer[Param]
-  protected val expected = new Input(this)
+  protected var expected: E = _
   protected var out: Node = null
 
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
-    val newparam = new Param(n, this)
+    val newparam = super.param(n)
     newparam.value = usePolicy.init(shape)
     params += newparam
     newparam
   }
 
-  def input(n: String, src: Node*): Input = {
-    val newinput = new Input(n, this, src: _*)
+  override def input(n: String, src: Node*): Input = {
+    val newinput = super.input(n, src: _*)
     inputs += newinput
     newinput
   }
 
-  def expect(value: INDArray) = expected.setValue(value)
+  def expect(value: E) = expected = value
   def output(node: Node): Unit = out = node
 
   def getInputs = inputs.clone()
@@ -63,22 +63,25 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEn
   def train: Double = {
     forward
     // Compute Loss
-    val loss = lossFunction.loss(out.value, expected.value)
+    val loss = lossFunction.loss(out.value, expected)
 
     // Backward
     out.grad = lossFunction.gradient
     backward
-    // Update Parameters and Decay Weight
+    // Update Parameters
     params.foreach { updatePolicy.update(_) }
-    updatePolicy.weightDecay()
     loss
+  }
+
+  def epochDone = {
+    updatePolicy.weightDecay()
   }
 
   def test: (Double, Int) = {
     forward
     // Compute Loss
     if (out != null && lossFunction != null) {
-      val loss = lossFunction.loss(out.value, expected.value, true)
+      val loss = lossFunction.loss(out.value, expected, true)
       (loss, lossFunction.accuracy)
     } else {
       (-1, -1)

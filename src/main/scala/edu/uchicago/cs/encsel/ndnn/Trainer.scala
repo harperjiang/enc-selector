@@ -26,66 +26,70 @@ package edu.uchicago.cs.encsel.ndnn
 
 import org.slf4j.LoggerFactory
 
-trait Trainer[T <: Dataset, G <: Graph] {
+trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
   val logger = LoggerFactory.getLogger(getClass)
 
   def getTrainset: T
   def getTestset: T
-  def getGraph(batch: Batch): G
+  def getGraph(batch: Batch[DATA, GT]): G
 
-  def train(epoches: Int, profiling: Boolean): Unit = {
-    logger.info("[Initial Result]")
-    test
-
+  def train(epoches: Int, profiling: Boolean, trainBatchSize: Int = 100): Unit = {
     val trainset = getTrainset
-    val testset = getTestset
 
-    trainset.batchSize(100)
+    trainset.batchSize(trainBatchSize)
 
     for (i <- 1 to epoches) { // Epoches
       logger.info("[Epoch %d]".format(i))
       val startTime = profiling match { case false => 0 case _ => System.currentTimeMillis() }
 
       trainset.newEpoch()
+      var graph: Graph[GT] = null
       trainset.batches.foreach { batch =>
         {
-          val graph = getGraph(batch)
-          graph.expect(batch.groundTruth)
+          graph = getGraph(batch)
           graph.train
         }
       }
+      if (null != graph)
+        graph.epochDone
       if (profiling) {
         val stopTime = System.currentTimeMillis()
         logger.info("Training time %f mins".format((stopTime - startTime) / 60000d))
       }
-      test
     }
   }
 
-  def test: Unit = {
+  def test(testBatchSize: Int = 100): Unit = {
     val testset = getTestset
-    testset.batchSize(Dataset.BATCH_ALL)
-    val testbatch = testset.batches.next()
-    val graph = getGraph(testbatch)
-    graph.expect(testbatch.groundTruth)
-    val (loss, acc) = graph.test
-
-    logger.info("Accuracy: %f".format(acc.doubleValue() / testbatch.size))
+    testset.batchSize(testBatchSize)
+    var total = 0
+    var totalLoss = 0d
+    var totalAcc = 0
+    var numBatch = 0
+    testset.batches.foreach {
+      batch =>
+        {
+          val graph = getGraph(batch)
+          val (loss, acc) = graph.test
+          total += batch.size
+          totalLoss += loss
+          totalAcc += acc
+          numBatch += 1
+        }
+    }
+    logger.info("Test Result: average loss: %f, accuracy: %f".format(totalLoss / numBatch, totalAcc.doubleValue() / numBatch))
   }
 }
 
-abstract class TrainerBase[T <: Dataset, G <: Graph](trainset: T, testset: T) extends Trainer[T, G] {
+class SimpleTrainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]](trainset: T, testset: T, graph: G)
+    extends Trainer[DATA, GT, T, G] {
+
   def getTrainset: T = trainset
   def getTestset: T = testset
-
-}
-
-class SimpleTrainer[T <: Dataset, G <: Graph](trainset: T, testset: T, grh: G) extends TrainerBase[T, G](trainset, testset) {
-
-  def getGraph(batch: Batch): G = {
-    setInput(batch, grh)
-    grh
+  def getGraph(batch: Batch[DATA, GT]): G = {
+    setInput(batch, graph)
+    graph
   }
 
-  protected def setInput(batch: Batch, graph: G): Unit = Unit
+  protected def setInput(batch: Batch[DATA, GT], graph: G): Unit = Unit
 }

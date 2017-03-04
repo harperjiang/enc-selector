@@ -9,7 +9,7 @@ class UpdatePolicyTest {
   @Test
   def testSGDUpdate: Unit = {
     val env = new NodeEnv {}
-    val param = new Param(env)
+    val param = env.param("")
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
@@ -36,7 +36,7 @@ class UpdatePolicyTest {
   @Test
   def testMomentumUpdate: Unit = {
     val env = new NodeEnv {}
-    val param = new Param(env)
+    val param = env.param("")
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
@@ -64,7 +64,7 @@ class UpdatePolicyTest {
   def testRmsPropUpdate: Unit = {
 
     val env = new NodeEnv {}
-    val param = new Param(env)
+    val param = env.param("")
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
@@ -92,7 +92,7 @@ class UpdatePolicyTest {
   def testAdamUpdate: Unit = {
 
     val env = new NodeEnv {}
-    val param = new Param(env)
+    val param = env.param("")
     param.setValue(Nd4j.createUninitialized(Array(4, 3, 2)).assign(5))
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(2)
 
