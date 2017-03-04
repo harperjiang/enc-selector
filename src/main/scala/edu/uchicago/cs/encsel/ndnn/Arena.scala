@@ -4,21 +4,15 @@ import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.indexing.NDArrayIndex
 import org.nd4j.linalg.indexing.SpecifiedIndex
 import scala.collection.mutable.ArrayBuffer
+import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastAddOp
 
 object Arena extends App {
 
   // Test ND4J performance of copying and assign
 
-  var value = Nd4j.zeros(1000, 1000)
-  val a = Nd4j.ones(1000, 1000)
-  val b = Nd4j.ones(1000, 1000)
-  for (i <- 0 to 1000000) {
-    a.assign(i % 79)
-    b.assign(i % 211)
-    value.assign(a)
-    value.addi(b)
-    if (i % 1000 == 0)
-      println(i)
-  }
+  val a = Nd4j.create((0 to 11).map(_.toDouble).toArray).reshape(2, 2, 3)
+  val b = Nd4j.create(Array(10d, 20, 30, 40, 50, 60)).reshape(2, 3)
 
+  val x = Nd4j.getExecutioner.execAndReturn(new BroadcastAddOp(a, b, a, 1, 2))
+  println(x)
 }

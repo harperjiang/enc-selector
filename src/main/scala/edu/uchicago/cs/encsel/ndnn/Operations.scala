@@ -52,7 +52,8 @@ object Operations {
       new org.nd4j.linalg.api.ops.impl.transforms.Tanh(from, null, to, from.lengthLong()))
   }
 
-  def softmaxi(in: INDArray): INDArray = {
+  def softmax(in: INDArray): INDArray = {
+    // It's weird that in-place softmax has bugs
     Nd4j.getExecutioner().execAndReturn(
       new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(in))
   }

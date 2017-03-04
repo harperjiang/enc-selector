@@ -47,8 +47,8 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
     newparam
   }
 
-  override def input(n: String, src: Node*): Input = {
-    val newinput = super.input(n, src: _*)
+  override def input(n: String): Input = {
+    val newinput = super.input(n)
     inputs += newinput
     newinput
   }

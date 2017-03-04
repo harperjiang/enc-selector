@@ -139,62 +139,29 @@ object Index {
 
 object Broadcast {
   /**
-   * Broadcast a to the given shape.
-   *
-   * This method support broadcast from lower dimension to higher dimension.
-   * E.g., [a,b] -> [x,y,a,b], but no [a,b]-> [a,b,c,d]
-   * 1 can be broadcasted to bigger numbers, e.g., [1,b]->[c,a,b]
-   *
-   * For same num of dimension, it can do [1,b]->[a,b] and [b,1]->[b,a]
-   *
-   * Vector can be broadcast to higher dimensions
-   * 
-   * @deprecated Use operator instead
+   * Assume the arrays are broadcast-able. Compute the different axis.
+   * The lowest dim is 0.
    */
-  @Deprecated
-  def broadcast(a: INDArray, shape: Array[Int]): INDArray = {
-    var originShape = a.shape()
-
-    if (originShape.sameElements(shape))
-      return a
-
-    if (originShape.length == shape.length)
-      return a.broadcast(shape: _*)
-
-    val originProd = originShape.product
-    val shapeProd = shape.product
-    if (originProd > shapeProd || shapeProd % originProd != 0)
-      throw new IllegalArgumentException("Cannot broadcast, [%d]->[%d]".format(originProd, shapeProd))
-
-    var newProd = 1
-
-    var lengthDiff = shape.length - originShape.length
-    for (i <- shape.length - 1 to 0 by -1) {
-      var offsetIdx = i - lengthDiff
-      if (offsetIdx >= 0 && originShape(offsetIdx) != 1 && shape(i) != originShape(offsetIdx)) {
-        throw new IllegalArgumentException("Different shape: %d@%d<->%d@%d"
-          .format(shape(i), i, originShape(offsetIdx), offsetIdx))
-      }
-      if (offsetIdx < 0 || originShape(offsetIdx) == 1) {
-        newProd *= shape(i)
-      }
-    }
-    a.reshape(1, -1).broadcast(newProd, originProd).reshape(shape: _*)
-  }
-
-  /**
-   * Assume the arrays are broadcast-able. Compute the different axis
-   */
-  def diff(larger: Array[Int], smaller: Array[Int]): (Array[Int], Array[Int]) = {
-    val maxlen = larger.length
-    val apadded = larger.reverse.padTo(maxlen, 0).reverse
-    val bpadded = smaller.reverse.padTo(maxlen, 0).reverse
+  def diff(ashape: Array[Int], bshape: Array[Int]): (Array[Int], Array[Int]) = {
+    val maxlen = Math.max(ashape.length, bshape.length)
+    val apadded = ashape.reverse.padTo(maxlen, 1).reverse
+    val bpadded = bshape.reverse.padTo(maxlen, 1).reverse
     val maxdim = apadded.zipAll(bpadded, 0, 0).map(p => Math.max(p._1, p._2))
 
-    (apadded.zipAll(maxdim, 0, 0).zipWithIndex
+    (apadded.zip(maxdim).zipWithIndex
       .filter(p => p._1._1 < p._1._2).map(_._2),
-      bpadded.zipAll(maxdim, 0, 0).zipWithIndex
+      bpadded.zip(maxdim).zipWithIndex
       .filter(p => p._1._1 < p._1._2).map(_._2))
   }
 
+  /**
+   * Look for broadcast-able axis
+   */
+  def axis(toshape: Array[Int], fromshape: Array[Int]): Array[Int] = {
+    val maxlen = Math.max(toshape.length, fromshape.length)
+    val apadded = toshape.reverse.padTo(maxlen, 1).reverse
+    val bpadded = fromshape.reverse.padTo(maxlen, 1).reverse
+    apadded.zip(bpadded).zipWithIndex
+      .filter(p => p._1._1 == p._1._2 && p._1._1 != 1).map(_._2)
+  }
 }

@@ -37,6 +37,7 @@ import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.util.NDArrayUtil
 import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastAddOp
 import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastMulOp
+import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastSubOp
 
 trait NodeEnv {
   protected val nodeBuffer = new ArrayBuffer[Node]
@@ -54,8 +55,8 @@ trait NodeEnv {
     newparam
   }
 
-  def input(n: String, src: Node*): Input = {
-    val newinput = new Input(n, src: _*)
+  def input(n: String): Input = {
+    val newinput = new Input(n)
     newinput.setEnv(this)
     newinput
   }
@@ -106,14 +107,10 @@ abstract class Node(is: Node*) {
   }
 }
 
-class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
+class Input(n: String) extends Node {
   val name = n
-  val source: Option[Node] = srcs.length match {
-    case 1 => Some(srcs(0))
-    case _ => None
-  }
+
   def this() = this("default_input")
-  def this(src: Node) = this("default_input", src)
 
   def setEnv(e: NodeEnv): Unit = {
     this.env = e;
@@ -122,26 +119,24 @@ class Input(n: String, srcs: Node*) extends Node(srcs: _*) {
 
   protected var rawValue: Any = _
 
-  def getValue = this.value
-  def setValue(value: INDArray) = this.value = value
-  def getRaw = this.rawValue
-  def setRaw(value: Any) = this.rawValue = value
+  def get[T] = this.rawValue.asInstanceOf[T]
+  def set(value: Any) = {
+    this.rawValue = value
+    if (value.isInstanceOf[INDArray])
+      this.value = value.asInstanceOf[INDArray]
+    if (value.isInstanceOf[Array[Double]]) {
+      this.value = Nd4j.create(value.asInstanceOf[Array[Double]])
+    }
+    if (value.isInstanceOf[Array[Int]]) {
+      this.value = Nd4j.create(value.asInstanceOf[Array[Int]].map(_.toDouble))
+    }
+  }
 
   def compute: Unit = {
-    source match {
-      case Some(x) => assignValue(x.value)
-      case None => {
-        if (this.value != null)
-          assignValue(this.value)
-      }
-    }
+    if (this.value != null)
+      assignValue(this.value)
   }
-  def updateGrad: Unit = {
-    source match {
-      case Some(x) => x.grad.addi(this.grad)
-      case None => {}
-    }
-  }
+  def updateGrad: Unit = Unit
 }
 
 class Param(n: String) extends Input(n) {
@@ -152,14 +147,13 @@ class Add(left: Node, right: Node) extends Node(left, right) {
 
   def compute: Unit = {
     // Always assume y is a smaller
-    if (left.value.shape.product < right.value.shape.product)
-      throw new IllegalArgumentException()
-    val diff = Broadcast.diff(left.value.shape, right.value.shape)
+    val axis = Broadcast.axis(left.value.shape, right.value.shape)
 
     assignValue(
-      diff._2.length match {
-        case gt if gt > 0 => Nd4j.getExecutioner.execAndReturn(new BroadcastAddOp(left.value, right.value, left.value.dup(), 1))
-        case _ => left.value.add(right.value)
+      axis.length match {
+        case eq if eq == left.value.shape.length => left.value.add(right.value)
+        case gt if gt > 0 => Nd4j.getExecutioner.execAndReturn(
+          new BroadcastAddOp(left.value, right.value, left.value.dup(), axis: _*))
       })
   }
 
@@ -179,29 +173,35 @@ class Add(left: Node, right: Node) extends Node(left, right) {
 class Mul(left: Node, right: Node) extends Node(left, right) {
   // Always assume y is smaller
   def compute: Unit = {
-    if (left.value.shape.product < right.value.shape.product)
-      throw new IllegalArgumentException()
-    assignValue(left.value).muli(Broadcast.broadcast(right.value, left.value.shape))
+    val axis = Broadcast.axis(left.value.shape, right.value.shape)
+
+    assignValue(
+      axis.length match {
+        case eq if eq == left.value.shape.length => left.value.mul(right.value)
+        case gt if gt > 0 => Nd4j.getExecutioner.execAndReturn(
+          new BroadcastMulOp(left.value, right.value, left.value.dup(), axis: _*))
+      })
   }
 
   def updateGrad = {
+    val axis = Broadcast.axis(left.value.shape, right.value.shape)
     val diff = Broadcast.diff(left.value.shape, right.value.shape)
-
     left.scratchPad.assign(this.grad)
 
-    val leftmul = new BroadcastMulOp(left.scratchPad, right.value, left.grad, diff._2: _*)
-    Nd4j.getExecutioner.execAndReturn(leftmul)
-
-    diff._2.length match {
-      case 0 => {
-        this.scratchPad.assign(this.grad)
-        right.grad.addi(this.scratchPad.muli(left.value))
-      }
+    val leftmul = axis.length match {
+      case eq if eq == left.value.shape.length =>
+        left.scratchPad.muli(right.value)
       case _ => {
-        this.scratchPad.assign(this.grad)
-        this.scratchPad.muli(left.value)
-        right.grad.addi(this.scratchPad.sum(diff._2: _*))
+        val op = new BroadcastMulOp(left.scratchPad, right.value, left.scratchPad, axis: _*)
+        Nd4j.getExecutioner.execAndReturn(op)
       }
+    }
+    left.grad.addi(leftmul)
+
+    this.scratchPad.assign(this.grad)
+    diff._2.length match {
+      case 0 => right.grad.addi(this.scratchPad.muli(left.value))
+      case _ => right.grad.addi(this.scratchPad.muli(left.value).sum(diff._2: _*))
     }
   }
 }
@@ -285,15 +285,17 @@ class SoftMax(input: Node) extends Node(input) {
 
   def compute: Unit = {
     assignValue(input.value)
-    Operations.softmaxi(this.value)
+    Operations.softmax(this.value)
   }
 
   def updateGrad = {
-    // TODO Softmax has many NOT in-place operations. Considering optimization later
+    // TODO Softmax has many NOT in-place operations. 
     this.scratchPad.assign(this.value)
-    val gvdot = Broadcast.broadcast(this.scratchPad.muli(this.grad).sum(1), this.grad.shape)
+    val gvdot = this.scratchPad.muli(this.grad).sum(this.grad.shape.length - 1)
     input.scratchPad.assign(this.grad)
-    input.grad.addi(input.scratchPad.sub(gvdot).muli(this.value))
+    val op = new BroadcastSubOp(input.scratchPad, gvdot, input.scratchPad,
+      this.grad.shape.indices.dropRight(1): _*)
+    input.grad.addi(Nd4j.getExecutioner.execAndReturn(op).muli(this.value))
   }
 }
 
@@ -340,7 +342,7 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
   def compute: Unit = {
 
     val indexval = idx match {
-      case input: Input => input.getRaw.asInstanceOf[Array[Int]]
+      case input: Input => input.get[Array[Int]]
       case _ => NDArrayUtil.toInts(idx.value)
     }
     val mapsize = map.value.shape()

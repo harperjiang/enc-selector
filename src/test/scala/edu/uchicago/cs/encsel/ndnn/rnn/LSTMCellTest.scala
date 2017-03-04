@@ -38,22 +38,22 @@ class LSTMCellTest {
 
     val cell = new LSTMCell(wf, bf, wi, bi, wc, bc, wo, bo, x, h, c)
 
-    wf.setValue(Nd4j.create(Array(Array(1d, 2, 3, 1, 2, 2d), Array(2d, 0, 1, 2, 1, 0), Array(0d, 1, 1, 0, 1, 2)))
+    wf.set(Nd4j.create(Array(Array(1d, 2, 3, 1, 2, 2d), Array(2d, 0, 1, 2, 1, 0), Array(0d, 1, 1, 0, 1, 2)))
       .transposei().divi(100))
-    bf.setValue(Nd4j.create(Array(3d, 0, 1)).divi(100))
-    wi.setValue(Nd4j.create(Array(Array(2d, 1, 0, 1, 2, 2d), Array(3d, 0, 2, 2, 5, 0), Array(0d, 2, 1, 3, 1, 2)))
+    bf.set(Nd4j.create(Array(3d, 0, 1)).divi(100))
+    wi.set(Nd4j.create(Array(Array(2d, 1, 0, 1, 2, 2d), Array(3d, 0, 2, 2, 5, 0), Array(0d, 2, 1, 3, 1, 2)))
       .transposei.divi(100))
-    bi.setValue(Nd4j.create(Array(1d, 2, 0)).divi(100))
-    wc.setValue(Nd4j.create(Array(Array(2d, 2, 3, 2, 2, 2d), Array(2d, 1, 1, 2, 3, 0), Array(1d, 1, 1, 2, 0, 2)))
+    bi.set(Nd4j.create(Array(1d, 2, 0)).divi(100))
+    wc.set(Nd4j.create(Array(Array(2d, 2, 3, 2, 2, 2d), Array(2d, 1, 1, 2, 3, 0), Array(1d, 1, 1, 2, 0, 2)))
       .transposei.divi(100))
-    bc.setValue(Nd4j.create(Array(1d, 1, 1)).divi(100))
-    wo.setValue(Nd4j.create(Array(Array(2d, 2, 2, 1, 2, 1d), Array(1d, 1, 1, 1, 1, 0), Array(0d, 0, 1, 0, 1, 0)))
+    bc.set(Nd4j.create(Array(1d, 1, 1)).divi(100))
+    wo.set(Nd4j.create(Array(Array(2d, 2, 2, 1, 2, 1d), Array(1d, 1, 1, 1, 1, 0), Array(0d, 0, 1, 0, 1, 0)))
       .transposei.divi(100))
-    bo.setValue(Nd4j.create(Array(1d, 0, 2)).divi(100))
+    bo.set(Nd4j.create(Array(1d, 0, 2)).divi(100))
 
-    x.setValue(Nd4j.create(Array(Array(1d, 0, 1), Array(1d, 1, 0))))
-    h.setValue(Nd4j.zeros(2, 3))
-    c.setValue(Nd4j.ones(2, 3))
+    x.set(Nd4j.create(Array(Array(1d, 0, 1), Array(1d, 1, 0))))
+    h.set(Nd4j.zeros(2, 3))
+    c.set(Nd4j.ones(2, 3))
 
     env.forward
 

@@ -33,6 +33,6 @@ class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
     extends SimpleTrainer[INDArray, INDArray, MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
 
   protected override def setInput(batch: Batch[INDArray, INDArray], graph: MnistGraph): Unit = {
-    graph.pixelInput.setValue(batch.data)
+    graph.pixelInput.set(batch.data)
   }
 }
