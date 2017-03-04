@@ -35,21 +35,30 @@ import scala.collection.JavaConversions._
 import java.io.InputStream
 import edu.uchicago.cs.encsel.ndnn.Index
 import org.nd4j.linalg.indexing.NDArrayIndex
+import edu.uchicago.cs.encsel.ndnn.DatasetBase
+import scala.collection.mutable.Buffer
 
-class LSTMDataset(file: String) extends Dataset {
+class LSTMDataset(file: String)(implicit extdict: LSTMDataset = null) extends DatasetBase[Array[Array[Int]], Array[Array[Int]]] {
 
   private val dict = new HashMap[Char, Int]
+  private val inverseDict = new HashMap[Int, Char]
 
-  dict += (('{', 0))
-  Source.fromFile(file).getLines().foreach(line => {
-    line.trim.toCharArray().foreach { c => dict.getOrElseUpdate(c, dict.size) }
-  })
-  dict += (('}', dict.size))
-  dict += (('\0', dict.size))
+  private val PAD = '\0'
 
-  private val inverseDict = dict.map(p => (p._2, p._1))
+  if (extdict == null) {
+    dict += (('{', 0))
+    Source.fromFile(file).getLines().foreach(line => {
+      line.trim.toCharArray().foreach { c => dict.getOrElseUpdate(c, dict.size) }
+    })
+    dict += (('}', dict.size))
+    dict += ((PAD, dict.size))
+    inverseDict ++= dict.map(p => (p._2, p._1))
+  } else {
+    dict ++= extdict.dict
+    inverseDict ++= extdict.inverseDict
+  }
+
   // Second pass, replace characters with index
-
   protected val lines = Source.fromFile(file).getLines()
     .map(line => {
       val replaced = line.trim.toCharArray().map { dict.getOrElse(_, 0) }
@@ -57,46 +66,27 @@ class LSTMDataset(file: String) extends Dataset {
     })
     .toList.sortBy(-_.length)
   this.dataSize = lines.length
+  initShuffle(false)
+  // No shuffle to keep similar size batches together
 
-  def newEpoch(): Unit = {
+  protected def construct(idices: Buffer[Int]): Batch[Array[Array[Int]], Array[Array[Int]]] = {
+    val data = idices.map(lines(_))
+    val maxlength = data.map(_.length).max
+    val padded = data.map(_.padTo(maxlength, dict.getOrElse(PAD, -1)))
+    val transposed = (0 until maxlength).map(i => padded.map(_(i)).toArray).toArray
 
+    new Batch[Array[Array[Int]], Array[Array[Int]]](idices.length, transposed.dropRight(1), transposed.drop(1))
   }
 
-  def batches: Iterator[Batch] = {
-    val numBatches = lines.length / batchSize + (
-      (lines.length % batchSize) match { case 0 => 0 case _ => 1 })
-    (for (i <- 0 until numBatches) yield {
-      val from = i * batchSize
-      val to = Math.min(lines.length, (i + 1) * batchSize)
-      val slice = lines.slice(from, to)
-      val maxlength = slice.map(_.length).max
-
-      val tondarray = slice.map(line => line
-        .padTo(maxlength, dict.getOrElse('\0', -1)).map(_.toDouble)).toArray
-
-      val indices = Array(NDArrayIndex.all(), NDArrayIndex.all(),
-        NDArrayIndex.newAxis())
-      // Shape L,B,1
-      val data = Nd4j.create(tondarray).reshape(slice.size, maxlength)
-        .transposei.get(indices: _*)
-      // Both have Shape (L-1),B,1
-      val droplast = data.get(Index.range(3, 0, (0, maxlength - 1)): _*)
-      val dropfirst = data.get(Index.range(3, 0, (1, maxlength)): _*)
-
-      new LSTMBatch(slice.size, maxlength - 1, droplast, dropfirst)
-    }).toIterator
+  override def newEpoch() = {
+    // No permute
   }
 
-  def translate(input: String): Array[Double] =
-    input.toCharArray().map(dict.getOrElse(_, -1).toDouble)
+  def translate(input: String): Array[Int] =
+    input.toCharArray().map(dict.getOrElse(_, -1))
 
   def translate(input: Double): Char = inverseDict.getOrElse(input.toInt,
     throw new IllegalArgumentException(input.toString()))
 
   def numChars: Int = dict.size
-}
-
-class LSTMBatch(s: Int, len: Int, d: INDArray, gt: INDArray) extends Batch(s, d, gt) {
-  def length: Int = len
-
 }

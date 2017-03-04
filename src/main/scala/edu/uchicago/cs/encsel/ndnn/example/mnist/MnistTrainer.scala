@@ -27,11 +27,12 @@ package edu.uchicago.cs.encsel.ndnn.example.mnist
 import edu.uchicago.cs.encsel.ndnn.Graph
 import edu.uchicago.cs.encsel.ndnn.Batch
 import edu.uchicago.cs.encsel.ndnn.SimpleTrainer
+import org.nd4j.linalg.api.ndarray.INDArray
 
 class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
-    extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
+    extends SimpleTrainer[INDArray, INDArray, MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
 
-  protected override def setInput(batch: Batch, graph: MnistGraph): Unit = {
+  protected override def setInput(batch: Batch[INDArray, INDArray], graph: MnistGraph): Unit = {
     graph.pixelInput.setValue(batch.data)
   }
 }

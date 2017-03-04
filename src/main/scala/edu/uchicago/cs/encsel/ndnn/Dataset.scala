@@ -36,57 +36,44 @@ object Dataset {
   val BATCH_ALL = -1
 }
 
-trait Dataset {
-  
+trait Dataset[D, G] {
+
   protected var dataSize = -1
   protected var bSize = -1
-  
+
   def size: Int = dataSize
 
   def batchSize(size: Int) = bSize = size
   def batchSize() = bSize
-  
+
   def newEpoch(): Unit
-  def batches: Iterator[Batch]
+  def batches: Iterator[Batch[D, G]]
 }
 
-class Batch(s: Int, d: INDArray, gt: INDArray) {
+class Batch[D, G](s: Int, d: D, gt: G) {
   val size = s
   val data = d
   val groundTruth = gt
 }
 
-abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends Dataset {
-
-  protected val dataShape = ds
-  protected val gtShape = gts
-
-  protected var datas: Array[INDArray] = null
-  protected var groundTruths: Array[INDArray] = null
+abstract class DatasetBase[D, G] extends Dataset[D, G] {
 
   protected var permuteIdx: Buffer[Int] = null
 
-  init
-
-  protected def load(): (Int, Array[INDArray], Array[INDArray])
-
-  protected def init = {
-    val loaded = load()
-    dataSize = loaded._1
-    datas = loaded._2
-    groundTruths = loaded._3
-
+  protected def initShuffle(permute: Boolean = true) = {
     permuteIdx = (0 to dataSize - 1).toBuffer
-    Collections.shuffle(permuteIdx)
+    if (permute)
+      Collections.shuffle(permuteIdx)
   }
 
+  protected def construct(idices: Buffer[Int]): Batch[D, G]
 
   def newEpoch() = {
     // Shuffle data, generate random batch
     Collections.shuffle(permuteIdx)
   }
 
-  def batches: Iterator[Batch] = {
+  def batches: Iterator[Batch[D, G]] = {
     bSize = bSize match { case Dataset.BATCH_ALL => dataSize case _ => bSize }
     if (0 == bSize)
       throw new IllegalArgumentException("Batch Size is ZERO")
@@ -95,14 +82,34 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends Dataset {
     (0 until numBatch).toIterator.map { i =>
       {
         val idices = permuteIdx.slice(i * curBatchSize, Math.min((i + 1) * curBatchSize, size))
-        val dataArray = Nd4j.createUninitialized(Array(idices.size, dataShape: _*))
-        val gtArray = Nd4j.createUninitialized(Array(idices.size, gtShape: _*))
-        idices.zipWithIndex.foreach(idx => {
-          dataArray.put(Array(NDArrayIndex.point(idx._2), NDArrayIndex.all()), datas(idx._1))
-          gtArray.put(Array(NDArrayIndex.point(idx._2), NDArrayIndex.all()), groundTruths(idx._1))
-        })
-        new Batch(idices.size, dataArray, gtArray)
+        construct(idices)
       }
     }
+  }
+}
+
+abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBase[INDArray, INDArray] {
+
+  protected val dataShape = ds
+  protected val gtShape = gts
+
+  protected var datas: Array[Array[Double]] = null
+  protected var groundTruths: Array[Array[Double]] = null
+
+  {
+    val loaded = load()
+    dataSize = loaded._1
+    datas = loaded._2
+    groundTruths = loaded._3
+
+    initShuffle(true)
+  }
+
+  protected def load(): (Int, Array[Array[Double]], Array[Array[Double]])
+
+  protected def construct(indices: Buffer[Int]): Batch[INDArray, INDArray] = {
+    val data = Nd4j.create(indices.flatMap { datas(_) }.toArray, Array(bSize, ds: _*))
+    val gt = Nd4j.create(indices.flatMap { groundTruths(_) }.toArray, Array(bSize, gts: _*))
+    new Batch[INDArray, INDArray](indices.length, data, gt)
   }
 }

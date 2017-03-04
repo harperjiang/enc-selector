@@ -39,7 +39,7 @@ object MinstDataset {
 
 class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset(Array(28 * 28), Array(1)) {
 
-  def load(): (Int, Array[INDArray], Array[INDArray]) = {
+  def load(): (Int, Array[Array[Double]], Array[Array[Double]]) = {
     val datais = new DataInputStream(new FileInputStream(trainFile))
     val labelis = new DataInputStream(new FileInputStream(testFile))
     // Magic number
@@ -60,14 +60,15 @@ class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) ext
     if (rowcnt != 28 || colcnt != 28)
       throw new IllegalArgumentException("Incorrect row/col cnt")
 
-    val datas = new Array[INDArray](dataSize)
-    val labels = new Array[INDArray](dataSize)
-    val databuffer = new Array[Double](rowcnt * colcnt)
+    val datas = new Array[Array[Double]](dataSize)
+    val labels = new Array[Array[Double]](dataSize)
+
     for (i <- 0 until dataSize) {
+      val databuffer = new Array[Double](rowcnt * colcnt)
       for (j <- databuffer.indices)
-        databuffer(j) = datais.readUnsignedByte()/255.toDouble
-      datas(i) = Nd4j.create(databuffer)
-      labels(i) = Nd4j.create(Array(labelis.readUnsignedByte().toDouble))
+        databuffer(j) = datais.readUnsignedByte() / 255.toDouble
+      datas(i) = databuffer
+      labels(i) = Array(labelis.readUnsignedByte().toDouble)
     }
 
     datais.close

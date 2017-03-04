@@ -13,8 +13,8 @@ class NodeTest {
   def testForward: Unit = {
 
     val env = new NodeEnv {}
-    val node1 = new Input(env)
-    val node2 = new Input(env)
+    val node1 = env.input("")
+    val node2 = env.input("")
     val node3 = new DummyNode(node1, node2)
     val node4 = new DummyNode(node3)
     val node5 = new DummyNode(node3)
@@ -33,8 +33,8 @@ class NodeTest {
   def testBackward: Unit = {
 
     val env = new NodeEnv {}
-    val node1 = new Input("node1", env)
-    val node2 = new Input("node2", env)
+    val node1 = env.input("node1")
+    val node2 = env.input("node2")
     val node3 = new DummyNode(node1, node2)
     val node4 = new DummyNode(node3)
     val node5 = new DummyNode(node3)
@@ -63,7 +63,7 @@ class InputTest {
   @Test
   def testCompute: Unit = {
     val env = new NodeEnv {}
-    val input1 = new Input(env)
+    val input1 = env.input("")
     val input2 = new Input(input1)
 
     val value = Nd4j.create(Array(1d, 2d, 3))
@@ -79,7 +79,7 @@ class InputTest {
   @Test
   def testBackward: Unit = {
     val env = new NodeEnv {}
-    val input1 = new Input(env)
+    val input1 = env.input("")
     val input2 = new Input(input1)
 
     val grad = Nd4j.create(Array(1d, 2d, 3))
@@ -95,11 +95,42 @@ class InputTest {
   }
 }
 
+class AddTest {
+  @Test
+  def testCompute: Unit = {
+    val env = new NodeEnv {}
+    val input = env.input("")
+    val input2 = env.input("")
+
+    val add = new Add(input, input2)
+
+    input.value = Nd4j.create(Array(Array(3d, 2, 5), Array(2d, 2, 1), Array(1d, 0, 0), Array(4d, 0, 2)))
+    input2.value = Nd4j.create(Array(1d, 0, 1)).reshape(1, 3)
+
+    env.forward
+
+    val expected = Nd4j.create(Array(Array(4d, 2, 6), Array(3d, 2, 2), Array(2d, 0, 1), Array(5d, 0, 3)))
+    for (i <- 0 to 3; j <- 0 to 2) {
+      assertEquals(add.value.getDouble(i, j), expected.getDouble(i, j), 0.0001)
+    }
+
+    input.value = Nd4j.create(Array(Array(3d, 2, 5), Array(2d, 2, 1), Array(1d, 0, 0), Array(4d, 0, 2)))
+    input2.value = Nd4j.create(Array(Array(3d, 2, 5), Array(2d, 2, 1), Array(1d, 0, 0), Array(4d, 0, 2)))
+
+    env.forward
+    println(add.value)
+    val expected2 = Nd4j.create(Array(Array(6d, 4, 10), Array(4d, 4, 2), Array(2d, 0, 0), Array(8d, 0, 4)))
+    for (i <- 0 to 3; j <- 0 to 2) {
+      assertEquals(expected2.getDouble(i, j), add.value.getDouble(i, j), 0.0001)
+    }
+  }
+}
+
 class SoftMaxTest {
   @Test
   def testCalculate: Unit = {
     val env = new NodeEnv {}
-    val input = new Input(env)
+    val input = env.input("")
     val softmax = new SoftMax(input)
 
     input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
@@ -121,7 +152,7 @@ class SoftMaxTest {
   @Test
   def testDerivative: Unit = {
     val env = new NodeEnv {}
-    val input = new Input(env)
+    val input = env.input("")
     val softmax = new SoftMax(input)
 
     input.setValue(Nd4j.create(Array(Array(1d, 2d, 3d, 4d, 5d), Array(2d, 7d, 6d, 2d, 3d), Array(1d, 1d, 2d, 2d, 3d))))
@@ -153,7 +184,7 @@ class SigmoidTest {
   @Test
   def testCompute: Unit = {
     val env = new NodeEnv {}
-    val input = new Input(env)
+    val input = env.input("")
     val sigmoid = new Sigmoid(input)
     input.setValue(Nd4j.create(Array(Array(0.4, 0.9, -1.1, 3.8), Array(2.2, 1.7, 0.5, -0.7))))
 
@@ -171,7 +202,7 @@ class SigmoidTest {
   @Test
   def testUpdateGrad: Unit = {
     val env = new NodeEnv {}
-    val input = new Input(env)
+    val input = env.input("")
     val sigmoid = new Sigmoid(input)
     input.setValue(Nd4j.create(Array(Array(0.59868766, 0.7109495, 0.24973989, 0.97811873),
       Array(0.90024951, 0.84553473, 0.62245933, 0.33181223))))
@@ -198,8 +229,8 @@ class ConcatTest {
   @Test
   def testCompute(): Unit = {
     val env = new NodeEnv {}
-    val a = new Input(env)
-    val b = new Input(env)
+    val a = env.input("")
+    val b = env.input("")
 
     a.setValue(Nd4j.create(Array(Array(1d, 0, 2), Array(2d, 2, 1), Array(3d, 4, 7))))
     b.setValue(Nd4j.create(Array(Array(3d, 9), Array(4d, 7), Array(5d, 1))))
@@ -222,8 +253,8 @@ class ConcatTest {
   @Test
   def testUpdateGrad: Unit = {
     val env = new NodeEnv {}
-    val a = new Input(env)
-    val b = new Input(env)
+    val a = env.input("")
+    val b = env.input("")
 
     a.setValue(Nd4j.create(Array(Array(1d, 0, 2), Array(2d, 2, 1), Array(3d, 4, 7))))
     b.setValue(Nd4j.create(Array(Array(3d, 9), Array(4d, 7), Array(5d, 1))))
@@ -252,8 +283,8 @@ class EmbedTest {
   @Test
   def testCompute: Unit = {
     val env = new NodeEnv {}
-    val data = new Input(env)
-    val idx = new Input(env)
+    val data = env.input("")
+    val idx = env.input("")
     val embed = new Embed(idx, data)
 
     data.setValue(Nd4j.create(Array(
@@ -262,7 +293,7 @@ class EmbedTest {
       Array(1d, 9, 3, 8),
       Array(3d, 2, 2, 1),
       Array(2d, 1, 2, 7))))
-    idx.setValue(Nd4j.create(Array(2d, 0, 1, 3, 4, 0, 1, 2)))
+    idx.setRaw(Array(2, 0, 1, 3, 4, 0, 1, 2))
 
     env.forward
 
@@ -285,8 +316,8 @@ class EmbedTest {
   @Test
   def testUpdateGrad: Unit = {
     val env = new NodeEnv {}
-    val data = new Input(env)
-    val idx = new Input(env)
+    val data = env.input("")
+    val idx = env.input("")
     val embed = new Embed(idx, data)
 
     data.setValue(Nd4j.create(Array(
@@ -295,7 +326,7 @@ class EmbedTest {
       Array(1d, 9, 3, 8),
       Array(3d, 2, 2, 1),
       Array(2d, 1, 2, 7))))
-    idx.setValue(Nd4j.create(Array(2d, 0, 1, 3, 4, 0, 1, 2)).transpose())
+    idx.setRaw(Array(2, 0, 1, 3, 4, 0, 1, 2))
 
     env.forward
 
