@@ -4,7 +4,7 @@ from ndnn.node import Concat, Sigmoid, Embed, Dot, Tanh, Add, Mul, SoftMax, Coll
 
 from ndnn.graph import Graph
 from ndnn.init import Zero
-from ndnn.loss import LogLoss
+from ndnn.loss import LogLoss, EmptyLoss
 from ndnn.sgd import SGD
 
 class LSTMCell(object):
@@ -51,8 +51,11 @@ class LSTMTrainGraph(Graph):
         
         self.h0 = self.input()
         self.c0 = self.input()
+        self.watermark = len(self.nodes)
         
     def build(self, batch):
+        # clear nodes above watermark
+        del self.nodes[self.watermark:]
         data = batch.data
         B = data.shape[0]
         T = data.shape[1]
@@ -85,9 +88,12 @@ class LSTMPredictGraph(LSTMTrainGraph):
     def __init__(self, num_char, hidden_dim):
         LSTMTrainGraph.__init__(self, num_char, hidden_dim)
         # No need for loss function
-        self.loss = None
+        self.loss = EmptyLoss()
             
     def build(self, prefix, expect_length):
+        # clear nodes above watermark
+        del self.nodes[self.watermark:]
+        
         prefix_len = len(prefix)
         hidden_dim = self.hidden_dim
     
@@ -111,5 +117,3 @@ class LSTMPredictGraph(LSTMTrainGraph):
             
             h = cell.hout
             c = cell.cout
-        
-        

@@ -4,7 +4,7 @@ import pickle
 from time import time
 from ndnn.dataset import LSTMDataSet
 from ndnn.rnn import LSTMTrainGraph, LSTMPredictGraph
-
+from ndnn.sgd import DSD, SGD
 
 trainds = LSTMDataSet('data/ptb.train.txt')
 validds = LSTMDataSet('data/ptb.valid.txt', trainds)
@@ -17,8 +17,7 @@ parameters = []
 model = 'model_LSTM.pkl'
 eta = 0.5
 decay = 0.9
-
-np.random.seed(0)
+dsd = DSD(SGD(0.5, 0.95), 0, 10)
 
 param_store = []
 # Load model if exists
@@ -51,10 +50,11 @@ def Eval(ds):
     total_num = 0
     total_acc = 0
     total_loss = 0
-    for batch in ds.batches(batch_size):
-        graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
-        if len(param_store) > 0:
+    graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
+    if len(param_store) > 0:
             graph.load(param_store)
+        
+    for batch in ds.batches(batch_size):
         graph.build(batch)
         loss, acc = graph.test()
         total_num += np.product(batch.data.shape)
@@ -65,7 +65,7 @@ def Eval(ds):
 
 ############################################### training loop #####################################################
 
-epoch = 10
+epoch = 30
 
 # initial Perplexity and loss
 loss, acc = Eval(validds)
@@ -76,18 +76,14 @@ generation = Predict(400, trainds.translate_to_num(prefix))
 print("Initial generated sentence ")
 print (trainds.translate_to_str(generation))
 
+
+graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
+graph.update = dsd
 for ep in range(epoch):
- 
     stime = time()
- 
     for batch in trainds.batches(batch_size):
-        graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
-        if len(param_store) > 0:
-            graph.load(param_store)
         graph.build(batch)
         graph.train()
-        param_store = graph.dump()
-         
     graph.update.weight_decay()
     duration = (time() - stime) / 60.
      

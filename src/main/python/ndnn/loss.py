@@ -14,7 +14,14 @@ class Loss(object):
     def accuracy(self):
         return self.acc
     
-
+class EmptyLoss(Loss):
+    def __init__(self):
+        pass
+    
+    def loss(self, actual, expect, fortest):
+        self.grad = None
+        return None
+    
 class SquareLoss(Loss):
     def __init__(self):
         pass
