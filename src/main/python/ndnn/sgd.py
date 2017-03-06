@@ -1,6 +1,6 @@
 import numpy as np
 
-etaDefault = 0.05
+etaDefault = 0.001
 etaDecay = 1
 
 gradClip = -1
@@ -16,6 +16,7 @@ adammeanKey = "adammean"
 adamvarKey = "adamvar"
 adamAlpha = 0.9
 adamBeta = 0.9
+
 
 class UpdatePolicy(object):
     def __init__(self):
@@ -62,6 +63,7 @@ class Momentum(UpdatePolicy):
         momentum = momentum * self.alpha + param.grad * (1 - self.alpha)
         param.value -= momentum * self.eta
         param.env[momentumKey] = momentum
+
 
 class RMSProp(UpdatePolicy):
     def __init__(self, e=etaDefault, d=etaDecay, b=rmspropBeta, gc=gradClip):
@@ -118,7 +120,8 @@ The training process contains 3 phases
 * phase 3: remove the watermark and train normally
 '''
 maskKey = "weight.mask"
-threshold = 0.005
+threshold = 0.001
+
 
 class DSD(UpdatePolicy):
     def __init__(self, childpolicy, phase1, phase2):
@@ -132,7 +135,7 @@ class DSD(UpdatePolicy):
         if self.phase1 <= self.current_epoch < self.phase2 :
             # Apply mask
             if maskKey not in param.env: 
-                mask = np.greater(param.value, threshold)
+                mask = np.greater(np.abs(param.value), threshold)
                 param.env[maskKey] = mask
             else:
                 mask = param.env[maskKey]
