@@ -39,15 +39,11 @@ object Dataset {
 trait Dataset[D, G] {
 
   protected var dataSize = -1
-  protected var bSize = -1
 
   def size: Int = dataSize
 
-  def batchSize(size: Int) = bSize = size
-  def batchSize() = bSize
-
   def newEpoch(): Unit
-  def batches: Iterator[Batch[D, G]]
+  def batches(batchSize: Int): Iterator[Batch[D, G]]
 }
 
 class Batch[D, G](s: Int, d: D, gt: G) {
@@ -73,8 +69,8 @@ abstract class DatasetBase[D, G] extends Dataset[D, G] {
     Collections.shuffle(permuteIdx)
   }
 
-  def batches: Iterator[Batch[D, G]] = {
-    bSize = bSize match { case Dataset.BATCH_ALL => dataSize case _ => bSize }
+  def batches(batchSize: Int): Iterator[Batch[D, G]] = {
+    val bSize = batchSize match { case Dataset.BATCH_ALL => dataSize case _ => batchSize }
     if (0 == bSize)
       throw new IllegalArgumentException("Batch Size is ZERO")
     val numBatch = (dataSize / bSize) + ((dataSize % bSize) match { case 0 => 0 case _ => 1 })
@@ -108,6 +104,7 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBa
   protected def load(): (Int, Array[Array[Double]], Array[Array[Double]])
 
   protected def construct(indices: Buffer[Int]): Batch[INDArray, INDArray] = {
+    val bSize = indices.length
     val data = Nd4j.create(indices.flatMap { datas(_) }.toArray, Array(bSize, ds: _*))
     val gt = Nd4j.create(indices.flatMap { groundTruths(_) }.toArray, Array(bSize, gts: _*))
     new Batch[INDArray, INDArray](indices.length, data, gt)

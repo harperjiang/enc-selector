@@ -286,8 +286,7 @@ class Tanh(input: Node) extends Node(input) {
 class SoftMax(input: Node) extends Node(input) {
 
   def compute: Unit = {
-    assignValue(input.value)
-    //Operations.softmax(this.value)
+    assignValue(Operations.softmax(input.value.dup()))
   }
 
   def updateGrad = {
