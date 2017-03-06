@@ -36,11 +36,12 @@ import edu.uchicago.cs.encsel.dataset.feature.Entropy
 import scala.collection.mutable.ArrayBuffer
 import edu.uchicago.cs.encsel.dataset.column.Column
 import org.slf4j.LoggerFactory
+import edu.uchicago.cs.encsel.dataset.feature.Distinct
 
 object RunFeature extends App {
 
   var logger = LoggerFactory.getLogger(getClass)
-  var features = Iterable(Entropy)
+  var features = Iterable(Distinct)
 
   var persist = Persistence.get
 

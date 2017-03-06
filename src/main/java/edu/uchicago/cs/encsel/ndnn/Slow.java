@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.api.rng.distribution.impl.UniformDistribution;
 import org.nd4j.linalg.factory.Nd4j;
 
 public class Slow {
@@ -15,7 +16,7 @@ public class Slow {
 		int batchSize = 50;
 
 		// INDArray c2v = xavier(new int[] { numChar, hiddenDim });
-		INDArray c2v = Nd4j.zeros(numChar, hiddenDim);
+		INDArray c2v = xavier(new int[] { numChar, hiddenDim });
 		INDArray h0 = Nd4j.zeros(batchSize, hiddenDim);
 		INDArray c0 = Nd4j.zeros(batchSize, hiddenDim);
 
@@ -30,13 +31,23 @@ public class Slow {
 			h0s.add(Nd4j.createUninitialized(h0.shape()));
 		}
 
+		long sum = 0;
 		for (int x = 0; x < embeds.size(); x++) {
 			long time1 = System.nanoTime();
 			INDArray concat = Nd4j.concat(1, embeds.get(x), h0s.get(x));
 			long time2 = System.nanoTime();
 
 			if (x % 10 == 0)
-				System.out.println("Concat time: " + ((time2 - time1) / 1000) + " us");
+				sum += ((time2 - time1) / 1000);
 		}
+		System.out.println(((double) sum) / 1000);
+	}
+
+	static INDArray xavier(int[] shape) {
+		int n = 1;
+		for (int i = 0; i < shape.length - 1; i++)
+			n *= shape[i];
+		double sd = Math.sqrt(3d / n);
+		return new UniformDistribution(-sd, sd).sample(shape);
 	}
 }
