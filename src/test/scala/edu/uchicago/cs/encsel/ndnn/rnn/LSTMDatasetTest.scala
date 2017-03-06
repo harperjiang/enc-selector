@@ -14,8 +14,7 @@ class LSTMDatasetTest {
 
     assertEquals(8, ds.size)
 
-    ds.batchSize(3)
-    val batches = ds.batches.toArray
+    val batches = ds.batches(3).toArray
     assertEquals(3, batches.length)
     assertEquals(3, batches(0).size)
     assertEquals(3, batches(1).size)

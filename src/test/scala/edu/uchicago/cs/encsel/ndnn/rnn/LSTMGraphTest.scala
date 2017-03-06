@@ -10,11 +10,11 @@ class LSTMGraphTest {
     val file = "src/test/resource/rnn/lstm_sample_ds"
     val batchsize = 50
     val ds = new LSTMDataset(file)
-    ds.batchSize(batchsize)
-    val batch = ds.batches.next()
+    val batch = ds.batches(batchsize).next()
     val data = batch.data
     val hiddendim = 200
-    val graph = new LSTMGraph(ds.numChars, hiddendim, data.length)
+    val graph = new LSTMGraph(ds.numChars, hiddendim)
+    graph.build(data.length)
     // Set X input
     graph.xs.zip(data).foreach { pair =>
       {
@@ -27,7 +27,8 @@ class LSTMGraphTest {
     graph.c0.set(emptyInit)
     graph.expect(batch.groundTruth)
 
-    val graph2 = new LSTMPredictGraph(ds.numChars, hiddendim, 50, 1)
+    val graph2 = new LSTMPredictGraph(ds.numChars, hiddendim)
+    graph2.build(50, 1)
     val emptyInit2 = Nd4j.zeros(1, hiddendim)
     graph2.h0.set(emptyInit2)
     graph2.c0.set(emptyInit2)
@@ -54,10 +55,10 @@ class LSTMGraphTest {
     val file = "src/test/resource/rnn/lstm_sample_ds"
     val batchsize = 50
     val ds = new LSTMDataset(file)
-    ds.batchSize(batchsize)
-    val batch = ds.batches.next()
+    val batch = ds.batches(batchsize).next()
     val hiddendim = 500
-    val graph = new LSTMPredictGraph(ds.numChars, hiddendim, 10, 1)
+    val graph = new LSTMPredictGraph(ds.numChars, hiddendim)
+    graph.build(10, 1)
     // Set X input
     val a = ds.translate("a")(0)
     graph.xs(0).set(Array(a))

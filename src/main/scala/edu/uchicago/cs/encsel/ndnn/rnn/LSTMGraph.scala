@@ -39,10 +39,8 @@ import edu.uchicago.cs.encsel.ndnn.SoftMaxLogLoss
 import edu.uchicago.cs.encsel.ndnn.Xavier
 import edu.uchicago.cs.encsel.ndnn.Zero
 
-class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int)
+class LSTMGraph(numChar: Int, hiddenDim: Int)
     extends Graph[Array[Array[Int]]](Xavier, new SGD(0.5, 0.95, 10), new LSTMLoss) {
-
-  val length = len
 
   val c2v = param("c2v", Array(numChar, hiddenDim))
   val v2c = param("v2c", Array(hiddenDim, numChar))
@@ -59,13 +57,19 @@ class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int)
 
   val h0 = input("h0")
   val c0 = input("c0")
+
+  val nodeWatermark = nodeBuffer.length
+
   val xs = new ArrayBuffer[Input]()
 
   val cells = new ArrayBuffer[LSTMCell]()
 
-  build
+  def build(length: Int): Unit = {
+    // Remove all nodes above water mark
+    nodeBuffer.remove(nodeWatermark, nodeBuffer.length - nodeWatermark)
+    xs.clear
+    cells.clear
 
-  protected def build: Unit = {
     val collected = new ArrayBuffer[Node]()
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
@@ -84,10 +88,14 @@ class LSTMGraph(numChar: Int, hiddenDim: Int, len: Int)
   }
 }
 
-class LSTMPredictGraph(numChar: Int, hiddenDim: Int, len: Int, predictLength: Int)
-    extends LSTMGraph(numChar, hiddenDim, len) {
+class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
+    extends LSTMGraph(numChar, hiddenDim) {
 
-  override protected def build: Unit = {
+  def build(length: Int, predictLength: Int): Unit = {
+    // Remove all nodes above water mark
+    nodeBuffer.remove(nodeWatermark, nodeBuffer.length - nodeWatermark)
+    xs.clear
+    cells.clear
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
       val h = i match { case 0 => h0 case x => cells(i - 1).hout }

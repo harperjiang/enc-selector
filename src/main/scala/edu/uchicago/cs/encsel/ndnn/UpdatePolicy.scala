@@ -25,6 +25,7 @@
 package edu.uchicago.cs.encsel.ndnn
 
 import org.nd4j.linalg.ops.transforms.Transforms
+import org.nd4j.linalg.factory.Nd4j
 
 object UpdatePolicy {
   val etaDefault = 0.05
@@ -39,9 +40,17 @@ object UpdatePolicy {
 
   val adammeanKey = "adammean"
   val adamvarKey = "adamvar"
+
+  val dsdmaskKey = "dsdmask"
+  val dsdthreshold = 0.001
 }
 
-abstract class UpdatePolicy(e: Double, d: Double, gc: Double) {
+trait UpdatePolicy {
+  def update(p: Param): Unit
+  def weightDecay(): Unit
+}
+
+abstract class UpdatePolicyBase(e: Double, d: Double, gc: Double) extends UpdatePolicy {
   protected var eta = e
   protected val decay = d
   val gradClip = gc
@@ -64,7 +73,7 @@ abstract class UpdatePolicy(e: Double, d: Double, gc: Double) {
   protected def innerUpdate(p: Param): Unit
 }
 
-class SGD(e: Double, d: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
+class SGD(e: Double, d: Double, gc: Double) extends UpdatePolicyBase(e, d, gc) {
 
   def this() = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, UpdatePolicy.gradClip)
   def this(e: Double) = this(e, UpdatePolicy.etaDecay, UpdatePolicy.gradClip)
@@ -76,7 +85,7 @@ class SGD(e: Double, d: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
 
 }
 
-class Momentum(e: Double, d: Double, m: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
+class Momentum(e: Double, d: Double, m: Double, gc: Double) extends UpdatePolicyBase(e, d, gc) {
 
   private val mu = m
 
@@ -93,7 +102,7 @@ class Momentum(e: Double, d: Double, m: Double, gc: Double) extends UpdatePolicy
 
 }
 
-class RMSProp(e: Double, d: Double, b: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
+class RMSProp(e: Double, d: Double, b: Double, gc: Double) extends UpdatePolicyBase(e, d, gc) {
 
   private val beta = b
 
@@ -111,7 +120,7 @@ class RMSProp(e: Double, d: Double, b: Double, gc: Double) extends UpdatePolicy(
 
 }
 
-class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends UpdatePolicy(e, d, gc) {
+class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends UpdatePolicyBase(e, d, gc) {
 
   private val alpha = a
   private val beta = b
@@ -131,5 +140,26 @@ class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends Updat
 
     p.context.put(UpdatePolicy.adammeanKey, momentum)
     p.context.put(UpdatePolicy.adamvarKey, rms)
+  }
+}
+
+class DenseSparseDense(child: UpdatePolicy, period1: Int, period2: Int,
+    threshold: Double = UpdatePolicy.dsdthreshold) extends UpdatePolicy {
+
+  private var epochCounter = 0
+
+  def update(p: Param): Unit = {
+    child.update(p)
+    if (period1 <= epochCounter && epochCounter < period2) {
+      val mask = p.context.getOrElseUpdate(UpdatePolicy.dsdmaskKey, {
+        Transforms.abs(p.value).gt(threshold)
+      })
+      p.value.muli(mask)
+    }
+  }
+
+  def weightDecay(): Unit = {
+    child.weightDecay()
+    epochCounter += 1
   }
 }

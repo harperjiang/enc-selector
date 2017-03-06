@@ -53,10 +53,8 @@ class DatasetTest {
   @Test
   def testBatches: Unit = {
     val ds = new DummyDataset
-    ds.batchSize(27)
-    assertEquals(27, ds.batchSize)
 
-    var array = ds.batches.toArray
+    var array = ds.batches(27).toArray
     assertEquals(4, array.length)
 
     assertEquals(27, array(0).size)
@@ -88,9 +86,8 @@ class DatasetTest {
 
     distinct.clear()
     ds.newEpoch()
-    ds.batchSize(31)
 
-    array = ds.batches.toArray
+    array = ds.batches(31).toArray
     assertEquals(4, array.length)
 
     assertEquals(31, array(0).size)
