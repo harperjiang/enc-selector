@@ -5,6 +5,7 @@ from time import time
 from ndnn.dataset import LSTMDataSet
 from ndnn.rnn import LSTMTrainGraph, LSTMPredictGraph
 from ndnn.sgd import DSD, SGD
+from ndnn.store import ParamStore
 
 trainds = LSTMDataSet('data/ptb.train.txt')
 validds = LSTMDataSet('data/ptb.valid.txt', trainds)
@@ -13,26 +14,18 @@ testds = LSTMDataSet('data/ptb.test.txt', trainds)
 
 hidden_dim = 200
 batch_size = 50
-parameters = []
-model = 'model_LSTM.pkl'
+store = ParamStore('model_LSTM.pkl')
 eta = 0.5
 decay = 0.9
-dsd = DSD(SGD(0.5, 0.95), 0, 10)
+dsd = DSD(SGD(0.5, 1), 0, 20)
 
-param_store = []
-# Load model if exists
-if os.path.exists(model):
-    with open(model, 'rb') as f:
-        p_value = pickle.load(f)
-        for p in p_value:
-            param_store.append(p)
-                    
+params = store.load()
 
 def Predict(max_step, prefix):
 
     predictGraph = LSTMPredictGraph(trainds.num_char(), hidden_dim)
-    if len(param_store) > 0:
-        predictGraph.load(param_store)
+    if len(params) > 0:
+        predictGraph.load(params)
 
     predictGraph.build(prefix, max_step)
 
@@ -51,8 +44,8 @@ def Eval(ds):
     total_acc = 0
     total_loss = 0
     graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
-    if len(param_store) > 0:
-            graph.load(param_store)
+    if len(params) > 0:
+            graph.load(params)
         
     for batch in ds.batches(batch_size):
         graph.build(batch)
@@ -65,7 +58,7 @@ def Eval(ds):
 
 ############################################### training loop #####################################################
 
-epoch = 30
+epoch = 50
 
 # initial Perplexity and loss
 loss, acc = Eval(validds)
@@ -87,7 +80,7 @@ for ep in range(epoch):
     graph.update.weight_decay()
     duration = (time() - stime) / 60.
      
-    param_store = graph.dump()
+    params = graph.dump()
      
     loss, acc = Eval(validds)
     print("Epoch %d: Perplexity: - Avg loss = %0.5f, accuracy %0.5f [%.3f mins]" % (ep, loss, acc, duration))
@@ -97,3 +90,8 @@ for ep in range(epoch):
     generation = Predict(400, trainds.translate_to_num(prefix))
     print("Epoch %d: generated sentence " % ep)
     print (trainds.translate_to_str(generation))
+
+    # Store the model
+    if loss < best_loss:
+        best_loss = loss
+        store.store(params)
