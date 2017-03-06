@@ -32,6 +32,22 @@ class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int) extends Tr
     graph.expect(batch.groundTruth)
     graph
   }
+  
+  override protected def evaluate(testBatchSize: Int = 100): Unit = {
+    val testset = getTestset
+    var numBatch = 0
+    var totalLoss = 0d
+    testset.batches(testBatchSize).foreach {
+      batch =>
+        {
+          val graph = getGraph(batch)
+          val (loss, acc) = graph.test
+          totalLoss += loss
+          numBatch += 1
+        }
+    }
+    // TODO Log info
+  }
 }
 
 object LSTM extends App {

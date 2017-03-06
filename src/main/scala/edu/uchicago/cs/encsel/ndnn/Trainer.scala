@@ -27,6 +27,10 @@ package edu.uchicago.cs.encsel.ndnn
 import org.slf4j.LoggerFactory
 import scala.util.control.Breaks._
 
+trait Eval {
+  def loss: Double
+}
+
 trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
   val logger = LoggerFactory.getLogger(getClass)
 
@@ -34,13 +38,14 @@ trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
   def getTestset: T
   def getTrainedGraph: G
   protected def getGraph(batch: Batch[DATA, GT]): G
-  protected def earlyStop(loss: Double) = false
+
+  protected def earlystop = false
 
   def train(epoches: Int, profiling: Boolean, trainBatchSize: Int = 100, testBatchSize: Int = 100): Unit = {
     val trainset = getTrainset
 
     // Initial test
-    test(testBatchSize)
+    evaluate(testBatchSize)
 
     breakable {
       for (i <- 1 to epoches) { // Epoches
@@ -57,7 +62,9 @@ trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
         }
         if (null != graph)
           graph.epochDone
-        val es = earlyStop(test(testBatchSize))
+
+        evaluate(testBatchSize)
+        val es = earlystop
 
         if (profiling) {
           val stopTime = System.currentTimeMillis()
@@ -71,25 +78,19 @@ trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
     }
   }
 
-  protected def test(testBatchSize: Int = 100): Double = {
+  protected def evaluate(testBatchSize: Int = 100): Unit = {
     val testset = getTestset
-    var total = 0
-    var totalLoss = 0d
-    var totalAcc = 0
     var numBatch = 0
+    var totalLoss = 0d
     testset.batches(testBatchSize).foreach {
       batch =>
         {
           val graph = getGraph(batch)
           val (loss, acc) = graph.test
-          total += batch.size
           totalLoss += loss
-          totalAcc += acc
           numBatch += 1
         }
     }
-    logger.info("Test Result: average loss: %f, accuracy: %f".format(totalLoss / numBatch, totalAcc.doubleValue() / numBatch))
-    totalLoss / numBatch
   }
 }
 
