@@ -24,8 +24,6 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
-import edu.uchicago.cs.encsel.ndnn.example.lstm.GCounter
-
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
@@ -149,7 +147,6 @@ class Add(left: Node, right: Node) extends Node(left, right) {
   def compute: Unit = {
     // Always assume y is a smaller
     val axis = Broadcast.axis(left.value.shape, right.value.shape)
-
 
     assignValue(
       axis.length match {
