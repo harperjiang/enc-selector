@@ -10,6 +10,35 @@ import org.nd4j.linalg.factory.Nd4j;
 public class Slow {
 
 	public static void main(String[] args) {
+		if (args[0].equals("mine"))
+			mine();
+		else
+			his();
+	}
+
+	static void mine() {
+		int hiddenDim = 200;
+		int numChar = 100;
+		int length = 500;
+		int batchSize = 50;
+		int[] pshape = new int[] { numChar, hiddenDim };
+		INDArray c2v = xavier(pshape);
+
+		INDArray h0 = Nd4j.zeros(batchSize, hiddenDim);
+		INDArray c0 = Nd4j.zeros(batchSize, hiddenDim);
+
+		long start = System.currentTimeMillis();
+
+		INDArray fwdmap = Nd4j.zeros(batchSize, numChar);
+
+		for (int i = 0; i < length; i++) {
+			INDArray embed = fwdmap.mmul(c2v); // 1
+			INDArray concat = Nd4j.concat(1, embed, h0); // 2
+		}
+		System.out.println(((double) System.currentTimeMillis() - start) / length);
+	}
+
+	static void his() {
 		int hiddenDim = 200;
 		int numChar = 100;
 		int length = 500;
