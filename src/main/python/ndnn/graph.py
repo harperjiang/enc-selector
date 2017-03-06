@@ -35,8 +35,7 @@ class Graph(object):
     # Trace all nodes attached to the inputs
     def attach_node(self, node):
         self.nodes.append(node)
-            
-            
+ 
     def train(self):
         # Forward
         for node in self.nodes:
@@ -56,12 +55,12 @@ class Graph(object):
         for node in self.nodes:
             node.forward()
         # Compute loss if a loss function is available
-        if self.loss is not None:
+        if self.out is not None:
             loss_val = self.loss.loss(self.out.value, self.expect_val, True)
             return loss_val, self.loss.accuracy()
         else:
-            return -1., -1
-    
+            return -1, -1
+        
     def dump(self):
         return [p.value for p in self.params]
     

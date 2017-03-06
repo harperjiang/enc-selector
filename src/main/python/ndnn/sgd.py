@@ -107,3 +107,40 @@ class Adam(UpdatePolicy):
 
         param.env[adammeanKey] = momentum
         param.env[adamvarKey] = rms
+
+'''
+Dense-Sparse-Dense Training
+See https://arxiv.org/pdf/1607.04381.pdf
+
+The training process contains 3 phases
+* phase 1: normal training
+* phase 2: apply a watermark to weight and update only those above watermarks
+* phase 3: remove the watermark and train normally
+'''
+maskKey = "weight.mask"
+threshold = 0.005
+
+class DSD(UpdatePolicy):
+    def __init__(self, childpolicy, phase1, phase2):
+        self.child = childpolicy
+        self.phase1 = phase1
+        self.phase2 = phase2
+        self.current_epoch = 0
+        
+    def inner_update(self, param):
+        self.child.inner_update(param)
+        if self.phase1 <= self.current_epoch < self.phase2 :
+            # Apply mask
+            if maskKey not in param.env: 
+                mask = np.greater(param.value, threshold)
+                param.env[maskKey] = mask
+            else:
+                mask = param.env[maskKey]
+            param.value *= mask
+        
+    def clip_grad(self, param):
+        self.child.clip_grad(param)
+        
+    def weight_decay(self):
+        self.child.weight_decay()
+        self.current_epoch += 1
