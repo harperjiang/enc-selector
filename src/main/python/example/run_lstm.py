@@ -13,7 +13,7 @@ testds = LSTMDataSet('data/ptb.test.txt', trainds)
 
 
 hidden_dim = 200
-batch_size = 50
+batch_size = 5
 store = ParamStore('model_LSTM.pkl')
 eta = 0.5
 decay = 0.9

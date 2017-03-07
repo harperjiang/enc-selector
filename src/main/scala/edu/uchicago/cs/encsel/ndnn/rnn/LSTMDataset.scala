@@ -45,33 +45,30 @@ class LSTMDataset(file: String)(implicit extdict: LSTMDataset = null) extends Da
   private val dict = new HashMap[Char, Int]
   private val inverseDict = new ArrayBuffer[Char]
 
-  private val PAD = '\0'
+  private val PAD = '@'
 
+  protected val strlines = Source.fromFile(file).getLines().map(line =>
+    "{%s}".format(line.trim.toLowerCase)
+  ).toBuffer
   if (extdict == null) {
-    dict += (('@', 0))
-    inverseDict += '@'
-    Source.fromFile(file).getLines().foreach(line => {
-      val padded = "{%s}".format(line.trim.toLowerCase)
-      padded.toCharArray().foreach { c =>
-        {
-          dict.getOrElseUpdate(c, {inverseDict += c; dict.size})
-        }
+    dict += ((PAD, 0))
+    inverseDict += PAD
+    strlines.foreach(line=>
+      line.toCharArray().foreach { c =>
+        dict.getOrElseUpdate(c, {inverseDict += c; dict.size})
       }
-    })
+    )
   } else {
     dict ++= extdict.dict
     inverseDict ++= extdict.inverseDict
   }
 
   // Second pass, replace characters with index
-  protected val lines = Source.fromFile(file).getLines()
-    .map(line => {
-      val replaced = line.trim.toCharArray().map {
-        dict.getOrElse(_, 0)
-      }
-      (0 +: replaced) :+ (dict.getOrElse('}', -1))
-    })
-    .toList.sortBy(-_.length)
+  protected val lines = strlines.map(line =>
+     line.toCharArray().map(dict.getOrElse(_, 0))
+  ).sortBy(_.length)
+  strlines.clear
+
   this.dataSize = lines.length
   initShuffle(false)
   // No shuffle to keep similar size batches together
