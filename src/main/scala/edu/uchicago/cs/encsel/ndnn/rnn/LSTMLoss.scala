@@ -42,11 +42,11 @@ class LSTMLoss extends LossFunction[Array[Array[Int]]] {
         }
     }
 
-    val clipped = Transforms.max(actual, SoftMaxLogLoss.clip, false)
+    val clipped = Transforms.max(actual, SoftMaxLogLoss.clip, true)
 
     // Accuracy for classification
     val predict = Nd4j.argMax(actual, 2)
-    val eq = predict.eqi(gt)
+    val eq = predict.eps(gt)
     acc = eq.sumNumber().intValue()
 
     if (!fortest) {
@@ -55,6 +55,6 @@ class LSTMLoss extends LossFunction[Array[Array[Int]]] {
       this.grad = allone.divi(clipped).negi().mul(mask)
     }
 
-    Transforms.log(clipped, false).negi().muli(mask).sumNumber().doubleValue() / (b * l)
+    Transforms.log(clipped, false).negi().muli(mask).sum(2).meanNumber().doubleValue()
   }
 }

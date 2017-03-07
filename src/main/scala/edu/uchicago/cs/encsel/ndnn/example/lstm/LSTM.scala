@@ -76,7 +76,7 @@ object LSTM extends App {
   val batchSize = 50
 
   val trainds = new LSTMDataset("/home/harper/dataset/lstm/ptb.train.txt")
-  val testds = new LSTMDataset("/home/harper/dataset/lstm/ptb.test.txt")(trainds)
+  val testds = new LSTMDataset("/home/harper/dataset/lstm/ptb.valid.txt")(trainds)
 
   val trainer = new LSTMTrainer(trainds, testds, hiddenDim)
 
