@@ -64,11 +64,17 @@ class LSTMGraph(numChar: Int, hiddenDim: Int)
 
   val cells = new ArrayBuffer[LSTMCell]()
 
-  def build(length: Int): Unit = {
+  protected def clean: Unit = {
     // Remove all nodes above water mark
     nodeBuffer.remove(nodeWatermark, nodeBuffer.length - nodeWatermark)
     xs.clear
     cells.clear
+    // Leave h0 and c0
+    inputs.remove(2, inputs.length - 2)
+  }
+
+  def build(length: Int): Unit = {
+    clean
 
     val collected = new ArrayBuffer[Node]()
     // Extend RNN to the expected size and build connections between cells
@@ -92,10 +98,8 @@ class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
     extends LSTMGraph(numChar, hiddenDim) {
 
   def build(length: Int, predictLength: Int): Unit = {
-    // Remove all nodes above water mark
-    nodeBuffer.remove(nodeWatermark, nodeBuffer.length - nodeWatermark)
-    xs.clear
-    cells.clear
+    clean
+
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
       val h = i match { case 0 => h0 case x => cells(i - 1).hout }
