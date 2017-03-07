@@ -140,9 +140,12 @@ object Index {
 object Broadcast {
   /**
    * Assume the arrays are broadcast-able. Compute the different axis.
-   * The lowest dim is 0.
    */
-  def diff(ashape: Array[Int], bshape: Array[Int]): (Array[Int], Array[Int]) = {
+  def diff(ashape: Array[Int], b0shape: Array[Int]): (Array[Int], Array[Int]) = {
+    val bshape = b0shape.last match {
+      case 1 => b0shape.reverse
+      case _ => b0shape
+    }
     val maxlen = Math.max(ashape.length, bshape.length)
     val apadded = ashape.reverse.padTo(maxlen, 1).reverse
     val bpadded = bshape.reverse.padTo(maxlen, 1).reverse
@@ -158,9 +161,13 @@ object Broadcast {
    * Look for broadcast-able axis
    */
   def axis(toshape: Array[Int], fromshape: Array[Int]): Array[Int] = {
-    val maxlen = Math.max(toshape.length, fromshape.length)
+    val fshape = fromshape.last match {
+      case 1 => fromshape.reverse
+      case _ => fromshape
+    }
+    val maxlen = Math.max(toshape.length, fshape.length)
     val apadded = toshape.reverse.padTo(maxlen, 1).reverse
-    val bpadded = fromshape.reverse.padTo(maxlen, 1).reverse
+    val bpadded = fshape.reverse.padTo(maxlen, 1).reverse
     apadded.zip(bpadded).zipWithIndex
       .filter(p => p._1._1 == p._1._2 && p._1._1 != 1).map(_._2)
   }

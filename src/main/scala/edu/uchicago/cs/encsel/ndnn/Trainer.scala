@@ -27,22 +27,47 @@ package edu.uchicago.cs.encsel.ndnn
 import org.slf4j.LoggerFactory
 import scala.util.control.Breaks._
 
-trait Eval {
-  def loss: Double
+trait Evaluator {
+  def init:Unit
+  def report[DATA,GT](batch:Batch[DATA,GT], loss:Double, acc:Int):Unit
+  def summary:String
 }
+
+class MeanLossEvaluator extends Evaluator {
+  var batchCounter = 0
+  var lossSum = 0d
+  var accSum = 0
+
+  def init:Unit = {
+    batchCounter = 0
+    lossSum = 0
+    accSum = 0
+  }
+
+  def report[DATA,GT](batch:Batch[DATA,GT], loss:Double, acc:Int) = {
+    batchCounter += 1
+    lossSum += loss
+    accSum += acc
+  }
+
+  def summary:String =
+    """Average loss %f, average accuracy %f""".format(lossSum/batchCounter, accSum/batchCounter)
+}
+
 
 trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
   val logger = LoggerFactory.getLogger(getClass)
 
-  def getTrainset: T
-  def getTestset: T
+  def getTrainSet: T
+  def getTestSet: T
   def getTrainedGraph: G
+
+  protected def getEvaluator: Evaluator
   protected def getGraph(batch: Batch[DATA, GT]): G
+  protected def earlyStop = false
 
-  protected def earlystop = false
-
-  def train(epoches: Int, profiling: Boolean, trainBatchSize: Int = 100, testBatchSize: Int = 100): Unit = {
-    val trainset = getTrainset
+  def train(epoches: Int, profiling: Boolean, trainBatchSize: Int = 50, testBatchSize: Int = 50): Unit = {
+    val trainset = getTrainSet
 
     // Initial test
     evaluate(testBatchSize)
@@ -64,12 +89,10 @@ trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
           graph.epochDone
 
         evaluate(testBatchSize)
-        val es = earlystop
+        val es = earlyStop
 
-        if (profiling) {
-          val stopTime = System.currentTimeMillis()
-          logger.info("Training time %f mins".format((stopTime - startTime) / 60000d))
-        }
+        val stopTime = System.currentTimeMillis()
+        logger.info("Training time %f mins".format((stopTime - startTime) / 60000d))
 
         if (es) {
           break
@@ -79,27 +102,31 @@ trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
   }
 
   protected def evaluate(testBatchSize: Int = 100): Unit = {
-    val testset = getTestset
-    var numBatch = 0
-    var totalLoss = 0d
+    val testset = getTestSet
+    val evaluator = getEvaluator
+    evaluator.init
     testset.batches(testBatchSize).foreach {
       batch =>
         {
           val graph = getGraph(batch)
           val (loss, acc) = graph.test
-          totalLoss += loss
-          numBatch += 1
+          evaluator.report(batch, loss,acc)
         }
     }
+    logger.info("Test Result: %s".format(evaluator.summary))
   }
 }
 
 class SimpleTrainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]](trainset: T, testset: T, graph: G)
     extends Trainer[DATA, GT, T, G] {
 
-  def getTrainset: T = trainset
-  def getTestset: T = testset
+  protected val evaluator = new MeanLossEvaluator()
+
+  def getTrainSet: T = trainset
+  def getTestSet: T = testset
   def getTrainedGraph: G = graph
+  override protected def getEvaluator = evaluator
+
   protected def getGraph(batch: Batch[DATA, GT]): G = {
     setInput(batch, graph)
     graph

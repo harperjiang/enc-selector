@@ -73,8 +73,8 @@ class LSTMGraph(numChar: Int, hiddenDim: Int)
     val collected = new ArrayBuffer[Node]()
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
-      val h = i match { case 0 => h0 case x => cells(i - 1).hout }
-      val c = i match { case 0 => c0 case x => cells(i - 1).cout }
+      val h = i match { case 0 => h0 case _ => cells(i - 1).hout }
+      val c = i match { case 0 => c0 case _ => cells(i - 1).cout }
       val in = input("%d".format(i))
       val mapped = new Embed(in, c2v)
       xs += in
