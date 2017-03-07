@@ -6,19 +6,31 @@ import org.nd4j.linalg.api.rng.distribution.impl.UniformDistribution
 import org.nd4j.linalg.factory.Nd4j
 
 import scala.util.Random
-import edu.uchicago.cs.encsel.ndnn.Xavier
+import edu.uchicago.cs.encsel.ndnn.{Batch, Evaluator, Trainer, Xavier}
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMDataset
-import edu.uchicago.cs.encsel.ndnn.Trainer
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
-import edu.uchicago.cs.encsel.ndnn.Batch
 
-class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int) extends Trainer[Array[Array[Int]], Array[Array[Int]], LSTMDataset, LSTMGraph] {
+class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int)
+  extends Trainer[Array[Array[Int]], Array[Array[Int]], LSTMDataset, LSTMGraph]
+  with Evaluator {
 
   val graph = new LSTMGraph(ts.numChars, hiddenDim)
+  graph.c2v.value = Nd4j.readNumpy("/home/harper/dataset/numpy/c2v.npy")
+  graph.wf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wf.npy")
+  graph.bf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bf.npy")
+  graph.wi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wi.npy")
+  graph.bi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bi.npy")
+  graph.wc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wc.npy")
+  graph.bc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bc.npy")
+  graph.wo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wo.npy")
+  graph.bo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bo.npy")
+  graph.v2c.value = Nd4j.readNumpy("/home/harper/dataset/numpy/v.npy")
 
-  def getTrainset: LSTMDataset = ts
-  def getTestset: LSTMDataset = tsts
+
+  def getTrainSet: LSTMDataset = ts
+  def getTestSet: LSTMDataset = tsts
   def getTrainedGraph: LSTMGraph = graph
+  override def getEvaluator = this
 
   def getGraph(batch: Batch[Array[Array[Int]], Array[Array[Int]]]): LSTMGraph = {
     graph.build(batch.data.length)
@@ -32,21 +44,29 @@ class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int) extends Tr
     graph.expect(batch.groundTruth)
     graph
   }
-  
-  override protected def evaluate(testBatchSize: Int = 100): Unit = {
-    val testset = getTestset
-    var numBatch = 0
-    var totalLoss = 0d
-    testset.batches(testBatchSize).foreach {
-      batch =>
-        {
-          val graph = getGraph(batch)
-          val (loss, acc) = graph.test
-          totalLoss += loss
-          numBatch += 1
-        }
-    }
-    // TODO Log info
+
+  protected var batchCounter = 0
+  protected var charCounter = 0
+  protected var lossSum = 0d
+  protected var accSum = 0
+
+  override def init = {
+    batchCounter = 0
+    charCounter = 0
+    lossSum = 0
+    accSum = 0
+  }
+
+  override def report[DATA, GT](batch: Batch[DATA, GT], loss: Double, acc: Int) = {
+    val lstmbatch = batch.asInstanceOf[Batch[Array[Array[Int]],Array[Array[Int]]]]
+    batchCounter += 1
+    charCounter += lstmbatch.data.length * batch.size
+    lossSum += loss
+    accSum += acc
+  }
+
+  override def summary = {
+    "Average loss %f, prediction accuracy %f".format(lossSum/batchCounter, accSum.toDouble/charCounter)
   }
 }
 
@@ -60,5 +80,5 @@ object LSTM extends App {
 
   val trainer = new LSTMTrainer(trainds, testds, hiddenDim)
 
-  trainer.train(30, true, 50)
+  trainer.train(60, true, 50)
 }

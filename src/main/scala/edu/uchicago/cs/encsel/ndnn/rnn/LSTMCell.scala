@@ -43,7 +43,7 @@ class LSTMCell(wf: Param, bf: Param, wi: Param, bi: Param, wc: Param, bc: Param,
   private var ho: Node = _ 
   
   {
-    val concat = new Concat(h, in)
+    val concat = new Concat(in, h)
     val fgate = new Sigmoid(new Add(new DotMul(concat, wf), bf))
     val igate = new Sigmoid(new Add(new DotMul(concat, wi), bi))
     val cgate = new Mul(new Tanh(new Add(new DotMul(concat, wc), bc)), igate)

@@ -24,11 +24,11 @@
 	</appender>
 
 
-	<logger name="edu.uchicago.cs.encsel" level="debug" additivity="false">
+	<logger name="edu.uchicago.cs.encsel" level="debug" additivity="true">
 		<appender-ref ref="FILE" />
 	</logger>
 
-	<root level="error">
+	<root level="info">
 		<appender-ref ref="STDOUT" />
 	</root>
 
