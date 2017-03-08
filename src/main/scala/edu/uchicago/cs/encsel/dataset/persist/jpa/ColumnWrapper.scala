@@ -54,7 +54,7 @@ object ColumnWrapper {
   def fromColumn(col: Column): ColumnWrapper = {
     if (col.isInstanceOf[ColumnWrapper])
       return col.asInstanceOf[ColumnWrapper]
-    var wrapper = new ColumnWrapper
+    val wrapper = new ColumnWrapper
     wrapper.colFile = col.colFile
     wrapper.colName = col.colName
     wrapper.colIndex = col.colIndex

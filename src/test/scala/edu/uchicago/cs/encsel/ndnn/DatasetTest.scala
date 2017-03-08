@@ -22,8 +22,8 @@ class DummyDataset extends DefaultDataset(Array(4, 3), Array(2, 2)) {
     val gt = new Array[Array[Double]](100)
 
     for (i <- 0 until 100) {
-      data(i) = (0 to 11).map(k => i.toDouble).toArray
-      gt(i) = (0 to 3).map(k => i.toDouble).toArray
+      data(i) = (0 to 11).map(_ => i.toDouble).toArray
+      gt(i) = (0 to 3).map(_ => i.toDouble).toArray
     }
     (100, data, gt)
   }

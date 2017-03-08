@@ -41,8 +41,8 @@ import edu.uchicago.cs.encsel.dataset.column.listener.FailureStopper
 
 trait ColumnReader {
 
-  protected var logger = LoggerFactory.getLogger(getClass())
-  protected var eventSupport = new EventListenerSupport(classOf[ColumnReaderListener])
+  protected val logger = LoggerFactory.getLogger(getClass())
+  protected val eventSupport = new EventListenerSupport(classOf[ColumnReaderListener])
 
   eventSupport.addListener(new FailureMonitor)
   eventSupport.addListener(new FailureStopper)
@@ -50,13 +50,13 @@ trait ColumnReader {
   def readColumn(source: URI, schema: Schema): Iterable[Column]
 
   protected def allocTempFolder(source: URI): Path = {
-    var tempRoot = Paths.get(Config.columnFolder)
-    var tempFolder = Files.createTempDirectory(tempRoot, "columner")
+    val tempRoot = Paths.get(Config.columnFolder)
+    val tempFolder = Files.createTempDirectory(tempRoot, "columner")
     tempFolder
   }
 
   protected def allocFileForCol(folder: Path, colName: String, colIdx: Int): URI = {
-    var path = Files.createTempFile(folder, "%s_%d".format(colName, colIdx), null)
+    val path = Files.createTempFile(folder, "%s_%d".format(colName, colIdx), null)
     path.toUri()
   }
 

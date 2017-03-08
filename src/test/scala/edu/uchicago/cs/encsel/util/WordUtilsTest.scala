@@ -6,8 +6,8 @@ class WordUtilsTest {
 
   @Test
   def testLevDist2: Unit = {
-    var a = "actual"
-    var b = "actua"
+    val a = "actual"
+    val b = "actua"
 
     println(WordUtils.levDistance2(a, b))
   }

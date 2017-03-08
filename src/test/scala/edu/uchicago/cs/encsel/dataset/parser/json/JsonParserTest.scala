@@ -12,18 +12,18 @@ class JsonParserTest {
 
   @Test
   def testParse: Unit = {
-    var parser = new LineJsonParser
-    var schema = Schema.fromParquetFile(new File("src/test/resource/test_json_parser.schema").toURI())
+    val parser = new LineJsonParser
+    val schema = Schema.fromParquetFile(new File("src/test/resource/test_json_parser.schema").toURI())
 
     parser.schema = schema
-    var data = parser.parseLine("""{"id":32,"name":"WangDaChui","gender":"male","rpg":"Good"}""")
+    val data = parser.parseLine("""{"id":32,"name":"WangDaChui","gender":"male","rpg":"Good"}""")
     assertEquals(3, data.length)
   }
 
   @Test
   def testGuessHeader: Unit = {
-    var parser = new LineJsonParser
-    var records = parser.parse(new File("src/test/resource/test_json_parser.json").toURI(), null).toArray
+    val parser = new LineJsonParser
+    val records = parser.parse(new File("src/test/resource/test_json_parser.json").toURI(), null).toArray
     assertArrayEquals(Array[Object]("add", "gender", "id", "name"), parser.guessHeaderName.toArray[Object])
     assertEquals(5, records.size)
     assertEquals(4, records(0).length())

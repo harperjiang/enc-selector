@@ -43,10 +43,10 @@ import java.net.URI
 class LineJsonParser extends Parser {
 
   headerInline = true
-  var jsonParser = new com.google.gson.JsonParser
+  val jsonParser = new com.google.gson.JsonParser
 
   override def parseLine(line: String): Record = {
-    var jsonObject = jsonParser.parse(line).getAsJsonObject
+    val jsonObject = jsonParser.parse(line).getAsJsonObject
     if (schema != null) {
       new DefaultRecord(schema.columns.map(f => jsonField(jsonObject, f._2)).toArray)
     } else { // Read keys and order
@@ -55,7 +55,7 @@ class LineJsonParser extends Parser {
   }
 
   protected override def guessHeader(line: String): Unit = {
-    var jsonObject = jsonParser.parse(line).getAsJsonObject
+    val jsonObject = jsonParser.parse(line).getAsJsonObject
     guessedHeader = jsonObject.entrySet().map(f => f.getKey).toList.sorted.toArray
   }
 

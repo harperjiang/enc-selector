@@ -12,15 +12,15 @@ class JsonColumnReaderTest {
 
   @Test
   def testReadColumn(): Unit = {
-    
-    
-    var sourceFile = new File("src/test/resource/test_json_parser.json").toURI()
-    var ccr = new JsonColumnReader()
-    var schema = Schema.fromParquetFile(new File("src/test/resource/test_json_parser.schema").toURI())
-    var cols = ccr.readColumn(sourceFile, schema)
+
+
+    val sourceFile = new File("src/test/resource/test_json_parser.json").toURI()
+    val ccr = new JsonColumnReader()
+    val schema = Schema.fromParquetFile(new File("src/test/resource/test_json_parser.schema").toURI())
+    val cols = ccr.readColumn(sourceFile, schema)
 
     assertEquals(3, cols.size)
-    var arrays = cols.toArray
+    val arrays = cols.toArray
     
     assertEquals(0, arrays(0).colIndex)
     assertEquals("id", arrays(0).colName)

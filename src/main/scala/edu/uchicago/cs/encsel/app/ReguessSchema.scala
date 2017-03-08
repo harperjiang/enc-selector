@@ -29,12 +29,12 @@ import edu.uchicago.cs.encsel.dataset.schema.SchemaGuesser
 import org.slf4j.LoggerFactory
 
 object ReguessSchema extends App {
-  var cols = Persistence.get.load()
-  var schemaGuesser = new SchemaGuesser()
-  var logger = LoggerFactory.getLogger(getClass)
+  val cols = Persistence.get.load()
+  val schemaGuesser = new SchemaGuesser()
+  val logger = LoggerFactory.getLogger(getClass)
   cols.foreach { col =>
     {
-      var schema = schemaGuesser.guessSchema(col.colFile)
+      val schema = schemaGuesser.guessSchema(col.colFile)
       if (col.dataType != schema.columns(0)._1) {
         logger.warn("Unmatched data type found, %s<->%s in %s:%s".format(col.dataType, schema.columns(0)._1, col.origin, col.colName))
       }

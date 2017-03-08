@@ -46,7 +46,7 @@ import edu.uchicago.cs.encsel.util.FileUtils
 import java.util.concurrent.TimeUnit
 
 object CollectData extends App {
-  var f = new File(args(0))
+  val f = new File(args(0))
   //  var f = new File("/home/harper/dataset")
   new DataCollector().scan(f.toURI())
 }
@@ -54,15 +54,18 @@ object CollectData extends App {
 class DataCollector {
 
   var persistence = Persistence.get
-  var logger = LoggerFactory.getLogger(this.getClass)
-  var threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
+  val logger = LoggerFactory.getLogger(this.getClass)
+  val threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
 
   def scan(source: URI): Unit = {
-    var target = Paths.get(source)
-    var tasks = scala.collection.immutable.List(target).flatMap(FileUtils.scanFunction(_)).map { p =>
-      {
-        new Callable[Unit] { def call: Unit = { collect(p.toUri()) } }
+    val target = Paths.get(source)
+    val tasks = scala.collection.immutable.List(target).flatMap(FileUtils.scanFunction(_)).map { p => {
+      new Callable[Unit] {
+        def call: Unit = {
+          collect(p.toUri())
+        }
       }
+    }
     }
     threadPool.invokeAll(tasks)
     threadPool.shutdown()
@@ -71,7 +74,7 @@ class DataCollector {
 
   def collect(source: URI): Unit = {
     try {
-      var path = Paths.get(source)
+      val path = Paths.get(source)
       if (Files.isDirectory(path)) {
         logger.warn("Running on Directory is undefined")
         return
@@ -85,7 +88,7 @@ class DataCollector {
         return
       }
 
-      var columner: ColumnReader = ColumnReaderFactory.getColumnReader(source)
+      val columner: ColumnReader = ColumnReaderFactory.getColumnReader(source)
       if (columner == null) {
         if (logger.isDebugEnabled())
           logger.debug("No available reader found, skip")

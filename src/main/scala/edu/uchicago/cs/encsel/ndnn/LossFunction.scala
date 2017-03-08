@@ -88,8 +88,6 @@ class SoftMaxLogLoss extends LossFunction[INDArray] {
    */
   def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double = {
     val shape = actual.shape()
-    val b = shape(0)
-    val n = shape.last
 
     val fetch = Index.get(actual, expected)
     val clipval = Transforms.max(fetch, SoftMaxLogLoss.clip, false)

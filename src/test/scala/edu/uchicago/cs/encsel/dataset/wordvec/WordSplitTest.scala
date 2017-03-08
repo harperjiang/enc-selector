@@ -8,7 +8,7 @@ class WordSplitTest {
 
   @Test
   def testSplitAbbrv(): Unit = {
-    var split = new WordSplit()
+    val split = new WordSplit()
     var res = split.split("RPTYR")
     assertEquals(2, res._1.length)
     assertEquals("report", res._1(0))
@@ -22,7 +22,7 @@ class WordSplitTest {
 
   @Test
   def testSplitLong: Unit = {
-    var split = new WordSplit()
+    val split = new WordSplit()
     var res = split.split("inspectioncode")
     assertEquals(2, res._1.length)
     assertEquals("inspection", res._1(0))
@@ -36,8 +36,8 @@ class WordSplitTest {
   
   @Test
   def testSplitCombined: Unit = {
-    var split = new WordSplit()
-    var res = split.split("actualcmd")
+    val split = new WordSplit()
+    val res = split.split("actualcmd")
     println(res)
     assertEquals(2, res._1.length)
     assertEquals("actual", res._1(0))
@@ -46,8 +46,8 @@ class WordSplitTest {
 
   @Test
   def testSplitPlural: Unit = {
-    var split = new WordSplit()
-    var res = split.split("ReportYears")
+    val split = new WordSplit()
+    val res = split.split("ReportYears")
     assertEquals(2, res._1.length)
     assertEquals("report", res._1(0))
     assertEquals("year", res._1(1))
@@ -55,8 +55,8 @@ class WordSplitTest {
 
   @Test
   def testRemoveNumber: Unit = {
-    var split = new WordSplit()
-    var res = split.split("column522342Day")
+    val split = new WordSplit()
+    val res = split.split("column522342Day")
     assertEquals(2, res._1.length)
     assertEquals("column", res._1(0))
     assertEquals("day", res._1(1))
@@ -64,7 +64,7 @@ class WordSplitTest {
 
   @Test
   def testSplitCamel: Unit = {
-    var split = new WordSplit()
+    val split = new WordSplit()
     var res = split.split("NOVIssuedDate")
     assertEquals(3, res._1.length)
     assertEquals("nov", res._1(0))

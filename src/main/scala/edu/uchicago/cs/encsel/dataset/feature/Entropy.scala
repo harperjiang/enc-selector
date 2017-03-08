@@ -36,17 +36,17 @@ object Entropy extends FeatureExtractor {
   var logger = LoggerFactory.getLogger(getClass)
 
   def extract(input: Column): Iterable[Feature] = {
-    var allcalc = new EntropyCalc()
-    var linecalc = new EntropyCalc()
+    val allcalc = new EntropyCalc()
+    val linecalc = new EntropyCalc()
 
-    var lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
+    val lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty(_))
-      .map(line => { allcalc.add(line); entropy(line, linecalc) }).toTraversable
+      .map(line => {
+        allcalc.add(line); entropy(line, linecalc)
+      }).toTraversable
     if (0 == lineEntropy.size)
       return Iterable[Feature]()
-    var stat = DataUtils.stat(lineEntropy)
-    var max = lineEntropy.max
-    var min = lineEntropy.min
+    val stat = DataUtils.stat(lineEntropy)
     Iterable(new Feature("Entropy", "line_max", lineEntropy.max),
       new Feature("Entropy", "line_min", lineEntropy.min),
       new Feature("Entropy", "line_mean", stat._1),
@@ -74,7 +74,8 @@ class EntropyCalc {
   }
 
   def done(): Double = {
-    var sum = counter.map(_._2).sum
-    counter.map(entry => { var p = (entry._2 / sum); -p * Math.log(p) }).sum
+    val sum = counter.values.sum
+    counter.map(entry => {
+      val p = (entry._2 / sum); -p * Math.log(p) }).sum
   }
 }

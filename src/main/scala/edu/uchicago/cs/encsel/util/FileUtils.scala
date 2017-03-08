@@ -44,7 +44,7 @@ object FileUtils {
   }
 
   def scan[T](root: URI, function: (Path => T)): Iterable[T] = {
-    var target = Paths.get(root)
+    val target = Paths.get(root)
     List(target).flatMap(FileUtils.scanFunction(_)).map { function(_) }
   }
 

@@ -35,17 +35,17 @@ import edu.uchicago.cs.encsel.dataset.parser.Parser
 import edu.uchicago.cs.encsel.dataset.parser.Record
 
 class ParserColumnReader(p: Parser) extends ColumnReader {
-  var parser = p
+  val parser = p
 
   def readColumn(source: URI, schema: Schema): Iterable[Column] = {
 
     fireStart(source)
 
-    var tempFolder = allocTempFolder(source)
-    var colWithWriter = schema.columns.zipWithIndex.map(d => {
-      var col = new Column(source, d._2, d._1._2, d._1._1)
+    val tempFolder = allocTempFolder(source)
+    val colWithWriter = schema.columns.zipWithIndex.map(d => {
+      val col = new Column(source, d._2, d._1._2, d._1._1)
       col.colFile = allocFileForCol(tempFolder, d._1._2, d._2)
-      var writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
+      val writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
       (col, writer)
     }).toArray
 

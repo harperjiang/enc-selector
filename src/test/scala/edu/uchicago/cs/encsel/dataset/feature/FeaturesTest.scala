@@ -12,11 +12,11 @@ class FeaturesTest {
 
   @Test
   def testFeatures: Unit = {
-    var col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
+    val col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_int.data").toURI()
 
-    var features = Features.extract(col)
-    var fa = features.toArray
+    val features = Features.extract(col)
+    val fa = features.toArray
 
     assertTrue(fa(0).featureType.equals("EncFileSize"))
     assertEquals("PLAIN_file_size", fa(0).name)

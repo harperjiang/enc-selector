@@ -41,12 +41,12 @@ class DataCollectorTest {
 
   @Test
   def testDone(): Unit = {
-    var srcpath = new File("src/test/resource/test_columner.csv").toPath()
-    var srcdone = new File("src/test/resource/test_columner.csv.done").toPath()
-    var srcuri = srcpath.toUri()
+    val srcpath = new File("src/test/resource/test_columner.csv").toPath()
+    val srcdone = new File("src/test/resource/test_columner.csv.done").toPath()
+    val srcuri = srcpath.toUri()
     Files.deleteIfExists(srcdone)
 
-    var dc = new DataCollectorForTest()
+    val dc = new DataCollectorForTest()
     assertFalse(dc.isDoneForTest(srcuri))
     dc.markDoneForTest(srcuri)
     assertTrue(dc.isDoneForTest(srcuri))
@@ -54,8 +54,8 @@ class DataCollectorTest {
 
   @Test
   def testCollect(): Unit = {
-    var dc = new DataCollector
-    var dp = new DummyPersistence
+    val dc = new DataCollector
+    val dp = new DummyPersistence
     dc.persistence = dp
 
     //    Files.deleteIfExists(Paths.get(new File("src/test/resource/content.csv.done").toURI))
@@ -63,7 +63,7 @@ class DataCollectorTest {
     dc.collect(new File("src/test/resource/content.csv").toURI())
     //    assertTrue(Files.exists(Paths.get(new File("src/test/resource/content.csv.done").toURI)))
 
-    var columns = dp.load()
+    val columns = dp.load()
     assertEquals(5, columns.size)
     columns.foreach { col =>
       {
@@ -74,12 +74,14 @@ class DataCollectorTest {
 
   @Test
   def testScan(): Unit = {
-    var dc = new DataCollectorForTest
+    val dc = new DataCollectorForTest
 
     dc.scan(new File("src/test/resource/scan_folder").toURI())
 
     assertEquals(5, dc.scanned.size)
-    var fileNames = dc.scanned.map { Paths.get(_).getFileName.toString }
+    val fileNames = dc.scanned.map {
+      Paths.get(_).getFileName.toString
+    }
 
     assertTrue(fileNames.contains("c.json"))
     assertTrue(fileNames.contains("a.csv"))

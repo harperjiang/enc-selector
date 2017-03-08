@@ -44,16 +44,16 @@ class XLSXParser extends Parser {
   override def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
-    var workbook = new XSSFWorkbook(input)
+    val workbook = new XSSFWorkbook(input)
 
     // By default only scan the first sheet
-    var sheet = workbook.getSheetAt(0)
+    val sheet = workbook.getSheetAt(0)
 
-    var iterator = sheet.rowIterator()
+    val iterator = sheet.rowIterator()
 
     if (schema == null) {
       // Fetch a record to guess schema name
-      var firstrec = iterator.next()
+      val firstrec = iterator.next()
       guessedHeader = firstrec.iterator().map(c =>
         XSSFRowRecord.content(c.asInstanceOf[XSSFCell])).toArray
     } else if (schema.hasHeader) {
@@ -66,7 +66,7 @@ class XLSXParser extends Parser {
 }
 
 class XSSFRowRecord(row: XSSFRow) extends Record {
-  var inner = row
+  val inner = row
 
   def apply(idx: Int): String = {
     XSSFRowRecord.content(inner.getCell(idx))
@@ -90,7 +90,7 @@ class XSSFRowRecord(row: XSSFRow) extends Record {
 }
 
 object XSSFRowRecord {
-  var formatter = new DataFormatter(true)
+  val formatter = new DataFormatter(true)
 
   def content(cell: XSSFCell): String = {
     if (null == cell)

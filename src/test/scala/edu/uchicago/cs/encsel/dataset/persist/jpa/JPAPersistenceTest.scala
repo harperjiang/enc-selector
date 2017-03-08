@@ -20,7 +20,7 @@ class JPAPersistenceTest {
 
   @Before
   def cleanSchema: Unit = {
-    var em = JPAPersistence.emf.createEntityManager()
+    val em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin
 
     em.createNativeQuery("DELETE FROM feature WHERE 1 = 1;").executeUpdate()
@@ -30,7 +30,7 @@ class JPAPersistenceTest {
     em.getTransaction.commit
 
     em.getTransaction.begin
-    var col1 = new ColumnWrapper
+    val col1 = new ColumnWrapper
     col1.id = 2
     col1.colName = "a"
     col1.colIndex = 5
@@ -55,20 +55,20 @@ class JPAPersistenceTest {
 
   @Test
   def testSaveNew: Unit = {
-    var jpa = new JPAPersistence
+    val jpa = new JPAPersistence
 
-    var col1 = new Column(new File("dd").toURI, 3, "m", DataType.INTEGER)
+    val col1 = new Column(new File("dd").toURI, 3, "m", DataType.INTEGER)
     col1.colFile = new File("tt").toURI
 
     col1.features = new ArrayList[Feature]
 
-    var fea1 = new Feature("W", "A", 3.5)
+    val fea1 = new Feature("W", "A", 3.5)
 
     col1.features = Array(fea1).toList
 
     jpa.save(Array(col1))
 
-    var cols = jpa.load()
+    val cols = jpa.load()
 
     assertEquals(2, cols.size)
 
@@ -77,7 +77,7 @@ class JPAPersistenceTest {
         case 3 => {
           assertEquals(DataType.INTEGER, col.dataType)
           assertEquals("m", col.colName)
-          var feature = col.features.iterator.next
+          val feature = col.features.iterator.next
           assertEquals("W", feature.featureType)
           assertEquals("A", feature.name)
           assertEquals(3.5, feature.value, 0.01)
@@ -85,7 +85,7 @@ class JPAPersistenceTest {
         case 5 => {
           assertEquals(DataType.STRING, col.dataType)
           assertEquals("a", col.colName)
-          var feature = col.features.iterator.next
+          val feature = col.features.iterator.next
           assertEquals("P", feature.featureType)
           assertEquals("M", feature.name)
           assertEquals(2.4, feature.value, 0.01)
@@ -96,17 +96,15 @@ class JPAPersistenceTest {
 
   @Test
   def testSaveMerge: Unit = {
-    var jpa = new JPAPersistence
-    var cols = jpa.load().toArray
+    val jpa = new JPAPersistence
+    val cols = jpa.load().toArray
     assertEquals(1, cols.size)
 
     cols(0).features += new Feature("T", "PP", 3.25)
     jpa.save(cols)
 
-    var newcols = jpa.load().toArray
-
     assertEquals(1, cols.size)
-    var features = cols(0).features
+    val features = cols(0).features
     assertEquals(2, features.size)
     assertEquals("M", features(0).name)
     assertEquals("PP", features(1).name)
@@ -114,9 +112,9 @@ class JPAPersistenceTest {
 
   @Test
   def testUpdate: Unit = {
-    var jpa = new JPAPersistence
+    val jpa = new JPAPersistence
 
-    var col1 = new ColumnWrapper()
+    val col1 = new ColumnWrapper()
     col1.origin = new File("dd").toURI
     col1.colIndex = 3
     col1.colName = "m"
@@ -126,27 +124,26 @@ class JPAPersistenceTest {
 
     col1.features = new ArrayList[Feature]
 
-    var fea1 = new Feature("W", "A", 3.5)
+    val fea1 = new Feature("W", "A", 3.5)
 
     col1.features = Array[Feature](fea1).toList
 
     jpa.save(Array[Column](col1))
 
-    var cols = jpa.load().toArray
+    val cols = jpa.load().toArray
 
     assertEquals(1, cols.size)
-    var col = cols(0)
+    val col = cols(0)
     assertEquals(1, col.features.size())
-    var f = col.features.iterator().next()
   }
 
   @Test
   def testLoad: Unit = {
-    var jpa = new JPAPersistence
-    var cols = jpa.load().toArray
+    val jpa = new JPAPersistence
+    val cols = jpa.load().toArray
 
     assertEquals(1, cols.size)
-    var col = cols(0)
+    val col = cols(0)
     assertEquals(DataType.STRING, col.dataType)
     assertEquals(5, col.colIndex)
     assertEquals("a", col.colName)

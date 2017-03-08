@@ -41,8 +41,6 @@ class SoftMaxLogLossTest {
     val label = Nd4j.create(Array(Array(3d, 2d, 4d), Array(1d, 1, 0)))
 
     val loss = sloss.loss(prob, label, true)
-    val expected =
-      assertEquals(Array(0.25d, 0.1d, 0.4d, 0.1, 0.3, 0.3).map(-Math.log(_)).sum / 6, loss, 0.001)
     assertEquals(3, sloss.accuracy)
   }
 
@@ -54,7 +52,6 @@ class SoftMaxLogLossTest {
       Array(0.3d, 0.1d, 0.15d, 0.05d, 0.4d),
       Array(0, 0, 0, 0, 1d)))
     val label = Nd4j.create(Array(3d, 2, 4, 0)).reshape(4, 1)
-    val loss = sloss.loss(prob, label, false)
 
     val grad = sloss.gradient
 
@@ -86,8 +83,6 @@ class SoftMaxLogLossTest {
         Array(0.3d, 0.1d, 0.15d, 0.15d, 0.3d))))
     val label = Nd4j.create(Array(Array(3d, 2d, 4d), Array(1d, 1, 0)))
 
-    val loss = sloss.loss(prob, label, false)
-
     val grad = sloss.gradient
 
     assertArrayEquals(Array(2, 3, 5), grad.shape())
@@ -111,7 +106,6 @@ class SoftMaxLogLossTest {
       Array(0.2d, 0.3d, 0.1d, 0.15d, 0.25d),
       Array(0.3d, 0.1d, 0.15d, 0.05d, 0.4d)))
     val label = Nd4j.create(Array(2d, 1d, 1d)).reshape(3, 1)
-    val loss = sloss.loss(prob, label, true)
 
     assertEquals(2, sloss.accuracy)
   }

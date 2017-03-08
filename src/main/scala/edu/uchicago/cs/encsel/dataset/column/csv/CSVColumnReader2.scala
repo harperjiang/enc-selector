@@ -48,20 +48,20 @@ class CSVColumnReader2 extends ColumnReader {
 
   def readColumn(source: URI, schema: Schema): Iterable[Column] = {
     fireStart(source)
-    var tempFolder = allocTempFolder(source)
-    var colWithWriter = schema.columns.zipWithIndex.map(d => {
-      var col = new Column(source, d._2, d._1._2, d._1._1)
+    val tempFolder = allocTempFolder(source)
+    val colWithWriter = schema.columns.zipWithIndex.map(d => {
+      val col = new Column(source, d._2, d._1._2, d._1._1)
       col.colFile = allocFileForCol(tempFolder, d._1._2, d._2)
-      var writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
+      val writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
       (col, writer)
     }).toArray
 
     var parseFormat = CSVFormat.EXCEL
     if (schema.hasHeader)
       parseFormat = parseFormat.withFirstRecordAsHeader()
-    var parser = parseFormat.parse(new FileReader(new File(source)))
+    val parser = parseFormat.parse(new FileReader(new File(source)))
 
-    var iterator = parser.iterator()
+    val iterator = parser.iterator()
     //    if (schema.hasHeader) {
     //      iterator.next()
     //    }

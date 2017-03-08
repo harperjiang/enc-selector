@@ -42,7 +42,7 @@ class Feature(t: String) extends Serializable {
 
   override def equals(obj: Any): Boolean = {
     if (obj.isInstanceOf[Feature]) {
-      var fea = obj.asInstanceOf[Feature]
+      val fea = obj.asInstanceOf[Feature]
       return this.featureType.equals(fea.featureType) && this.name.equals(fea.name)
     }
     return super.equals(obj)

@@ -69,7 +69,7 @@ object Schema {
   }
 
   def toParquetFile(schema: Schema, file: URI) = {
-    var writer = new PrintWriter(new FileOutputStream(new File(file)))
+    val writer = new PrintWriter(new FileOutputStream(new File(file)))
 
     writer.println("message m {")
 
@@ -121,14 +121,13 @@ object Schema {
       return Schema.fromParquetFile(schemaUri)
     }
     // file_name starts with schema
-    var path = Paths.get(source)
-    var pathname = path.getFileName.toString
-    var schemas = Files.list(path.getParent).iterator().filter {
-      p =>
-        {
-          var pname = p.getFileName.toString
-          pname.endsWith(".schema") && pathname.contains(pname.replace(".schema", ""))
-        }
+    val path = Paths.get(source)
+    val pathname = path.getFileName.toString
+    val schemas = Files.list(path.getParent).iterator().filter {
+      p => {
+        val pname = p.getFileName.toString
+        pname.endsWith(".schema") && pathname.contains(pname.replace(".schema", ""))
+      }
     }
     if (!schemas.isEmpty) {
       schemaUri = schemas.next().toUri()

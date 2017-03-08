@@ -9,10 +9,10 @@ import java.io.File
 class LengthTest {
   @Test
   def testRun: Unit = {
-    var col = new Column(null, -1, "", DataType.INTEGER)
+    val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI()
 
-    var features = Length.extract(col).toArray
+    val features = Length.extract(col).toArray
 
     assertEquals(4, features.size)
     assertEquals("max", features(0).name)

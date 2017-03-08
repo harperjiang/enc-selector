@@ -16,14 +16,14 @@ class FilePersistenceTest {
 
   @Before
   def removeDataFile = {
-    var path = new File("storage.dat").toPath()
+    val path = new File("storage.dat").toPath()
     if (Files.exists(path))
       Files.delete(path)
   }
 
   @Test
   def testSave(): Unit = {
-    var fp = new FilePersistence
+    val fp = new FilePersistence
 
     var dl = new ArrayBuffer[Column]()
     dl += new Column(null, 0, "", DataType.STRING)
@@ -32,21 +32,21 @@ class FilePersistenceTest {
     fp.save(dl)
     
     fp.save(dl)
-    
-    var res = fp.load()
+
+    val res = fp.load()
     assertEquals(2, res.size)
   }
 
   @Test
   def testLoad(): Unit = {
-    var fp = new FilePersistence
+    val fp = new FilePersistence
 
     fp.load()
   }
 
   @Test
   def testClean(): Unit = {
-    var fp = new FilePersistence
+    val fp = new FilePersistence
 
     var dl = new ArrayBuffer[Column]()
     dl += new Column(null, 0, "", DataType.STRING)

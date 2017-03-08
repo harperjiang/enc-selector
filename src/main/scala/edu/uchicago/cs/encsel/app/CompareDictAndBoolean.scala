@@ -57,10 +57,10 @@ object CompareDictAndBoolean extends App {
 
   val threshold = 20
 
-  var cols = Persistence.get.load()
+  val cols = Persistence.get.load()
   cols.filter { col => { col.colName.toLowerCase().contains("category") && col.dataType == DataType.STRING && col.findFeature("Sparsity", "valid_ratio").value == 1 } }
     .foreach(col => {
-      var distvals = distinct(col.colFile)
+      val distvals = distinct(col.colFile)
       if (distvals.size < threshold) {
         genColumn(distvals, col)
         genColumn2(distvals, col)
@@ -74,10 +74,16 @@ object CompareDictAndBoolean extends App {
   }
 
   def genColumn(distval: Set[String], column: Column) = {
-    var folder = Files.createTempDirectory(Paths.get(Config.tempFolder),
-      Try { column.asInstanceOf[ColumnWrapper].id.toString() + "_" }.getOrElse(column.colName))
-    var files = distval.map(value => { (value, folder.resolve(namize(value)).toFile()) }).toMap
-    var writers = files.map(kv => { (kv._1, new PrintWriter(new FileWriter(kv._2))) })
+    val folder = Files.createTempDirectory(Paths.get(Config.tempFolder),
+      Try {
+        column.asInstanceOf[ColumnWrapper].id.toString() + "_"
+      }.getOrElse(column.colName))
+    val files = distval.map(value => {
+      (value, folder.resolve(namize(value)).toFile())
+    }).toMap
+    val writers = files.map(kv => {
+      (kv._1, new PrintWriter(new FileWriter(kv._2)))
+    })
 
     Source.fromFile(new File(column.colFile)).getLines().foreach(line => {
       writers.foreach(writer => writer._2.println(line.trim() match {
@@ -87,28 +93,30 @@ object CompareDictAndBoolean extends App {
     })
     writers.foreach(_._2.close)
 
-    var sumLength = files.toList.map(f => new File(ParquetWriterHelper.singleColumnBoolean(f._2.toURI())).length()).sum
-    var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
+    val sumLength = files.toList.map(f => new File(ParquetWriterHelper.singleColumnBoolean(f._2.toURI())).length()).sum
+    val dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
     println(distval.size, sumLength, dictLength, sumLength / dictLength)
   }
 
   def genColumn2(distval: Set[String], column: Column) = {
-    var folder = Files.createTempDirectory(Paths.get(Config.tempFolder),
-      Try { column.asInstanceOf[ColumnWrapper].id.toString() + "_" }.getOrElse(column.colName))
-    var output = folder.resolve(column.colName)
-    var row = distval.toList
-    var schema = new MessageType("record",
+    val folder = Files.createTempDirectory(Paths.get(Config.tempFolder),
+      Try {
+        column.asInstanceOf[ColumnWrapper].id.toString() + "_"
+      }.getOrElse(column.colName))
+    val output = folder.resolve(column.colName)
+    val row = distval.toList
+    val schema = new MessageType("record",
       row.zipWithIndex.map(i => new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value_2_%d".format(i._2))));
 
-    var writer: ParquetWriter[java.util.List[String]] = ParquetWriterBuilder.buildDefault(new Path(output.toUri()), schema, false);
+    val writer: ParquetWriter[java.util.List[String]] = ParquetWriterBuilder.buildDefault(new Path(output.toUri()), schema, false);
 
     Source.fromFile(new File(column.colFile)).getLines().foreach(line =>
       writer.write(row.map { elem => line.equals(elem).toString() }))
 
     writer.close();
 
-    var sumLength = output.toFile().length
-    var dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
+    val sumLength = output.toFile().length
+    val dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
     println(distval.size, sumLength, dictLength, sumLength / dictLength)
   }
 

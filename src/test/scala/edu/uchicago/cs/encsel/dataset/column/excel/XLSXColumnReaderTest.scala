@@ -11,10 +11,10 @@ class XLSXColumnReaderTest {
 
   @Test
   def testRead(): Unit = {
-    var cr = new XLSXColumnReader()
-    var schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader_xlsx.schema").toURI())
+    val cr = new XLSXColumnReader()
+    val schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader_xlsx.schema").toURI())
 
-    var columns = cr.readColumn(new File("src/test/resource/test_col_reader_xlsx.xlsx").toURI, schema)
+    val columns = cr.readColumn(new File("src/test/resource/test_col_reader_xlsx.xlsx").toURI, schema)
 
     assertEquals(12, columns.size)
 

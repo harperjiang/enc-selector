@@ -37,7 +37,7 @@ class CSVParser extends Parser {
 
   override protected def parseLine(line: String): Record = {
     var content = new ArrayBuffer[String]();
-    var buffer = new StringBuffer();
+    val buffer = new StringBuffer();
     var state = 0 // 0 is field start, 1 is in string, 2 is in field, 3 is string end, 4 is waiting double quote ""
     line.foreach { c =>
       {
