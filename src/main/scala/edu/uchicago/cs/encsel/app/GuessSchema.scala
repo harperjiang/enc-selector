@@ -35,12 +35,12 @@ import edu.uchicago.cs.encsel.dataset.schema.Schema
 
 object GuessSchema extends App {
 
-  var guesser = new SchemaGuesser
-  var logger = LoggerFactory.getLogger(getClass)
+  val guesser = new SchemaGuesser
+  val logger = LoggerFactory.getLogger(getClass)
 
   if (args.length < 1)
     System.exit(1)
-  var source = new File(args(0)).toURI()
+  val source = new File(args(0)).toURI()
 
   if (!Files.exists(Paths.get(source))) {
     System.exit(1)
@@ -53,11 +53,11 @@ object GuessSchema extends App {
       logger.debug("Scanning %s".format(file.toUri().toString()))
     if (!FileUtils.isDone(file.toUri(), "gsdone") &&
       !FileUtils.isDone(file.toUri(), "done")) {
-      var schema = guesser.guessSchema(file.toUri())
+      val schema = guesser.guessSchema(file.toUri())
       if (null != schema) {
         if (logger.isDebugEnabled())
           logger.debug("Generating schema for %s".format(file.toUri().toString()))
-        var schemaLocation = FileUtils.replaceExtension(file.toUri(), "schemagen")
+        val schemaLocation = FileUtils.replaceExtension(file.toUri(), "schemagen")
         Schema.toParquetFile(schema, schemaLocation)
         if (logger.isDebugEnabled())
           logger.debug("Schema for %s written to %s".format(file.toUri().toString(), schemaLocation))

@@ -8,20 +8,20 @@ class DictTest {
 
   @Test
   def testLookup(): Unit = {
-    var book = Dict.lookup("book")
+    val book = Dict.lookup("book")
     assertEquals("book", book._1)
-    var rpt = Dict.lookup("rpt")
+    val rpt = Dict.lookup("rpt")
     assertEquals("report", rpt._1)
-    var cmd = Dict.lookup("cmd")
+    val cmd = Dict.lookup("cmd")
     println(cmd)
     assertEquals("command", cmd._1)
-    var yr = Dict.lookup("yr")
+    val yr = Dict.lookup("yr")
     assertEquals("year", yr._1)
-    var dt = Dict.lookup("dt")
+    val dt = Dict.lookup("dt")
     assertEquals("date", dt._1)
-    var zip = Dict.lookup("zip")
+    val zip = Dict.lookup("zip")
     assertEquals("zip", zip._1)
-    var non = Dict.lookup("jiang")
+    val non = Dict.lookup("jiang")
     println(non)
     assertEquals("jiang", non._1)
   }
@@ -39,7 +39,7 @@ class DictTest {
 
   @Test
   def testPlural: Unit = {
-    var codes = Dict.lookup("codes")
+    val codes = Dict.lookup("codes")
     assertEquals("code", codes._1)
   }
 }

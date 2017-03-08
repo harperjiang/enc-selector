@@ -44,7 +44,7 @@ object Plural {
 
   def removePlural(input: String): String = {
     rules.foreach(rule => {
-      var apply = rule.remove(input)
+      val apply = rule.remove(input)
       if (null != apply) {
         // Make sure it adds back
         if (addPlural(apply).equals(input))
@@ -56,7 +56,7 @@ object Plural {
 
   def addPlural(input: String): String = {
     rules.foreach(rule => {
-      var apply = rule.add(input)
+      val apply = rule.add(input)
       if (null != apply) {
         return apply
       }
@@ -85,9 +85,9 @@ class PluralDictRule extends Rule {
   var inverse = new HashMap[String, String]()
 
   def loadDict: Unit = {
-    var parser = new CSVParser()
-    var dicturi = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
-    var records = parser.parse(dicturi, schema)
+    val parser = new CSVParser()
+    val dicturi = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
+    val records = parser.parse(dicturi, schema)
     records.foreach { record => { dict += ((record(0), record(1))); inverse += ((record(1), record(0))); } }
   }
   def add(input: String): String = inverse.getOrElse(input, null)

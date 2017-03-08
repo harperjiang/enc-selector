@@ -1,27 +1,27 @@
 /**
- * *****************************************************************************
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- * Contributors:
- *     Hao Jiang - initial API and implementation
- *
- * *****************************************************************************
- */
+  * *****************************************************************************
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+  * distributed with this work for additional information
+  * regarding copyright ownership.  The ASF licenses this file
+  * to you under the Apache License, Version 2.0 (the
+  * "License"); you may not use this file except in compliance
+  * with the License.  You may obtain a copy of the License at
+  *
+  * http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing,
+  * software distributed under the License is distributed on an
+  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  * KIND, either express or implied.  See the License for the
+  * specific language governing permissions and limitations
+  * under the License.
+  *
+  * Contributors:
+  * Hao Jiang - initial API and implementation
+  *
+  * *****************************************************************************
+  */
 package edu.uchicago.cs.encsel.ndnn.rnn
 
 import scala.collection.mutable.ArrayBuffer
@@ -40,7 +40,7 @@ import edu.uchicago.cs.encsel.ndnn.Xavier
 import edu.uchicago.cs.encsel.ndnn.Zero
 
 class LSTMGraph(numChar: Int, hiddenDim: Int)
-    extends Graph[Array[Array[Int]]](Xavier, new SGD(0.5, 0.95, 10), new LSTMLoss) {
+  extends Graph[Array[Array[Int]]](Xavier, new SGD(0.5, 0.95, 10), new LSTMLoss) {
 
   val c2v = param("c2v", Array(numChar, hiddenDim))
   val v2c = param("v2c", Array(hiddenDim, numChar))
@@ -62,13 +62,10 @@ class LSTMGraph(numChar: Int, hiddenDim: Int)
 
   val xs = new ArrayBuffer[Input]()
 
-  val cells = new ArrayBuffer[LSTMCell]()
-
   protected def clean: Unit = {
     // Remove all nodes above water mark
     nodeBuffer.remove(nodeWatermark, nodeBuffer.length - nodeWatermark)
     xs.clear
-    cells.clear
     // Leave h0 and c0
     inputs.remove(2, inputs.length - 2)
   }
@@ -78,36 +75,37 @@ class LSTMGraph(numChar: Int, hiddenDim: Int)
 
     val collected = new ArrayBuffer[Node]()
     // Extend RNN to the expected size and build connections between cells
+    var h: Node = h0
+    var c: Node = c0
     for (i <- 0 until length) {
-      val h = i match { case 0 => h0 case _ => cells(i - 1).hout }
-      val c = i match { case 0 => c0 case _ => cells(i - 1).cout }
       val in = input("%d".format(i))
       val mapped = new Embed(in, c2v)
       xs += in
 
-      val newNode = new LSTMCell(wf, bf, wi, bi,
+      val newNode = LSTMCell.build(wf, bf, wi, bi,
         wc, bc, wo, bo, mapped, h, c)
-      collected += new SoftMax(new DotMul(newNode.hout, v2c))
-      cells += newNode
+      collected += new SoftMax(new DotMul(newNode._2, v2c))
+      h = newNode._2
+      c = newNode._1
     }
     output(new Collect(collected: _*))
   }
 }
 
 class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
-    extends LSTMGraph(numChar, hiddenDim) {
+  extends LSTMGraph(numChar, hiddenDim) {
 
   def build(length: Int, predictLength: Int): Unit = {
     clean
 
+    var h : Node = h0
+    var c : Node = c0
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
-      val h = i match { case 0 => h0 case x => cells(i - 1).hout }
-      val c = i match { case 0 => c0 case x => cells(i - 1).cout }
 
       val in = i match {
         case gt if gt >= predictLength => {
-          new ArgMax(new SoftMax(new DotMul(cells(i - 1).hout, v2c)))
+          new ArgMax(new SoftMax(new DotMul(h, v2c)))
         }
         case _ => {
           val realin = input("%d".format(i))
@@ -117,9 +115,10 @@ class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
       }
       val mapped = new Embed(in, c2v)
 
-      val newNode = new LSTMCell(wf, bf, wi, bi,
+      val newNode = LSTMCell.build(wf, bf, wi, bi,
         wc, bc, wo, bo, mapped, h, c)
-      cells += newNode
+      c = newNode._1
+      h = newNode._2
     }
   }
 }

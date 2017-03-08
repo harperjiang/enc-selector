@@ -13,7 +13,7 @@ class RecordTest {
       assertEquals("", record(i))
     assertEquals("", record.toString())
     val ite = record.iterator()
-    for (i <- 0 to 9) {
+    for (_ <- 0 to 9) {
       assertTrue(ite.hasNext)
       assertEquals("", ite.next)
     }

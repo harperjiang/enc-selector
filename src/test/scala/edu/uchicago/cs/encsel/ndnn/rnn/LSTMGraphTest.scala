@@ -34,7 +34,7 @@ class LSTMGraphTest {
     graph2.c0.set(emptyInit2)
     graph2.xs(0).set(Array(0))
     val predictLength = 50
-    val alla = (0 until predictLength).map(i => Array(0)).toArray
+    val alla = (0 until predictLength).map(_ => Array(0)).toArray
     graph2.expect(alla)
 
     graph.train
@@ -55,7 +55,6 @@ class LSTMGraphTest {
     val file = "src/test/resource/rnn/lstm_sample_ds"
     val batchsize = 50
     val ds = new LSTMDataset(file)
-    val batch = ds.batches(batchsize).next()
     val hiddendim = 500
     val graph = new LSTMPredictGraph(ds.numChars, hiddendim)
     graph.build(10, 1)
@@ -66,7 +65,7 @@ class LSTMGraphTest {
     val emptyInit = Nd4j.zeros(1, hiddendim)
     graph.h0.set(emptyInit)
     graph.c0.set(emptyInit)
-    val alla = (0 until 10).map(i => Array(a)).toArray
+    val alla = (0 until 10).map(_ => Array(a)).toArray
     graph.expect(alla)
 
     graph.test

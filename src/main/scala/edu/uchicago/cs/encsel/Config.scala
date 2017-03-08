@@ -35,15 +35,15 @@ object Config {
   var columnReaderEnableCheck = true
   var columnReaderErrorLimit = 100
   var columnFolder = "./columns"
-  var tempFolder = "./temp"
+  val tempFolder = "./temp"
 
   load()
 
-  var logger = LoggerFactory.getLogger(getClass())
+  val logger = LoggerFactory.getLogger(getClass())
 
   def load(): Unit = {
     try {
-      var p = new Properties()
+      val p = new Properties()
       p.load(Thread.currentThread().getContextClassLoader.getResourceAsStream("config.properties"))
 
       collectorThreadCount = Integer.parseInt(p.getProperty("collector.threadCount"))

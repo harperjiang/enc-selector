@@ -27,8 +27,8 @@ package edu.uchicago.cs.encsel.util
 
 object DataUtils {
   def stat(data: Traversable[Double]): (Double, Double) = {
-    var mean = data.sum / data.size
-    var variance = data.map(e => (e - mean) * (e - mean)).sum / data.size
+    val mean = data.sum / data.size
+    val variance = data.map(e => (e - mean) * (e - mean)).sum / data.size
     (mean, variance)
   }
 }

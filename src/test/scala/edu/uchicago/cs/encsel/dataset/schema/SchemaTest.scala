@@ -23,14 +23,14 @@ class SchemaTest {
 
   @Test
   def testToSchema: Unit = {
-    var schema = new Schema()
+    val schema = new Schema()
     schema.columns = Array((DataType.INTEGER, "Wa"), (DataType.DOUBLE, "Ma"), (DataType.STRING, "Ka"))
     schema.hasHeader = true
 
     Schema.toParquetFile(schema, new File("src/test/resource/test_to_schema.schema.gen").toURI())
 
-    var origin = Source.fromFile(new File("src/test/resource/test_to_schema.schema")).getLines().toArray
-    var gened = Source.fromFile(new File("src/test/resource/test_to_schema.schema.gen")).getLines().toArray
+    val origin = Source.fromFile(new File("src/test/resource/test_to_schema.schema")).getLines().toArray
+    val gened = Source.fromFile(new File("src/test/resource/test_to_schema.schema.gen")).getLines().toArray
 
     assertArrayEquals(gened.toArray[Object], origin.toArray[Object])
   }

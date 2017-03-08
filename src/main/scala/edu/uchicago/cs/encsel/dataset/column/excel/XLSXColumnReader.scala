@@ -50,33 +50,33 @@ class XLSXColumnReader extends ColumnReader {
 
     fireStart(source)
 
-    var tempFolder = allocTempFolder(source)
-    var colWithWriter = schema.columns.zipWithIndex.map(d => {
-      var col = new Column(source, d._2, d._1._2, d._1._1)
+    val tempFolder = allocTempFolder(source)
+    val colWithWriter = schema.columns.zipWithIndex.map(d => {
+      val col = new Column(source, d._2, d._1._2, d._1._1)
       col.colFile = allocFileForCol(tempFolder, d._1._2, d._2)
-      var writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
+      val writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
       (col, writer)
     }).toArray
 
-    var workbook = new XSSFWorkbook(new File(source))
+    val workbook = new XSSFWorkbook(new File(source))
     // By default only scan the first sheet
-    var sheet = workbook.getSheetAt(0)
-    var iterator = sheet.rowIterator()
+    val sheet = workbook.getSheetAt(0)
+    val iterator = sheet.rowIterator()
     if (schema.hasHeader) {
       iterator.next()
     }
     iterator.foreach { record =>
       {
         fireReadRecord(source)
-        var row = record.asInstanceOf[XSSFRow]
+        val row = record.asInstanceOf[XSSFRow]
         if (!validate(row, schema)) {
           logger.warn("Malformated record in %s at %d found, skipping: %s"
             .format(source.toString, record.getRowNum, record.toString))
           fireFailRecord(source)
         } else {
           colWithWriter.foreach(pair => {
-            var col = pair._1
-            var writer = pair._2
+            val col = pair._1
+            val writer = pair._2
             writer.println(XSSFRowRecord.content(row.getCell(col.colIndex)))
           })
         }
@@ -92,8 +92,8 @@ class XLSXColumnReader extends ColumnReader {
       return true
 
     schema.columns.zipWithIndex.foreach(col => {
-      var cell = record.getCell(col._2)
-      var datatype = col._1._1
+      val cell = record.getCell(col._2)
+      val datatype = col._1._1
       if (!datatype.check(XSSFRowRecord.content(cell)))
         return false
     })

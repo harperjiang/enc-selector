@@ -17,11 +17,11 @@ class InitPolicyTest {
 
   @Test
   def testXavier: Unit = {
-    var param = Xavier.init(3, 2, 7, 9)
+    val param = Xavier.init(3, 2, 7, 9)
     assertArrayEquals(Array(3, 2, 7, 9), param.shape)
     assertEquals(0, param.meanNumber().doubleValue(), 0.1)
-    var n = param.shape.dropRight(1).product
-    var range = Math.sqrt(3d / n)
+    val n = param.shape.dropRight(1).product
+    val range = Math.sqrt(3d / n)
     assertTrue(param.maxNumber().doubleValue() <= range)
     assertTrue(param.minNumber().doubleValue() >= -range)
   }

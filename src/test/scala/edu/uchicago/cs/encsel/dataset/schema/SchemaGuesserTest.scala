@@ -9,7 +9,7 @@ class SchemaGuesserTest {
 
   @Test
   def testTestType(): Unit = {
-    var guess = new SchemaGuesser
+    val guess = new SchemaGuesser
 
     assertEquals(DataType.INTEGER, guess.testType("22", DataType.BOOLEAN))
     assertEquals(DataType.INTEGER, guess.testType("22,232", DataType.BOOLEAN))
@@ -49,9 +49,9 @@ class SchemaGuesserTest {
 
   @Test
   def testGuessSchema(): Unit = {
-    var guess = new SchemaGuesser()
+    val guess = new SchemaGuesser()
 
-    var csvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.csv").toURI())
+    val csvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.csv").toURI())
 
     assertEquals(5, csvSchema.columns.size)
     assertEquals("A_K", csvSchema.columns(0)._2)
@@ -65,7 +65,7 @@ class SchemaGuesserTest {
     assertEquals(DataType.STRING, csvSchema.columns(3)._1)
     assertEquals(DataType.INTEGER, csvSchema.columns(4)._1)
 
-    var xlsxSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.xlsx").toURI())
+    val xlsxSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.xlsx").toURI())
 
     assertEquals(4, xlsxSchema.columns.size)
 
@@ -74,7 +74,7 @@ class SchemaGuesserTest {
     assertEquals(DataType.LONG, xlsxSchema.columns(2)._1)
     assertEquals(DataType.STRING, xlsxSchema.columns(3)._1)
 
-    var jsonSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.json").toURI())
+    val jsonSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.json").toURI())
 
     assertEquals(4, jsonSchema.columns.size)
 
@@ -83,7 +83,7 @@ class SchemaGuesserTest {
     assertEquals(DataType.INTEGER, jsonSchema.columns(2)._1)
     assertEquals(DataType.STRING, jsonSchema.columns(3)._1)
 
-    var tsvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.tsv").toURI())
+    val tsvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.tsv").toURI())
 
     assertEquals(5, tsvSchema.columns.size)
 

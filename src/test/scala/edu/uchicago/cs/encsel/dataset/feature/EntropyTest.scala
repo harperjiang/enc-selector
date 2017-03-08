@@ -10,7 +10,7 @@ class EntropyTest {
 
   @Test
   def testEntropyCalc(): Unit = {
-    var calc = new EntropyCalc()
+    val calc = new EntropyCalc()
 
     calc.add("3244439239249-529023-23-9420-254239-0234-013=-421099042-24-2-42-942-492")
     assertEquals(2.81 * Math.log(2), calc.done(), 0.01)
@@ -25,7 +25,7 @@ class EntropyTest {
 
   @Test
   def testRun: Unit = {
-    var col = new Column(null, -1, "", DataType.INTEGER)
+    val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI()
 
     var features = Entropy.extract(col).toArray

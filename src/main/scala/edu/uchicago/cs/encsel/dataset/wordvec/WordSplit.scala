@@ -34,7 +34,7 @@ class WordSplit {
 
   def split(raw: String): (Buffer[String], Double) = {
     // Remove all numbers
-    var input = raw.replaceAll("""\d""", "_")
+    val input = raw.replaceAll("""\d""", "_")
     input match {
       case x if !x.equals(x.toUpperCase()) && !x.equals(x.toLowerCase()) => {
         // Camel style
@@ -45,9 +45,10 @@ class WordSplit {
       }
       case x if x.contains("_") => {
         // Separator
-        var parts = x.split("_+")
+        val parts = x.split("_+")
         var fidelity = 1d
-        (parts.map(part => { var lookup = Dict.lookup(part); fidelity *= lookup._2; lookup._1 })
+        (parts.map(part => {
+          val lookup = Dict.lookup(part); fidelity *= lookup._2; lookup._1 })
           .filter(StringUtils.isNotEmpty(_)).toBuffer, fidelity)
       }
       case _ => {
@@ -58,9 +59,9 @@ class WordSplit {
   }
 
   /**
-   * Dynamic Programming for Guess abbreviation
-   */
-  protected var guessMemory = new HashMap[(Int, Int), (Buffer[String], Double)]()
+    * Dynamic Programming for Guess abbreviation
+    */
+  protected val guessMemory = new HashMap[(Int, Int), (Buffer[String], Double)]()
 
   protected def guessSplit(input: String, fromPos: Int, toPos: Int): (Buffer[String], Double) = {
     guessMemory.getOrElseUpdate((fromPos, toPos), {
@@ -68,14 +69,14 @@ class WordSplit {
       (fromPos, toPos) match {
         case (f, t) if f >= t => (ArrayBuffer.empty[String], 1)
         case (f, t) if f == t - 1 => {
-          var lookup = Dict.lookup(input.substring(fromPos, toPos))
+          val lookup = Dict.lookup(input.substring(fromPos, toPos))
           (ArrayBuffer(lookup._1), lookup._2)
         }
         case _ => {
           // TODO Early stop
           ((fromPos + 1 to toPos).map(i => {
-            var left = Dict.lookup(input.substring(fromPos, i))
-            var right = guessSplit(input, i, toPos)
+            val left = Dict.lookup(input.substring(fromPos, i))
+            val right = guessSplit(input, i, toPos)
             (left._1 +: right._1, left._2 * right._2)
           })).maxBy(t => (t._2 - 0.1 * t._1.length))
         }

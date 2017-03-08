@@ -44,7 +44,7 @@ import scala.collection.mutable.HashSet
  */
 class FilePersistence extends Persistence {
 
-  var storage = new File("storage.dat")
+  val storage = new File("storage.dat")
   var datalist = new scala.collection.mutable.HashSet[Column]()
   datalist ++= load()
 
@@ -52,7 +52,7 @@ class FilePersistence extends Persistence {
     this.synchronized {
       this.datalist ++= datalist
 
-      var objwriter = new ObjectOutputStream(new FileOutputStream(storage))
+      val objwriter = new ObjectOutputStream(new FileOutputStream(storage))
       objwriter.writeObject(this.datalist)
       objwriter.close()
     }
@@ -62,7 +62,7 @@ class FilePersistence extends Persistence {
     this.synchronized {
       this.datalist.clear()
 
-      var objwriter = new ObjectOutputStream(new FileOutputStream(storage))
+      val objwriter = new ObjectOutputStream(new FileOutputStream(storage))
       objwriter.writeObject(this.datalist)
       objwriter.close()
     }
@@ -71,13 +71,13 @@ class FilePersistence extends Persistence {
   def load(): Iterator[Column] = {
     this.synchronized {
       try {
-        var objreader = new ObjectInputStream(new FileInputStream(storage))
-        var data = objreader.readObject().asInstanceOf[HashSet[Column]]
+        val objreader = new ObjectInputStream(new FileInputStream(storage))
+        val data = objreader.readObject().asInstanceOf[HashSet[Column]]
         objreader.close()
 
         return data.clone().iterator
       } catch {
-        case e: FileNotFoundException => {
+        case _: FileNotFoundException => {
           return Iterator[Column]()
         }
       }

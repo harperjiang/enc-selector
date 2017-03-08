@@ -35,6 +35,6 @@ trait Persistence {
 }
 
 object Persistence {
-  private var impl = new JPAPersistence
+  private val impl = new JPAPersistence
   def get: Persistence = impl
 }

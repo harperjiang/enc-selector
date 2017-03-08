@@ -32,7 +32,7 @@ trait Record {
 }
 
 class DefaultRecord(ct: Array[String]) extends Record {
-  var content = ct;
+  val content = ct;
 
   def apply(idx: Int): String = {
     content(idx)

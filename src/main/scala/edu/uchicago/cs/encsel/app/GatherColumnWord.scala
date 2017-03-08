@@ -32,19 +32,19 @@ import java.io.FileOutputStream
 import org.slf4j.LoggerFactory
 
 object GatherColumnWord extends App {
-  var cols = Persistence.get.load()
+  val cols = Persistence.get.load()
   var wordset = new HashSet[String]()
-  var logger = LoggerFactory.getLogger(getClass)
+  val logger = LoggerFactory.getLogger(getClass)
   cols.foreach(col => {
     try {
-      var split = new WordSplit()
-      var words = split.split(col.colName)
+      val split = new WordSplit()
+      val words = split.split(col.colName)
       wordset ++= words._1
     } catch {
-      case e: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
+      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
     }
   })
-  var writer = new PrintWriter(new FileOutputStream("words"))
+  val writer = new PrintWriter(new FileOutputStream("words"))
 
   wordset.foreach(writer.println _)
 

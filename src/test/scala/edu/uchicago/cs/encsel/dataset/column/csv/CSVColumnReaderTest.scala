@@ -14,13 +14,13 @@ class CSVColumnReaderTest {
 
   @Test
   def testReadColumn(): Unit = {
-    var sourceFile = new File("src/test/resource/test_col_reader.csv").toURI()
-    var ccr = new CSVColumnReader()
-    var schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader.schema").toURI())
-    var cols = ccr.readColumn(sourceFile, schema)
+    val sourceFile = new File("src/test/resource/test_col_reader.csv").toURI()
+    val ccr = new CSVColumnReader()
+    val schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader.schema").toURI())
+    val cols = ccr.readColumn(sourceFile, schema)
 
     assertEquals(5, cols.size)
-    var arrays = cols.toArray
+    val arrays = cols.toArray
 
     assertEquals(0, arrays(0).colIndex)
     assertEquals("id", arrays(0).colName)

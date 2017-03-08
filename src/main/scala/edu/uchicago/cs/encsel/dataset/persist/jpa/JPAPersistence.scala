@@ -32,10 +32,10 @@ import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import org.slf4j.LoggerFactory
 
 class JPAPersistence extends Persistence {
-  var logger = LoggerFactory.getLogger(getClass)
+  val logger = LoggerFactory.getLogger(getClass)
 
   def save(datalist: Traversable[Column]) = {
-    var em = JPAPersistence.emf.createEntityManager()
+    val em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin()
     try {
       datalist.map(ColumnWrapper.fromColumn(_)).foreach { data =>
@@ -59,18 +59,18 @@ class JPAPersistence extends Persistence {
   }
 
   def load(): Iterator[Column] = {
-    var em = JPAPersistence.emf.createEntityManager()
-    var query = em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
-    var res = query.getResultList.map(_.asInstanceOf[Column]).toIterator
+    val em = JPAPersistence.emf.createEntityManager()
+    val query = em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
+    val res = query.getResultList.map(_.asInstanceOf[Column]).toIterator
     em.close
     res
   }
 
   def clean() = {
-    var em = JPAPersistence.emf.createEntityManager()
+    val em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin()
     try {
-      var query = em.createQuery("DELETE FROM Column c", classOf[ColumnWrapper])
+      val query = em.createQuery("DELETE FROM Column c", classOf[ColumnWrapper])
       query.executeUpdate()
       em.getTransaction.commit()
     } catch {
@@ -84,5 +84,5 @@ class JPAPersistence extends Persistence {
 }
 
 object JPAPersistence {
-  var emf = javax.persistence.Persistence.createEntityManagerFactory("enc-selector")
+  val emf = javax.persistence.Persistence.createEntityManagerFactory("enc-selector")
 }

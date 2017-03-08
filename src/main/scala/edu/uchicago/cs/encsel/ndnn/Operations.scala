@@ -33,29 +33,7 @@ import org.nd4j.linalg.factory.Nd4j
  */
 object Operations {
 
-
-
-  def relu(from: INDArray, to: INDArray): INDArray = {
-    Nd4j.getExecutioner().execAndReturn(new RectifedLinear(from, null, to, from.lengthLong()))
-  }
-
-  def leakyRelu(from: INDArray, to: INDArray): INDArray = {
-    Nd4j.getExecutioner().execAndReturn(
-      new org.nd4j.linalg.api.ops.impl.transforms.LeakyReLU(from, null, to, from.lengthLong()))
-  }
-
-  def sigmoid(from: INDArray, to: INDArray): INDArray = {
-    Nd4j.getExecutioner().execAndReturn(
-      new org.nd4j.linalg.api.ops.impl.transforms.Sigmoid(from, null, to, from.lengthLong()))
-  }
-
-  def tanh(from: INDArray, to: INDArray): INDArray = {
-    Nd4j.getExecutioner().execAndReturn(
-      new org.nd4j.linalg.api.ops.impl.transforms.Tanh(from, null, to, from.lengthLong()))
-  }
-
   def softmax(in: INDArray): INDArray = {
-    // It's weird that in-place softmax has bugs
     Nd4j.getExecutioner().execAndReturn(
       new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(in))
   }

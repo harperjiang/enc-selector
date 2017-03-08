@@ -10,17 +10,17 @@ class TSVParserTest {
 
   @Test
   def testParseLine: Unit = {
-    var parser = new TSVParser
+    val parser = new TSVParser
     parser.schema = new Schema()
-    var result = parser.parseLine("a\t\tb\tttt\tdae_ma\tafsew")
+    val result = parser.parseLine("a\t\tb\tttt\tdae_ma\tafsew")
 
     assertEquals(6, result.length)
   }
 
   @Test
   def testGuessHeader: Unit = {
-    var parser = new TSVParser
-    var records = parser.parse(new File("src/test/resource/test_tsv_parser.tsv").toURI(), null).toArray
+    val parser = new TSVParser
+    val records = parser.parse(new File("src/test/resource/test_tsv_parser.tsv").toURI(), null).toArray
     assertArrayEquals(Array[Object]("M", "W", "N", "O"), parser.guessHeaderName.toArray[Object])
     assertEquals(5, records.size)
     assertEquals(4, records(0).length())

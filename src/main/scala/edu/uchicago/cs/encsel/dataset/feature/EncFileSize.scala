@@ -42,7 +42,7 @@ object EncFileSize extends FeatureExtractor {
       case DataType.STRING => {
         StringEncoding.values().map { e =>
           {
-            var f = ParquetWriterHelper.singleColumnString(col.colFile, e)
+            val f = ParquetWriterHelper.singleColumnString(col.colFile, e)
             new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
@@ -50,7 +50,7 @@ object EncFileSize extends FeatureExtractor {
       case DataType.LONG => {
         IntEncoding.values().map { e =>
           {
-            var f = ParquetWriterHelper.singleColumnLong(col.colFile, e)
+            val f = ParquetWriterHelper.singleColumnLong(col.colFile, e)
             new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
@@ -58,7 +58,7 @@ object EncFileSize extends FeatureExtractor {
       case DataType.INTEGER => {
         IntEncoding.values().map { e =>
           {
-            var f = ParquetWriterHelper.singleColumnInt(col.colFile, e)
+            val f = ParquetWriterHelper.singleColumnInt(col.colFile, e)
             new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
@@ -66,7 +66,7 @@ object EncFileSize extends FeatureExtractor {
       case DataType.FLOAT => {
         FloatEncoding.values().map { e =>
           {
-            var f = ParquetWriterHelper.singleColumnFloat(col.colFile, e)
+            val f = ParquetWriterHelper.singleColumnFloat(col.colFile, e)
             new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }
@@ -74,7 +74,7 @@ object EncFileSize extends FeatureExtractor {
       case DataType.DOUBLE => {
         FloatEncoding.values().map { e =>
           {
-            var f = ParquetWriterHelper.singleColumnDouble(col.colFile, e)
+            val f = ParquetWriterHelper.singleColumnDouble(col.colFile, e)
             new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
           }
         }

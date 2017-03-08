@@ -12,7 +12,6 @@ class LSTMCellTest {
   @Test
   def testBuildCell: Unit = {
     val env = new NodeEnv() {}
-    val hd = 3
     val wf = new Param("wf")
     wf.setEnv(env)
     val bf = new Param("bf")
@@ -36,7 +35,7 @@ class LSTMCellTest {
     val c = new Input("c")
     c.setEnv(env)
 
-    val cell = new LSTMCell(wf, bf, wi, bi, wc, bc, wo, bo, x, h, c)
+    val cell = LSTMCell.build(wf, bf, wi, bi, wc, bc, wo, bo, x, h, c)
 
     wf.set(Nd4j.create(Array(Array(1d, 2, 3, 1, 2, 2d), Array(2d, 0, 1, 2, 1, 0), Array(0d, 1, 1, 0, 1, 2)))
       .transposei().divi(100))
@@ -57,8 +56,8 @@ class LSTMCellTest {
 
     env.forward
 
-    val hout = cell.hout.value
-    val cout = cell.cout.value
+    val hout = cell._2.value
+    val cout = cell._1.value
 
     val cexpect = Nd4j.create(Array(Array(0.54790634,  0.52818812,  0.52007031), Array(0.54047421,  0.5254888 ,  0.52014528)))
     val hexpect = Nd4j.create(Array(Array(0.25571027,  0.24441732,  0.24246003), Array(0.25283897,  0.24337213,  0.24129505)))

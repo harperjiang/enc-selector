@@ -11,7 +11,6 @@ trainds = LSTMDataSet('data/ptb.train.txt')
 validds = LSTMDataSet('data/ptb.valid.txt', trainds)
 testds = LSTMDataSet('data/ptb.test.txt', trainds)
 
-
 hidden_dim = 200
 batch_size = 5
 store = ParamStore('model_LSTM.pkl')
@@ -21,8 +20,8 @@ dsd = DSD(SGD(0.5, 1), 0, 20)
 
 params = store.load()
 
-def Predict(max_step, prefix):
 
+def Predict(max_step, prefix):
     predictGraph = LSTMPredictGraph(trainds.num_char(), hidden_dim)
     if len(params) > 0:
         predictGraph.load(params)
@@ -39,21 +38,22 @@ def Predict(max_step, prefix):
     else:
         return idx
 
+
 def Eval(ds):
     total_num = 0
     total_acc = 0
     total_loss = 0
     graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
     if len(params) > 0:
-            graph.load(params)
-        
+        graph.load(params)
+
     for batch in ds.batches(batch_size):
         graph.build(batch)
         loss, acc = graph.test()
         total_num += np.product(batch.data.shape)
         total_acc += acc
         total_loss += loss
-    return total_loss / ds.num_batch() , total_acc / total_num
+    return total_loss / ds.num_batch(), total_acc / total_num
 
 
 ############################################### training loop #####################################################
@@ -67,8 +67,7 @@ best_loss = loss
 prefix = 'the agreements bring'
 generation = Predict(400, trainds.translate_to_num(prefix))
 print("Initial generated sentence ")
-print (trainds.translate_to_str(generation))
-
+print(trainds.translate_to_str(generation))
 
 graph = LSTMTrainGraph(trainds.num_char(), hidden_dim)
 graph.update = dsd
@@ -79,17 +78,17 @@ for ep in range(epoch):
         graph.train()
     graph.update.weight_decay()
     duration = (time() - stime) / 60.
-     
+
     params = graph.dump()
-     
+
     loss, acc = Eval(validds)
     print("Epoch %d: Perplexity: - Avg loss = %0.5f, accuracy %0.5f [%.3f mins]" % (ep, loss, acc, duration))
- 
+
     # generate some text given the prefix and trained model
     prefix = 'the agreements bring'
     generation = Predict(400, trainds.translate_to_num(prefix))
     print("Epoch %d: generated sentence " % ep)
-    print (trainds.translate_to_str(generation))
+    print(trainds.translate_to_str(generation))
 
     # Store the model
     if loss < best_loss:

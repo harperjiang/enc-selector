@@ -41,22 +41,22 @@ trait Parser {
 
   var schema: Schema = null
   protected var headerInline = false
-  protected var logger = LoggerFactory.getLogger(getClass())
+  protected val logger = LoggerFactory.getLogger(getClass())
   protected var blankRecord: BlankRecord = null
 
   def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
-    var lines = Source.fromInputStream(input).getLines()
+    val lines = Source.fromInputStream(input).getLines()
 
     if (null == schema) {
       // Guess header, need to retrieve a line
-      var line = lines.next()
+      val line = lines.next()
       guessHeader(line)
       blankRecord = new BlankRecord(guessedHeader.size)
       if (headerInline) {
         // Put the line back
-        var lb = Array(line).toIterator ++ (lines)
+        val lb = Array(line).toIterator ++ (lines)
         return lb.map { parseLineIgnoreError(_) }
       }
     } else {

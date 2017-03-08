@@ -40,12 +40,12 @@ import edu.uchicago.cs.encsel.dataset.feature.Distinct
 
 object RunFeature extends App {
 
-  var logger = LoggerFactory.getLogger(getClass)
-  var features = Iterable(Distinct)
+  val logger = LoggerFactory.getLogger(getClass)
+  val features = Iterable(Distinct)
 
-  var persist = Persistence.get
+  val persist = Persistence.get
 
-  var cols = persist.load()
+  val cols = persist.load()
 
   var buffer = new ArrayBuffer[Column](100)
 

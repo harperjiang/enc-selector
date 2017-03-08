@@ -47,12 +47,12 @@ object Dict {
   private val abbrvFile = "word/abbrv.txt"
   private val abbrvSchema = new Schema(Array((DataType.STRING, "word"), (DataType.STRING, "abbrv")), false)
 
-  private var words = new HashMap[Char, ArrayBuffer[(String, Int)]]()
+  private val words = new HashMap[Char, ArrayBuffer[(String, Int)]]()
   private var index = new HashMap[String, Int]()
 
-  private var abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
+  private val abbrvs = new HashMap[Char, ArrayBuffer[(String, Int)]]()
   private var abbrvDict = new HashMap[String, String]()
-  private var abbrvIdx = new HashMap[String, (String, Double)]()
+  private val abbrvIdx = new HashMap[String, (String, Double)]()
   private var count = 0
 
   private val vowelInWord = """(?!^)[aeiou]""".r
@@ -61,19 +61,19 @@ object Dict {
   init()
 
   protected def init(): Unit = {
-    var parser = new CSVParser()
-    var dict = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
-    var abbrvLoad = Thread.currentThread().getContextClassLoader.getResourceAsStream(abbrvFile)
-    var records = parser.parse(dict, dictSchema)
+    val parser = new CSVParser()
+    val dict = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
+    val abbrvLoad = Thread.currentThread().getContextClassLoader.getResourceAsStream(abbrvFile)
+    val records = parser.parse(dict, dictSchema)
     abbrvDict ++= parser.parse(abbrvLoad, abbrvSchema).map { record => (record(0) -> record(1)) }
     records.zipWithIndex.foreach { record =>
       {
-        var word = record._1(0)
+        val word = record._1(0)
         index += ((word, count))
         words.getOrElseUpdate(word(0), new ArrayBuffer[(String, Int)]()) += ((word, count))
 
         if (abbrvDict.contains(word) || (word.length > 3 && abbreviate(word).length >= 2)) {
-          var abbrv = abbrvDict.getOrElse(word, abbreviate(word))
+          val abbrv = abbrvDict.getOrElse(word, abbreviate(word))
           abbrvIdx.getOrElseUpdate(abbrv,
             (word, abbrvDict.contains(word) match {
               case true => 0 case false => abbrvPenalty
@@ -98,7 +98,7 @@ object Dict {
    */
   def lookup(raw: String): (String, Double) = {
     var input = raw.toLowerCase()
-    var notfound = (input, notFound)
+    val notfound = (input, notFound)
     if (input.length() <= 1)
       return notfound
     // Convert plural form to singular form
@@ -114,8 +114,8 @@ object Dict {
     }
     if (abbrvIdx.contains(input)) {
       // Known abbreviation
-      var originWord = abbrvIdx.getOrElse(input, null)
-      var originIdx = index.getOrElse(originWord._1, Int.MaxValue)
+      val originWord = abbrvIdx.getOrElse(input, null)
+      val originIdx = index.getOrElse(originWord._1, Int.MaxValue)
       candidates += ((originWord._1, originWord._2, freq_penalty(originIdx)))
     }
 
@@ -123,25 +123,25 @@ object Dict {
       isAbbreviate(input) match {
         case false => {
           // For performance consideration, only search for words that are +/- 1 length of the target
-          var partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+          val partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
             .filter(t => t._1.length <= input.length + 1 && t._1.length >= input.length - 1 && t._1.intersect(input).length() >= input.length - 1)
             .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
           if (!partials.isEmpty) {
-            var partial = partials.minBy(t => t._2 + t._3)
+            val partial = partials.minBy(t => t._2 + t._3)
             candidates += ((partial._1, partial._2, partial._2 + partial._3))
           }
         }
-        case true => { // Abbrv search for abbreviation only
-          var abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
+        case true => {
+          // Abbrv search for abbreviation only
+          val abbrvPartials = abbrvs.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
             .filter(t => t._1.length >= input.length && t._1.intersect(input).length == input.length)
-            .map(abb =>
-              {
-                var word = abbrvIdx.getOrElse(abb._1, ("", 0))
-                var wordPrio = index.getOrElse(word._1, Int.MaxValue)
-                (word._1, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
-              })
+            .map(abb => {
+              val word = abbrvIdx.getOrElse(abb._1, ("", 0))
+              val wordPrio = index.getOrElse(word._1, Int.MaxValue)
+              (word._1, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
+            })
           if (!abbrvPartials.isEmpty) {
-            var abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
+            val abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
             candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
           }
         }
@@ -150,9 +150,9 @@ object Dict {
     candidates match {
       case empty if empty.isEmpty => notfound
       case _ => {
-        var candidate = candidates.minBy(_._3)
+        val candidate = candidates.minBy(_._3)
         // Normalize the fidelity
-        var normalized = normalize(candidate._2)
+        val normalized = normalize(candidate._2)
         if (normalized < notFoundThreshold)
           notfound
         else
@@ -164,7 +164,7 @@ object Dict {
 
   private[wordvec] def abbreviate(input: String) = {
     // Remove any non-leading aeiou and or
-    var abbrv = orInWord.replaceAllIn(input, "")
+    val abbrv = orInWord.replaceAllIn(input, "")
     vowelInWord.replaceAllIn(abbrv, "")
   }
 
@@ -172,7 +172,7 @@ object Dict {
     if (abbrvIdx.contains(input))
       return true
     input.length >= 2 && (vowelInWord.findFirstIn(input) match {
-      case Some(x) => false
+      case Some(_) => false
       case None => true
     })
   }

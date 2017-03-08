@@ -10,13 +10,13 @@ class SparsityTest {
 
   @Test
   def testRun(): Unit = {
-    var col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
+    val col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_sparsity.data").toURI()
 
-    var features = Sparsity.extract(col)
+    val features = Sparsity.extract(col)
     assertEquals(3, features.size)
 
-    var farray = features.toArray
+    val farray = features.toArray
 
     assertEquals("Sparsity", farray(0).featureType)
     assertEquals("count", farray(0).name)

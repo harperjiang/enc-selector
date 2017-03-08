@@ -36,19 +36,19 @@ import java.text.NumberFormat
 
 class SchemaGuesser {
 
-  var logger = LoggerFactory.getLogger(getClass)
+  val logger = LoggerFactory.getLogger(getClass)
 
   def guessSchema(file: URI): Schema = {
-    var parser = ParserFactory.getParser(file)
+    val parser = ParserFactory.getParser(file)
     if (null == parser) {
       if (logger.isDebugEnabled())
         logger.debug("No parser available for %s".format(file.toString()))
       return null
     }
-    var records = parser.parse(file, null)
+    val records = parser.parse(file, null)
 
-    var guessedHeader = parser.guessHeaderName
-    var columns = guessedHeader.map(_.replaceAll("[^\\d\\w_]+", "_"))
+    val guessedHeader = parser.guessHeaderName
+    val columns = guessedHeader.map(_.replaceAll("[^\\d\\w_]+", "_"))
       .map((DataType.BOOLEAN, _)).toArray
 
     records.foreach { record =>
@@ -58,7 +58,7 @@ class SchemaGuesser {
           if (value != null && value.trim().length() != 0) {
             value = value.trim()
 
-            var expected = testType(value, columns(i)._1)
+            val expected = testType(value, columns(i)._1)
             if (expected != columns(i)._1)
               columns(i) = (expected, columns(i)._2)
           }
@@ -68,7 +68,7 @@ class SchemaGuesser {
     new Schema(columns, true)
   }
 
-  protected var booleanValues = Set("0", "1", "yes", "no", "true", "false")
+  protected val booleanValues = Set("0", "1", "yes", "no", "true", "false")
   protected val numberRegex = """[\-]?[\d,]+""".r
   protected val floatRegex = """[\-]?[,\d]*(\.\d*)?(E\d*)?""".r
 
@@ -86,7 +86,7 @@ class SchemaGuesser {
         input match {
           case numberRegex(_*) => {
             Try {
-              var num = numberParser.parse(input)
+              val num = numberParser.parse(input)
               num match {
                 case x if x.isInstanceOf[Double] => DataType.STRING // Too Long
                 case x if x.intValue() == x.longValue() => DataType.INTEGER
@@ -102,7 +102,7 @@ class SchemaGuesser {
         input match {
           case numberRegex(_*) => {
             Try {
-              var num = numberParser.parse(input)
+              val num = numberParser.parse(input)
               num match {
                 case x if x.isInstanceOf[Double] => DataType.STRING // Too Long
                 case _ => DataType.LONG
@@ -117,7 +117,7 @@ class SchemaGuesser {
         input match {
           case floatRegex(_*) =>
             Try {
-              var num = numberParser.parse(input)
+              val num = numberParser.parse(input)
               num match {
                 case x if x.floatValue() == x.doubleValue() => DataType.FLOAT
                 case _ => DataType.DOUBLE
@@ -130,7 +130,6 @@ class SchemaGuesser {
         input match {
           case floatRegex(_*) =>
             Try {
-              var num = numberParser.parse(input)
               DataType.DOUBLE
             }.getOrElse(DataType.STRING)
           case _ => DataType.STRING

@@ -11,10 +11,8 @@ class Batch:
 class LSTMDataSet:
     def __init__(self, filename, ds=None):
         if ds is None:
-            self.vocab = {}
-            self.vocab['@'] = 0
-            self.idx = []
-            self.idx.append('@')
+            self.vocab = {'@': 0}
+            self.idx = ['@']
         else:
             self.vocab = ds.vocab
             self.idx = ds.idx

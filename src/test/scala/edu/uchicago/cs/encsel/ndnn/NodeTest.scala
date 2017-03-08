@@ -468,7 +468,6 @@ class EmbedTest {
       Array(4d, 9, 2, 3),
       Array(0d, 1, 0, 7),
       Array(1d, 9, 3, 5)))
-    val backup = grad.dup()
 
     embed.grad = grad
     env.backward

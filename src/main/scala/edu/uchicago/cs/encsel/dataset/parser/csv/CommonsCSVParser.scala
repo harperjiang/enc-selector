@@ -45,18 +45,18 @@ class CommonsCSVParser extends Parser {
 
   override def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
-    var reader = new InputStreamReader(input)
+    val reader = new InputStreamReader(input)
     var format = CSVFormat.EXCEL
     if (schema != null && schema.hasHeader) {
       format = format.withFirstRecordAsHeader()
     }
-    var parser = format.parse(reader)
+    val parser = format.parse(reader)
 
-    var csvrecords = parser.iterator()
+    val csvrecords = parser.iterator()
 
     if (schema == null) {
       // Fetch a record to guess schema name
-      var firstrec = csvrecords.next()
+      val firstrec = csvrecords.next()
       guessedHeader = firstrec.iterator().toArray
     }
 
