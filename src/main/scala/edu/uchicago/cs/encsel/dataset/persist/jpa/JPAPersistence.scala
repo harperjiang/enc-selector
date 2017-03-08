@@ -81,6 +81,12 @@ class JPAPersistence extends Persistence {
     }
     em.close
   }
+
+  def find(id: Int): Column = {
+    val em = JPAPersistence.emf.createEntityManager()
+    em.createQuery("SELECT c FROM Column c where c.id = :id",
+      classOf[ColumnWrapper]).setParameter("id", id).getSingleResult
+  }
 }
 
 object JPAPersistence {

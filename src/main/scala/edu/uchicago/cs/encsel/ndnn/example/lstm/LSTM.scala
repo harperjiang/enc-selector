@@ -28,44 +28,12 @@ import org.nd4j.linalg.api.rng.distribution.impl.UniformDistribution
 import org.nd4j.linalg.factory.Nd4j
 
 import scala.util.Random
-import edu.uchicago.cs.encsel.ndnn.{Batch, Evaluator, Trainer, Xavier}
+import edu.uchicago.cs.encsel.ndnn.{ Batch, Evaluator, Trainer, Xavier }
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMDataset
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
+import edu.uchicago.cs.encsel.ndnn.FileStore
 
-class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int)
-  extends Trainer[Array[Array[Int]], Array[Array[Int]], LSTMDataset, LSTMGraph]
-  with Evaluator {
-
-  val graph = new LSTMGraph(ts.numChars, hiddenDim)
-  graph.c2v.value = Nd4j.readNumpy("/home/harper/dataset/numpy/c2v.npy")
-  graph.wf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wf.npy")
-  graph.bf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bf.npy")
-  graph.wi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wi.npy")
-  graph.bi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bi.npy")
-  graph.wc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wc.npy")
-  graph.bc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bc.npy")
-  graph.wo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wo.npy")
-  graph.bo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bo.npy")
-  graph.v2c.value = Nd4j.readNumpy("/home/harper/dataset/numpy/v.npy")
-
-
-  def getTrainSet: LSTMDataset = ts
-  def getTestSet: LSTMDataset = tsts
-  def getTrainedGraph: LSTMGraph = graph
-  override def getEvaluator = this
-
-  def getGraph(batch: Batch[Array[Array[Int]], Array[Array[Int]]]): LSTMGraph = {
-    graph.build(batch.data.length)
-
-    // Setup x_i input
-    batch.data.zip(graph.xs).foreach(pair => pair._2.set(pair._1))
-    // Setup h_0 and c_0
-    graph.h0.set(Nd4j.zeros(batch.size, hiddenDim))
-    graph.c0.set(Nd4j.zeros(batch.size, hiddenDim))
-    // Expect
-    graph.expect(batch.groundTruth)
-    graph
-  }
+class LSTMEvaluator extends Evaluator {
 
   protected var batchCounter = 0
   protected var charCounter = 0
@@ -79,16 +47,50 @@ class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int)
     accSum = 0
   }
 
-  override def report[DATA, GT](batch: Batch[DATA, GT], loss: Double, acc: Int) = {
-    val lstmbatch = batch.asInstanceOf[Batch[Array[Array[Int]],Array[Array[Int]]]]
+  override def record[D](batch: Batch[D], loss: Double, acc: Int) = {
+    val lstmbatch = batch.asInstanceOf[Batch[Array[Array[Int]]]]
     batchCounter += 1
     charCounter += lstmbatch.data.length * batch.size
     lossSum += loss
     accSum += acc
   }
 
+  override def loss = lossSum / batchCounter
+
   override def summary = {
-    "Average loss %f, prediction accuracy %f".format(lossSum/batchCounter, accSum.toDouble/charCounter)
+    "Average loss %f, prediction accuracy %f".format(lossSum / batchCounter, accSum.toDouble / charCounter)
+  }
+}
+
+class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int)
+    extends Trainer[Array[Array[Int]], LSTMDataset, LSTMGraph] {
+
+  protected val graph = new LSTMGraph(ts.numChars, hiddenDim)
+  protected val paramStore = new FileStore("LSTM_model.mdl")
+  protected val evaluator = new LSTMEvaluator()
+
+  def getTrainSet: LSTMDataset = ts
+  def getTestSet: LSTMDataset = tsts
+  def getGraph: LSTMGraph = graph
+
+  override protected def getEvaluator = evaluator
+  override protected def getParamStore = paramStore
+
+  def setupGraph(g: LSTMGraph, batch: Batch[Array[Array[Int]]]) = {
+    g.build(batch.data.length)
+
+    // Setup x_i input
+    batch.data.zip(graph.xs).foreach(pair => pair._2.set(pair._1))
+    // Setup h_0 and c_0
+    g.h0.set(Nd4j.zeros(batch.size, hiddenDim))
+    g.c0.set(Nd4j.zeros(batch.size, hiddenDim))
+    // Expect
+    g.expect(batch.groundTruth)
+  }
+
+  override def evaluate(testBatchSize: Int) = {
+    super.evaluate(testBatchSize)
+    // TODO Do a sentence prediction
   }
 }
 
@@ -102,5 +104,19 @@ object LSTM extends App {
 
   val trainer = new LSTMTrainer(trainds, testds, hiddenDim)
 
-  trainer.train(60, true, 50)
+  val graph = trainer.getGraph
+  graph.c2v.value = Nd4j.readNumpy("/home/harper/dataset/numpy/c2v.npy")
+  graph.wf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wf.npy")
+  graph.bf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bf.npy")
+  graph.wi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wi.npy")
+  graph.bi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bi.npy")
+  graph.wc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wc.npy")
+  graph.bc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bc.npy")
+  graph.wo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wo.npy")
+  graph.bo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bo.npy")
+  graph.v2c.value = Nd4j.readNumpy("/home/harper/dataset/numpy/v.npy")
+  
+  trainer.train(60, 50)
+  
+  
 }

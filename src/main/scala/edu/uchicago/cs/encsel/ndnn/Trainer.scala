@@ -28,9 +28,10 @@ import org.slf4j.LoggerFactory
 import scala.util.control.Breaks._
 
 trait Evaluator {
-  def init:Unit
-  def report[DATA,GT](batch:Batch[DATA,GT], loss:Double, acc:Int):Unit
-  def summary:String
+  def init: Unit
+  def record[D](batch: Batch[D], loss: Double, acc: Int): Unit
+  def loss: Double
+  def summary: String
 }
 
 class MeanLossEvaluator extends Evaluator {
@@ -38,57 +39,74 @@ class MeanLossEvaluator extends Evaluator {
   var lossSum = 0d
   var accSum = 0
 
-  def init:Unit = {
+  def init: Unit = {
     batchCounter = 0
     lossSum = 0
     accSum = 0
   }
 
-  def report[DATA,GT](batch:Batch[DATA,GT], loss:Double, acc:Int) = {
+  def record[D](batch: Batch[D], loss: Double, acc: Int) = {
     batchCounter += 1
     lossSum += loss
     accSum += acc
   }
 
-  def summary:String =
-    """Average loss %f, average accuracy %f""".format(lossSum/batchCounter, accSum/batchCounter)
+  def loss = lossSum / batchCounter
+
+  def summary: String =
+    """Average loss %f, average accuracy %f""".format(lossSum / batchCounter, accSum / batchCounter)
 }
 
-
-trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
+trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
   val logger = LoggerFactory.getLogger(getClass)
 
   def getTrainSet: T
   def getTestSet: T
-  def getTrainedGraph: G
+  def getGraph: G
 
+  protected def getParamStore: ParamStore = EmptyStore
   protected def getEvaluator: Evaluator
-  protected def getGraph(batch: Batch[DATA, GT]): G
+  protected def setupGraph(graph: G, batch: Batch[D])
   protected def earlyStop = false
 
-  def train(epoches: Int, profiling: Boolean, trainBatchSize: Int = 50, testBatchSize: Int = 50): Unit = {
+  def train(epoches: Int, trainBatchSize: Int = 50, testBatchSize: Int = 50): Unit = {
     val trainset = getTrainSet
 
+    val graph = getGraph
+    val loadedParams = getParamStore.load
+    if (!loadedParams.isEmpty)
+      graph.load(loadedParams)
     // Initial test
     evaluate(testBatchSize)
 
+    // Initial loss
+    var bestLoss = getEvaluator.loss
+
     breakable {
-      for (i <- 1 to epoches) { // Epoches
+      for (i <- 1 to epoches) {
         logger.info("[Epoch %d]".format(i))
-        val startTime = profiling match { case false => 0 case _ => System.currentTimeMillis() }
+        val startTime = System.currentTimeMillis()
 
         trainset.newEpoch()
-        var graph: Graph[GT] = null
+        val graph = getGraph
         trainset.batches(trainBatchSize).foreach { batch =>
           {
-            graph = getGraph(batch)
+            setupGraph(graph, batch)
             graph.train
           }
         }
-        if (null != graph)
-          graph.epochDone
+        graph.epochDone
 
         evaluate(testBatchSize)
+
+        val loss = getEvaluator.loss
+        if (loss < bestLoss) {
+          bestLoss = loss
+          if (null != getParamStore) {
+            getParamStore.store(graph.dump())
+          }
+        }
+
         val es = earlyStop
 
         val stopTime = System.currentTimeMillis()
@@ -104,33 +122,32 @@ trait Trainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]] {
   protected def evaluate(testBatchSize: Int = 100): Unit = {
     val testset = getTestSet
     val evaluator = getEvaluator
+    val graph = getGraph
+
     evaluator.init
+
     testset.batches(testBatchSize).foreach {
       batch =>
         {
-          val graph = getGraph(batch)
+          setupGraph(graph, batch)
           val (loss, acc) = graph.test
-          evaluator.report(batch, loss,acc)
+          evaluator.record(batch, loss, acc)
         }
     }
     logger.info("Test Result: %s".format(evaluator.summary))
   }
 }
 
-class SimpleTrainer[DATA, GT, T <: Dataset[DATA, GT], G <: Graph[GT]](trainset: T, testset: T, graph: G)
-    extends Trainer[DATA, GT, T, G] {
+abstract class SimpleTrainer[D, T <: Dataset[D], G <: Graph[D]](trainset: T, testset: T, graph: G)
+    extends Trainer[D, T, G] {
 
-  protected val evaluator = new MeanLossEvaluator()
+  var evaluator = new MeanLossEvaluator()
+  var paramStore: ParamStore = new FileStore("model")
 
   def getTrainSet: T = trainset
   def getTestSet: T = testset
-  def getTrainedGraph: G = graph
+  def getGraph: G = graph
+
+  override protected def getParamStore = paramStore
   override protected def getEvaluator = evaluator
-
-  protected def getGraph(batch: Batch[DATA, GT]): G = {
-    setInput(batch, graph)
-    graph
-  }
-
-  protected def setInput(batch: Batch[DATA, GT], graph: G): Unit = Unit
 }
