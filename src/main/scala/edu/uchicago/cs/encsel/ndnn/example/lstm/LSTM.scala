@@ -17,7 +17,7 @@
  * under the License,
  *
  * Contributors:
- *            Hao Jiang - initial API and implementation
+ *     Hao Jiang - initial API and implementation
  */
 
 package edu.uchicago.cs.encsel.ndnn.example.lstm
@@ -32,67 +32,7 @@ import edu.uchicago.cs.encsel.ndnn.{ Batch, Evaluator, Trainer, Xavier }
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMDataset
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
 import edu.uchicago.cs.encsel.ndnn.FileStore
-
-class LSTMEvaluator extends Evaluator {
-
-  protected var batchCounter = 0
-  protected var charCounter = 0
-  protected var lossSum = 0d
-  protected var accSum = 0
-
-  override def init = {
-    batchCounter = 0
-    charCounter = 0
-    lossSum = 0
-    accSum = 0
-  }
-
-  override def record[D](batch: Batch[D], loss: Double, acc: Int) = {
-    val lstmbatch = batch.asInstanceOf[Batch[Array[Array[Int]]]]
-    batchCounter += 1
-    charCounter += lstmbatch.data.length * batch.size
-    lossSum += loss
-    accSum += acc
-  }
-
-  override def loss = lossSum / batchCounter
-
-  override def summary = {
-    "Average loss %f, prediction accuracy %f".format(lossSum / batchCounter, accSum.toDouble / charCounter)
-  }
-}
-
-class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, hiddenDim: Int)
-    extends Trainer[Array[Array[Int]], LSTMDataset, LSTMGraph] {
-
-  protected val graph = new LSTMGraph(ts.numChars, hiddenDim)
-  protected val paramStore = new FileStore("LSTM_model.mdl")
-  protected val evaluator = new LSTMEvaluator()
-
-  def getTrainSet: LSTMDataset = ts
-  def getTestSet: LSTMDataset = tsts
-  def getGraph: LSTMGraph = graph
-
-  override protected def getEvaluator = evaluator
-  override protected def getParamStore = paramStore
-
-  def setupGraph(g: LSTMGraph, batch: Batch[Array[Array[Int]]]) = {
-    g.build(batch.data.length)
-
-    // Setup x_i input
-    batch.data.zip(graph.xs).foreach(pair => pair._2.set(pair._1))
-    // Setup h_0 and c_0
-    g.h0.set(Nd4j.zeros(batch.size, hiddenDim))
-    g.c0.set(Nd4j.zeros(batch.size, hiddenDim))
-    // Expect
-    g.expect(batch.groundTruth)
-  }
-
-  override def evaluate(testBatchSize: Int) = {
-    super.evaluate(testBatchSize)
-    // TODO Do a sentence prediction
-  }
-}
+import edu.uchicago.cs.encsel.ndnn.rnn.LSTMTrainer
 
 object LSTM extends App {
 
@@ -101,10 +41,9 @@ object LSTM extends App {
 
   val trainds = new LSTMDataset("/home/harper/dataset/lstm/ptb.train.txt")
   val testds = new LSTMDataset("/home/harper/dataset/lstm/ptb.valid.txt")(trainds)
+  val graph = new LSTMGraph(trainds.numChars, hiddenDim)
+  val trainer = new LSTMTrainer(trainds, testds, graph)
 
-  val trainer = new LSTMTrainer(trainds, testds, hiddenDim)
-
-  val graph = trainer.getGraph
   graph.c2v.value = Nd4j.readNumpy("/home/harper/dataset/numpy/c2v.npy")
   graph.wf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wf.npy")
   graph.bf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bf.npy")
@@ -115,8 +54,7 @@ object LSTM extends App {
   graph.wo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wo.npy")
   graph.bo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bo.npy")
   graph.v2c.value = Nd4j.readNumpy("/home/harper/dataset/numpy/v.npy")
-  
+
   trainer.train(60, 50)
-  
-  
+
 }

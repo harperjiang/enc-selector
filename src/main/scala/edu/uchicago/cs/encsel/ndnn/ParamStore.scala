@@ -29,6 +29,8 @@ import org.nd4j.linalg.factory.Nd4j
 
 import scala.collection.GenIterable
 import scala.collection.mutable.ArrayBuffer
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * Interface to store and load params
@@ -47,12 +49,16 @@ object EmptyStore extends ParamStore {
 class FileStore(file: String) extends ParamStore {
 
   override def load = {
-    val ins = new DataInputStream(new FileInputStream(file))
-    val params = new ArrayBuffer[INDArray]
-    while (ins.available() > 0)
-      params += Nd4j.read(ins)
-    ins.close()
-    params
+    if (Files.exists(Paths.get(file))) {
+      val ins = new DataInputStream(new FileInputStream(file))
+      val params = new ArrayBuffer[INDArray]
+      while (ins.available() > 0)
+        params += Nd4j.read(ins)
+      ins.close()
+      params
+    } else {
+      Array.empty[INDArray]
+    }
   }
 
   override def store(params: Array[INDArray]) = {

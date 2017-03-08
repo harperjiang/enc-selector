@@ -141,8 +141,8 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
 abstract class SimpleTrainer[D, T <: Dataset[D], G <: Graph[D]](trainset: T, testset: T, graph: G)
     extends Trainer[D, T, G] {
 
-  var evaluator = new MeanLossEvaluator()
-  var paramStore: ParamStore = new FileStore("model")
+  protected var evaluator: Evaluator = new MeanLossEvaluator()
+  protected var paramStore: ParamStore = new FileStore("model")
 
   def getTrainSet: T = trainset
   def getTestSet: T = testset

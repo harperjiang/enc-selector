@@ -29,28 +29,37 @@ import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMDataset
 import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
+import org.nd4j.linalg.factory.Nd4j
+import edu.uchicago.cs.encsel.ndnn.rnn.LSTMPredictGraph
+import edu.uchicago.cs.encsel.ndnn.rnn.LSTMTrainer
+import edu.uchicago.cs.encsel.ndnn.SGD
 
 object ContentPredict extends App {
 
-  val jpa = Persistence.get.asInstanceOf[JPAPersistence]
-  val column = jpa.find(args(0).toInt)
+  //  val jpa = Persistence.get.asInstanceOf[JPAPersistence]
+  //  val column = jpa.find(args(0).toInt)
 
   val batchSize = 50
-  val dataset = new LSTMDataset(column.colFile)
-  dataset.batches(batchSize).foreach(batch => {
+  val hiddenDim = 100
+  val trainset = new LSTMDataset("/home/harper/enc_workspace/train.txt")
+  val testset = new LSTMDataset("/home/harper/enc_workspace/test.txt")
+  val traingraph = new LSTMGraph(trainset.numChars, hiddenDim, new SGD(0.5, 1))
+  val predict = new LSTMPredictGraph(trainset.numChars, hiddenDim)
 
-  })
-  
-  /*
-  graph.c2v.value = Nd4j.readNumpy("/home/harper/dataset/numpy/c2v.npy")
-  graph.wf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wf.npy")
-  graph.bf.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bf.npy")
-  graph.wi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wi.npy")
-  graph.bi.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bi.npy")
-  graph.wc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wc.npy")
-  graph.bc.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bc.npy")
-  graph.wo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/wo.npy")
-  graph.bo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bo.npy")
-  graph.v2c.value = Nd4j.readNumpy("/home/harper/dataset/numpy/v.npy")
-*/
+  val trainer = new LSTMTrainer(trainset, testset, traingraph) {
+    override def evaluate(testBatchSize: Int) = {
+      super.evaluate(testBatchSize)
+      predict.load(traingraph.dump())
+      val prefix = 1
+      predict.build(20, prefix)
+      predict.xs(0).set(Array(getTrainSet.translate("{")(0)))
+      val sz = Nd4j.zeros(1, hiddenDim)
+      predict.h0.set(sz)
+      predict.c0.set(sz)
+      predict.test
+      println(predict.predicts.map(p => getTrainSet.translate(p.getValue.getDouble(0, 0))).mkString(""))
+    }
   }
+
+  trainer.train(50, 50, 50)
+}
