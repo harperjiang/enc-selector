@@ -30,9 +30,9 @@ import edu.uchicago.cs.encsel.ndnn.SimpleTrainer
 import org.nd4j.linalg.api.ndarray.INDArray
 
 class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
-    extends SimpleTrainer[INDArray, INDArray, MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
+    extends SimpleTrainer[INDArray, MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
 
-  protected override def setInput(batch: Batch[INDArray, INDArray], graph: MnistGraph): Unit = {
+  protected override def setupGraph(graph: MnistGraph, batch: Batch[INDArray]): Unit = {
     graph.pixelInput.set(batch.data)
   }
 }

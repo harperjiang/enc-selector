@@ -36,23 +36,23 @@ object Dataset {
   val BATCH_ALL = -1
 }
 
-trait Dataset[D, G] {
+trait Dataset[D] {
 
   protected var dataSize = -1
 
   def size: Int = dataSize
 
   def newEpoch(): Unit
-  def batches(batchSize: Int): Iterator[Batch[D, G]]
+  def batches(batchSize: Int): Iterator[Batch[D]]
 }
 
-class Batch[D, G](s: Int, d: D, gt: G) {
+class Batch[D](s: Int, d: D, gt: D) {
   val size = s
   val data = d
   val groundTruth = gt
 }
 
-abstract class DatasetBase[D, G] extends Dataset[D, G] {
+abstract class DatasetBase[D] extends Dataset[D] {
 
   protected var permuteIdx: Buffer[Int] = null
 
@@ -62,14 +62,14 @@ abstract class DatasetBase[D, G] extends Dataset[D, G] {
       Collections.shuffle(permuteIdx)
   }
 
-  protected def construct(idices: Buffer[Int]): Batch[D, G]
+  protected def construct(idices: Buffer[Int]): Batch[D]
 
   def newEpoch() = {
     // Shuffle data, generate random batch
     Collections.shuffle(permuteIdx)
   }
 
-  def batches(batchSize: Int): Iterator[Batch[D, G]] = {
+  def batches(batchSize: Int): Iterator[Batch[D]] = {
     val bSize = batchSize match { case Dataset.BATCH_ALL => dataSize case _ => batchSize }
     if (0 == bSize)
       throw new IllegalArgumentException("Batch Size is ZERO")
@@ -84,7 +84,7 @@ abstract class DatasetBase[D, G] extends Dataset[D, G] {
   }
 }
 
-abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBase[INDArray, INDArray] {
+abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBase[INDArray] {
 
   protected val dataShape = ds
   protected val gtShape = gts
@@ -103,10 +103,10 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBa
 
   protected def load(): (Int, Array[Array[Double]], Array[Array[Double]])
 
-  protected def construct(indices: Buffer[Int]): Batch[INDArray, INDArray] = {
+  protected def construct(indices: Buffer[Int]): Batch[INDArray] = {
     val bSize = indices.length
     val data = Nd4j.create(indices.flatMap { datas(_) }.toArray, Array(bSize, ds: _*))
     val gt = Nd4j.create(indices.flatMap { groundTruths(_) }.toArray, Array(bSize, gts: _*))
-    new Batch[INDArray, INDArray](indices.length, data, gt)
+    new Batch[INDArray](indices.length, data, gt)
   }
 }

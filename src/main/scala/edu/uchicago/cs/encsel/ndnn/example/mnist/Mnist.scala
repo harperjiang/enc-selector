@@ -38,5 +38,5 @@ object Mnist extends App {
   val testset = new MnistDataset(testDataFile, testLabelFile)
 
   val trainer = new MnistTrainer(trainset, testset)
-  trainer.train(30, true)
+  trainer.train(30)
 }

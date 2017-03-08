@@ -22,7 +22,7 @@
 
 package edu.uchicago.cs.encsel.ndnn
 
-import java.io.{DataInputStream, DataOutputStream, FileInputStream, FileOutputStream}
+import java.io.{ DataInputStream, DataOutputStream, FileInputStream, FileOutputStream }
 
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
@@ -31,12 +31,17 @@ import scala.collection.GenIterable
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * Interface to store and load params
-  */
+ * Interface to store and load params
+ */
 trait ParamStore {
   def load: GenIterable[INDArray]
 
   def store(params: Array[INDArray])
+}
+
+object EmptyStore extends ParamStore {
+  def load: GenIterable[INDArray] = ArrayBuffer.empty[INDArray]
+  def store(params: Array[INDArray]) = Unit
 }
 
 class FileStore(file: String) extends ParamStore {
@@ -52,7 +57,7 @@ class FileStore(file: String) extends ParamStore {
 
   override def store(params: Array[INDArray]) = {
     val os = new DataOutputStream(new FileOutputStream(file))
-    params.foreach(param => Nd4j.write(param,os))
+    params.foreach(param => Nd4j.write(param, os))
     os.close
   }
 }
