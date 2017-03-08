@@ -33,6 +33,8 @@ import org.nd4j.linalg.factory.Nd4j
  */
 object Operations {
 
+
+
   def relu(from: INDArray, to: INDArray): INDArray = {
     Nd4j.getExecutioner().execAndReturn(new RectifedLinear(from, null, to, from.lengthLong()))
   }

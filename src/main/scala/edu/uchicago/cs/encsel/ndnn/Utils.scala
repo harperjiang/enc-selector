@@ -32,6 +32,8 @@ import org.nd4j.linalg.util.NDArrayUtil
 import org.nd4j.linalg.indexing.INDArrayIndex
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConversions._
+import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastAddOp
+import org.nd4j.linalg.api.ops.impl.broadcast.BroadcastMulOp
 
 object Index {
 
@@ -138,6 +140,46 @@ object Index {
 }
 
 object Broadcast {
+
+  /**
+   * Broadcast add
+   */
+  def add(left: INDArray, right: INDArray): INDArray = {
+    if (left.shape().sameElements(right.shape())) {
+      return left.add(right)
+    }
+    if (right.isVector()) {
+      if (left.isMatrix()) {
+        return right match {
+          case row if row.isRowVector() => left.addRowVector(row)
+          case col if col.isColumnVector() => left.addRowVector(col.transpose())
+        }
+      } else {
+        val op = new BroadcastAddOp(left, right, left.dup(), left.shape.length - 1)
+        return Nd4j.getExecutioner.execAndReturn(op)
+      }
+    }
+    throw new UnsupportedOperationException()
+  }
+
+  def mul(left: INDArray, right: INDArray): INDArray = {
+    if (left.shape().sameElements(right.shape())) {
+      return left.mul(right)
+    }
+    if (right.isVector()) {
+      if (left.isMatrix()) {
+        return right match {
+          case row if row.isRowVector() => left.mulRowVector(row)
+          case col if col.isColumnVector() => left.mulRowVector(col.transpose())
+        }
+      } else {
+        val op = new BroadcastMulOp(left, right, left.dup(), left.shape.length - 1)
+        return Nd4j.getExecutioner.execAndReturn(op)
+      }
+    }
+    throw new UnsupportedOperationException()
+  }
+
   /**
    * Assume the arrays are broadcast-able. Compute the different axis.
    */

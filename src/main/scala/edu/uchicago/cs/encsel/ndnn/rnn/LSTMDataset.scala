@@ -66,7 +66,7 @@ class LSTMDataset(file: String)(implicit extdict: LSTMDataset = null) extends Da
   // Second pass, replace characters with index
   protected val lines = strlines.map(line =>
      line.toCharArray().map(dict.getOrElse(_, 0))
-  ).sortBy(_.length)
+  ).sortBy(-_.length)
   strlines.clear
 
   this.dataSize = lines.length

@@ -56,6 +56,8 @@ class LSTMTrainGraph(Graph):
     def build(self, batch):
         # clear nodes above watermark
         del self.nodes[self.watermark:]
+        # Remove retained inputs
+        del self.inputs[2:]
         data = batch.data
         B = data.shape[0]
         T = data.shape[1]
@@ -93,6 +95,7 @@ class LSTMPredictGraph(LSTMTrainGraph):
     def build(self, prefix, expect_length):
         # clear nodes above watermark
         del self.nodes[self.watermark:]
+        del self.inputs[2:]
         
         prefix_len = len(prefix)
         hidden_dim = self.hidden_dim
