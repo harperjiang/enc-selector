@@ -306,6 +306,7 @@ class ArgMax(input: Node) extends Node(input) {
   }
 
   def updateGrad = {
+    // TODO This is jvm loop and has performance issue
     val zero = Nd4j.zerosLike(input.value)
     Index.put(zero, this.value, this.grad)
     input.grad.addi(zero)
