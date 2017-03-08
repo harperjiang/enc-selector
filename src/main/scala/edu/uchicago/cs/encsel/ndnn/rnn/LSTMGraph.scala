@@ -1,27 +1,27 @@
 /**
-  * *****************************************************************************
-  * Licensed to the Apache Software Foundation (ASF) under one
-  * or more contributor license agreements.  See the NOTICE file
-  * distributed with this work for additional information
-  * regarding copyright ownership.  The ASF licenses this file
-  * to you under the Apache License, Version 2.0 (the
-  * "License"); you may not use this file except in compliance
-  * with the License.  You may obtain a copy of the License at
-  *
-  * http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing,
-  * software distributed under the License is distributed on an
-  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  * KIND, either express or implied.  See the License for the
-  * specific language governing permissions and limitations
-  * under the License.
-  *
-  * Contributors:
-  * Hao Jiang - initial API and implementation
-  *
-  * *****************************************************************************
-  */
+ * *****************************************************************************
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * Contributors:
+ * Hao Jiang - initial API and implementation
+ *
+ * *****************************************************************************
+ */
 package edu.uchicago.cs.encsel.ndnn.rnn
 
 import scala.collection.mutable.ArrayBuffer
@@ -35,13 +35,17 @@ import edu.uchicago.cs.encsel.ndnn.Input
 import edu.uchicago.cs.encsel.ndnn.Node
 import edu.uchicago.cs.encsel.ndnn.SGD
 import edu.uchicago.cs.encsel.ndnn.SoftMax
-import edu.uchicago.cs.encsel.ndnn.SoftMaxLogLoss
 import edu.uchicago.cs.encsel.ndnn.Xavier
 import edu.uchicago.cs.encsel.ndnn.Zero
+import edu.uchicago.cs.encsel.ndnn.Adam
+import edu.uchicago.cs.encsel.ndnn.UpdatePolicy
 
-class LSTMGraph(numChar: Int, hiddenDim: Int)
-  extends Graph[Array[Array[Int]]](Xavier, new SGD(0.5, 0.95, 10), new LSTMLoss) {
+class LSTMGraph(numChar: Int, hiddenDim: Int,
+  updatePolicy: UpdatePolicy = new Adam(0.5, 0.95, 0.95, 0.95, 10))
+    extends Graph[Array[Array[Int]]](Xavier, updatePolicy, new LSTMLoss) {
 
+  def hiddenDimension = hiddenDim;
+  
   val c2v = param("c2v", Array(numChar, hiddenDim))
   val v2c = param("v2c", Array(hiddenDim, numChar))
   val inputSize = 2 * hiddenDim
@@ -93,13 +97,20 @@ class LSTMGraph(numChar: Int, hiddenDim: Int)
 }
 
 class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
-  extends LSTMGraph(numChar, hiddenDim) {
+    extends LSTMGraph(numChar, hiddenDim) {
+
+  val predicts = new ArrayBuffer[Node]
+
+  override def clean = {
+    super.clean
+    predicts.clear
+  }
 
   def build(length: Int, predictLength: Int): Unit = {
     clean
 
-    var h : Node = h0
-    var c : Node = c0
+    var h: Node = h0
+    var c: Node = c0
     // Extend RNN to the expected size and build connections between cells
     for (i <- 0 until length) {
 
@@ -113,6 +124,7 @@ class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
           realin
         }
       }
+      predicts += in
       val mapped = new Embed(in, c2v)
 
       val newNode = LSTMCell.build(wf, bf, wi, bi,

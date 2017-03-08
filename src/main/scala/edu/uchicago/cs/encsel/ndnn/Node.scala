@@ -80,11 +80,13 @@ abstract class Node(is: Node*) {
 
   def forward: Unit = {
     compute
-    if (this.grad == null ||
-      !this.grad.shape.sameElements(this.value.shape)) {
-      this.grad = Nd4j.zerosLike(this.value)
-    } else {
-      this.grad.assign(0)
+    if (this.value != null) {
+      if (this.grad == null ||
+        !this.grad.shape.sameElements(this.value.shape)) {
+        this.grad = Nd4j.zerosLike(this.value)
+      } else {
+        this.grad.assign(0)
+      }
     }
   }
   def backward: Unit = updateGrad
@@ -92,6 +94,7 @@ abstract class Node(is: Node*) {
   def compute: Unit
   def updateGrad: Unit
 
+  def getValue = value
 }
 
 class Input(n: String) extends Node {

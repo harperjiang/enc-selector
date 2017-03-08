@@ -52,7 +52,7 @@ class LSTMLossTest {
       Array(0.3d, 0.1d, 0.15d, 0.05d, 0.4d),
       Array(0, 0, 0, 0, 1d))).reshape(1, 4, 5)
     val label = Array(Array(3, 2, 4, 0))
-
+    sloss.loss(prob, label, false)
     val grad = sloss.gradient
 
     assertArrayEquals(Array(1, 4, 5), grad.shape())
@@ -82,7 +82,7 @@ class LSTMLossTest {
         Array(0.2d, 0.3d, 0.1d, 0.20d, 0.20d),
         Array(0.3d, 0.1d, 0.15d, 0.15d, 0.3d))))
     val label = Array(Array(3, 2, 4), Array(1, 1, 0))
-
+    sloss.loss(prob, label, false)
     val grad = sloss.gradient
 
     assertArrayEquals(Array(2, 3, 5), grad.shape())
@@ -106,7 +106,7 @@ class LSTMLossTest {
       Array(0.2d, 0.3d, 0.1d, 0.15d, 0.25d),
       Array(0.3d, 0.1d, 0.15d, 0.05d, 0.4d))).reshape(1, 3, 5)
     val label = Array(Array(2, 1, 1))
-
+    sloss.loss(prob, label, false)
     assertEquals(2, sloss.accuracy)
   }
 

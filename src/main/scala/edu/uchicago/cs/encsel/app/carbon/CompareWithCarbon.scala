@@ -33,6 +33,8 @@ import edu.uchicago.cs.encsel.model.DataType
 import scala.collection.JavaConversions._
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
+import scala.io.Source
+import scala.collection.mutable.HashMap
 
 object CompareWithCarbon extends App {
 
@@ -40,7 +42,7 @@ object CompareWithCarbon extends App {
   val schema = new Schema(Array((DataType.STRING, "id")), false)
   val carbonRoot = "/home/hajiang/incubator-carbondata/bin/carbonshellstore/default"
 
-  compareSize
+  genReport
 
   def compareSize: Unit = {
     val parser = new CommonsCSVParser
@@ -66,5 +68,35 @@ object CompareWithCarbon extends App {
 
   def folderSize(folder: Path): Long = {
     Files.walk(folder).iterator().filter { !Files.isDirectory(_) }.map(p => new File(p.toUri).length()).sum
+  }
+
+  def genReport = {
+    val dictData = new HashMap[(Int, Int), Int]
+    val carbonData = new HashMap[(Int, Int), Int]
+
+    Source.fromFile("/home/harper/enc_workspace/carbon_size").getLines().foreach(
+      line => {
+        val parts = line.split(",")
+        val plain = parts(1).toInt
+        val dict = parts(2).toInt
+        val carbon = parts(3).toInt
+        val distinct = parts(4).toInt
+
+        val bin = (Math.round(Math.log10(dict.toDouble / carbon.toDouble))).toInt
+        val distBin = Math.floor(Math.log10(distinct)).toInt match {
+          case le2 if le2 <= 2 => 0
+          case 3 => 1
+          case 4 => 2
+          case 5 => 3
+          case _ => 4
+        }
+
+        val dictkey = (bin, distBin)
+
+        dictData.put(dictkey, dictData.getOrElseUpdate(dictkey, 0) + 1)
+
+      })
+
+    println(dictData)
   }
 }

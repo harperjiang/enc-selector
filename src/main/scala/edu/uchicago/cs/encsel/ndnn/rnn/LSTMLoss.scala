@@ -20,6 +20,9 @@ class LSTMLoss extends LossFunction[Array[Array[Int]]] {
    *
    */
   def loss(actual: INDArray, expected: Array[Array[Int]], fortest: Boolean): Double = {
+    if (expected == null || expected.isEmpty) {
+      throw new IllegalArgumentException("Expected value not set")
+    }
     val shape = actual.shape()
     val l = shape(0)
     val b = shape(1)
