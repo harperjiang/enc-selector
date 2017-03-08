@@ -60,8 +60,8 @@ class LSTMCellTest {
     val hout = cell.hout.value
     val cout = cell.cout.value
 
-    val cexpect = Nd4j.create(Array(Array(0.5405, 0.5203, 0.5331), Array(0.5404, 0.5388, 0.5203)))
-    val hexpect = Nd4j.create(Array(Array(0.2504, 0.2401, 0.2463), Array(0.2516, 0.2485, 0.2425)))
+    val cexpect = Nd4j.create(Array(Array(0.54790634,  0.52818812,  0.52007031), Array(0.54047421,  0.5254888 ,  0.52014528)))
+    val hexpect = Nd4j.create(Array(Array(0.25571027,  0.24441732,  0.24246003), Array(0.25283897,  0.24337213,  0.24129505)))
 
     assertArrayEquals(Array(2, 3), hout.shape)
     assertArrayEquals(Array(2, 3), cout.shape)
