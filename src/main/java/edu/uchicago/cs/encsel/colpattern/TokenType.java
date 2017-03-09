@@ -20,20 +20,8 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.colpattern
+package edu.uchicago.cs.encsel.colpattern;
 
-class Token(t: TokenType, c: String) {
-  val tokenType: TokenType = t
-  val content = c
-
-  override def toString = c
-}
-/**
- * Created by harper on 3/8/17.
- */
-object Lexer {
-
-  def tokenize(line: String): Iterator[Token] = {
-    throw new UnsupportedOperationException()
-  }
+public enum TokenType {
+	STRING, INT, DOUBLE, SEPARATOR
 }
