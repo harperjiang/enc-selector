@@ -22,18 +22,27 @@
 
 package edu.uchicago.cs.encsel.colpattern
 
-class Token(t: TokenType, c: String) {
-  val tokenType: TokenType = t
-  val content = c
+import edu.uchicago.cs.encsel.model.DataType
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.Set
 
-  override def toString = c
+trait Section {
+  var optional: Boolean = false
 }
-/**
- * Created by harper on 3/8/17.
- */
-object Lexer {
 
-  def tokenize(line: String): Iterator[Token] = {
+class CategorySection extends Section {
+  val categorySet: Set[String] = new HashSet[String]()
+}
+
+class BinarySection extends Section {
+  var dataType: DataType = DataType.STRING
+}
+
+class Pattern(secs: IndexedSeq[Section]) {
+
+  def sections: IndexedSeq[Section] = secs
+
+  def parse(data: String): IndexedSeq[String] = {
     throw new UnsupportedOperationException()
   }
 }
