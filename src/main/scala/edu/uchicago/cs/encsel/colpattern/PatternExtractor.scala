@@ -25,7 +25,7 @@ package edu.uchicago.cs.encsel.colpattern
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
-abstract class PatternExtractor {
+class PatternExtractor {
 
   private val lexer = Lexer
 
@@ -44,15 +44,6 @@ abstract class PatternExtractor {
     val lineCount = lines.length
     wordFrequency ++= tokenGroup.mapValues(_.toDouble / lineCount)
 
-    sections.clear
-    val numTokens = tokens.map(_.length).max
-    sections ++= (0 until numTokens).map(i => new BinarySection())
-
-    while (true) {
-      val assignments = tokens.map(line_match(_))
-      re_section(assignments)
-    }
-    new Pattern(sections)
   }
   /**
    * Look for the match with minimal loss for the given line

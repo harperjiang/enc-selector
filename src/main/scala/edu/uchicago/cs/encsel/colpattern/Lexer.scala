@@ -34,6 +34,6 @@ class Token(t: TokenType, c: String) {
 object Lexer {
 
   def tokenize(line: String): Iterator[Token] = {
-    throw new UnsupportedOperationException()
+    line.split("\\s+").map(new Token(TokenType.STRING,_)).toIterator
   }
 }
