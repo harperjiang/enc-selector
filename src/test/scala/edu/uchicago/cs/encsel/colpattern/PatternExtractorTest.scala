@@ -22,18 +22,22 @@
 
 package edu.uchicago.cs.encsel.colpattern
 
-class Token(t: TokenType, c: String) {
-  val tokenType: TokenType = t
-  val content = c
+import org.junit.Test
 
-  override def toString = c
-}
+import scala.io.Source
+
 /**
- * Created by harper on 3/8/17.
- */
-object Lexer {
+  * Created by harper on 3/9/17.
+  */
+class PatternExtractorTest {
 
-  def tokenize(line: String): Iterator[Token] = {
-    line.split("\\s+").map(new Token(TokenType.STRING,_)).toIterator
+  @Test
+  def testExtractFile:Unit = {
+
+    val lines = Source.fromFile("src/test/resource/sample_address").getLines.toSeq
+
+    val extractor = new PatternExtractor
+
+    extractor.extract(lines)
   }
 }
