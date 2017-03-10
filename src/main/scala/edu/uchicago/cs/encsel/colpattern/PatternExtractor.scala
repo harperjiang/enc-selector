@@ -25,6 +25,10 @@ package edu.uchicago.cs.encsel.colpattern
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
+object PatternExtractor {
+  val threshold = 0.1
+}
+
 class PatternExtractor {
 
   private val lexer = Lexer
@@ -34,25 +38,26 @@ class PatternExtractor {
 
   def extract(lines: Seq[String]): Pattern = {
 
-    val tokens = lines.map(lexer.tokenize(_).toIndexedSeq)
+    val tokens = lines.map(lexer.tokenize(_)
+      .map(_.content).toIndexedSeq)
 
     // Compute word frequency
     wordFrequency.clear()
-
-    val tokenGroup = tokens.map(_.map(_.toString).toSet.toList)
+    val tokenGroup = tokens.map(_.toSet.toList)
       .flatten.groupBy(k => k).mapValues(_.length)
     val lineCount = lines.length
     wordFrequency ++= tokenGroup.mapValues(_.toDouble / lineCount)
 
+    // Look for hot spots in lines
+    val hspots = tokens.map(hotspots(_))
+    null
   }
   /**
-   * Look for the match with minimal loss for the given line
+   * Look for hot spots in each line. Hot spots are words that frequently occurs
+   * in text. The returned type is (text, frequency)
    */
-  protected def line_match(tokens: IndexedSeq[Token]): IndexedSeq[Int] = {
-    throw new UnsupportedOperationException()
-  }
-
-  protected def re_section(assigns: Seq[IndexedSeq[Int]]): IndexedSeq[Section] = {
-    throw new UnsupportedOperationException()
+  protected def hotspots(line: IndexedSeq[String]): Array[(String, Double)] = {
+    line.map(word => (word, wordFrequency.getOrElse(word, 0d)))
+      .filter(_._2 >= PatternExtractor.threshold).toArray
   }
 }
