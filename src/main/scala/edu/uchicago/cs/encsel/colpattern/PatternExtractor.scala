@@ -127,8 +127,17 @@ class PatternExtractor {
    * 					3 => The value in a and b match here
    */
   def similar(a: IndexedSeq[INDArray], b: IndexedSeq[INDArray]): Array[Int] = {
-    var maxdist = a.length + b.length
-    var store = (0 to maxdist).map(i => new Array[Double](maxdist)).toArray
+    val maxdist = a.length + b.length + 1
+    val store = (0 to maxdist).map(i => new Array[Double](maxdist)).toArray
+    val path = (0 to maxdist).map(i => new Array[(Int, Int)](maxdist)).toArray
 
+    (0 to maxdist).foreach(i => {
+      store(0)(i) = 0
+      path(0)(i) = (0, 1)
+      store(i)(0) = 0
+      path(i)(0) = (1, 0)
+    })
+
+    null
   }
 }
