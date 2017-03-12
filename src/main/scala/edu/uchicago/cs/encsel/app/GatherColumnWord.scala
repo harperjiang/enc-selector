@@ -25,10 +25,12 @@
 package edu.uchicago.cs.encsel.app
 
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
-import edu.uchicago.cs.encsel.dataset.wordvec.WordSplit
+
 import scala.collection.mutable.HashSet
 import java.io.PrintWriter
 import java.io.FileOutputStream
+
+import edu.uchicago.cs.encsel.word.WordSplit
 import org.slf4j.LoggerFactory
 
 object GatherColumnWord extends App {
