@@ -24,20 +24,21 @@ package edu.uchicago.cs.encsel.colpattern
 
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
+import scala.collection.Set
 
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.ops.transforms.Transforms
 
 import edu.uchicago.cs.encsel.word.WordVecDict
 
-class WordGroup(total: Int) {
+class WordGroup {
 
   protected var sumVec: Option[INDArray] = None
   protected var counter = 0
-  protected val words = new HashMap[String, Int]
+  protected val wordCounter = new HashMap[String, Int]
 
   def add(word: String, wvec: INDArray): Unit = {
-    words.put(word, words.getOrElseUpdate(word, 0) + 1)
+    wordCounter.put(word, wordCounter.getOrElseUpdate(word, 0) + 1)
     sumVec = sumVec match {
       case None => Some(wvec)
       case Some(e) => Some(e.addi(wvec))
@@ -49,11 +50,81 @@ class WordGroup(total: Int) {
     case None => null
     case Some(sum) => sum.divi(counter)
   }
+
+  def words: Set[String] = wordCounter.keySet
 }
 
 object PatternExtractor {
+  /**
+    * Threshold of popular words
+    */
   val threshold = 0.1
-  val similarity = 0.2
+
+  /**
+    * Find a combination that maximize the similarity using dynamic programming.
+    *
+    * The algorithm initialize a 2d array <strong>store</strong> of size
+    * [a.length + 1, b.length + 1], of which the element [i + 1,j + 1] represents the
+    * maximal similarity up to a_i and b_j, and a 2d array <strong>path</strong> of
+    * the same size, with elements indicating the matching path up to here.
+    *
+    * The value in store is caculated as following:
+    * store[i,j] = max( store[i, j - 1],
+    * store[i - 1, j],
+    * store[i - 1, j - 1] + sim(a[i-1],j[i-1]))
+    *
+    * Case 1 represents a_{i-1} does not participate in match
+    * Case 2 represents b_{j-1} does not participate in match
+    * Case 3 represents a_{i-1} and b_{j-1} are matched and their contirbution
+    * is calculated using the sim function
+    *
+    * @return an array representing the matching pair. The number in the tuple represents
+    *         the index in a and b
+    */
+  def similar(a: IndexedSeq[INDArray], b: IndexedSeq[INDArray]): IndexedSeq[(Int, Int)] = {
+    val store = (0 to a.length).map(i => new Array[Double](b.length + 1)).toArray
+    val path = (0 to a.length).map(i => new Array[(Int, Int)](b.length + 1)).toArray
+
+    (0 to a.length).foreach(i => {
+      store(i)(0) = 0
+      path(i)(0) = (0, 0)
+    })
+    (0 to b.length).foreach(i => {
+      store(0)(i) = 0
+      path(0)(i) = (0, 0)
+    })
+
+    for (ai <- 1 to a.length; bi <- 1 to b.length) {
+      val cosine_sim = Transforms.cosineSim(a(ai - 1), b(bi - 1))
+      // Compute the score
+      val max = Array(store(ai)(bi - 1), store(ai - 1)(bi),
+        store(ai - 1)(bi - 1) + cosine_sim)
+        .zipWithIndex.maxBy(_._1)
+      store(ai)(bi) = max._1
+      // A match is used, record the path
+      path(ai)(bi) = max._2 match {
+        case 0 => (ai, bi - 1)
+        case 1 => (ai - 1, bi)
+        case 2 => (ai - 1, bi - 1)
+        case _ => throw new IllegalArgumentException("Unexpected Option")
+      }
+    }
+
+    // Look backward for path
+    val maxpath = new ArrayBuffer[(Int, Int)]
+    var apointer = a.length
+    var bpointer = b.length
+
+    while (apointer > 0 && bpointer > 0) {
+      val next = path(apointer)(bpointer)
+      if (next == (apointer - 1, bpointer - 1)) {
+        maxpath.insert(0, (apointer - 1, bpointer - 1))
+      }
+      apointer = next._1
+      bpointer = next._2
+    }
+    maxpath
+  }
 }
 
 class PatternExtractor {
@@ -63,7 +134,7 @@ class PatternExtractor {
   private val wordFrequency = new HashMap[String, Double]
   private val sections = new ArrayBuffer[Section]
 
-  private val dict = new WordVecDict("/home/harper/Downloads/glove.42B.300d.txt")
+  private val dict = new WordVecDict("/home/harper/Downloads/glove.840B.300d.txt")
 
   def extract(lines: Seq[String]): Pattern = {
 
@@ -82,12 +153,12 @@ class PatternExtractor {
       .filter(_._2 >= PatternExtractor.threshold).map(_._1).toArray).toArray
 
     // Align hot spots. This looks for an assignment that minimize the entropy
-    align(hspots)
+    val aligned = align(hspots)
 
     null
   }
 
-  def align(hotspots: Array[Array[String]]): Array[Set[String]] = {
+  def align(hotspots: Array[Array[String]]): IndexedSeq[Set[String]] = {
     val numLine = hotspots.length
     val groups = new ArrayBuffer[WordGroup]
 
@@ -95,49 +166,34 @@ class PatternExtractor {
       val hsval = hs.map(k => (k, dict.find(k)))
         .filter(!_._2.isEmpty).map(p => (p._1, p._2.get))
       val grpval = groups.map(_.repr)
-      val assign = similar(hsval.map(_._2), grpval)
-      var acounter = 0
-      var bcounter = 0
+      val assign = PatternExtractor.similar(hsval.map(_._2), grpval)
       val newgroups = new ArrayBuffer[WordGroup]
-      assign.foreach(_ match {
-        case 1 => { // Add a new group
-          val ng = new WordGroup(numLine)
-          val hswd = hsval(acounter)
-          ng.add(hswd._1, hswd._2)
-          acounter += 1
-          newgroups += ng
-        }
-        case 2 => bcounter += 1
-        case 3 => {
-          acounter += 1
-          bcounter += 1
-        }
+
+      var apointer = 0
+      var bpointer = 0
+
+      assign.foreach(pair => {
+        val hsi = pair._1
+        val grpi = pair._2
+        newgroups ++=
+          (apointer until hsi).map { i => {
+            val newgroup = new WordGroup
+            newgroup.add(hsval(i)._1, hsval(i)._2)
+            newgroup
+          }
+          }
+        newgroups ++=
+          (bpointer until grpi).map(groups(_))
+        val newwd = hsval(hsi)
+        val grp = groups(grpi)
+        grp.add(newwd._1, newwd._2)
+        newgroups += grp
+        apointer = hsi + 1
+        bpointer = grpi + 1
       })
+      groups.clear()
+      groups ++= newgroups
     })
-
-    null
-  }
-
-  /**
-   * Find a combination that maximize the similarity
-   *
-   * @return an array representing the assignment.
-   * 					1 => The value is from a
-   * 					2 => The value is from b
-   * 					3 => The value in a and b match here
-   */
-  def similar(a: IndexedSeq[INDArray], b: IndexedSeq[INDArray]): Array[Int] = {
-    val maxdist = a.length + b.length + 1
-    val store = (0 to maxdist).map(i => new Array[Double](maxdist)).toArray
-    val path = (0 to maxdist).map(i => new Array[(Int, Int)](maxdist)).toArray
-
-    (0 to maxdist).foreach(i => {
-      store(0)(i) = 0
-      path(0)(i) = (0, 1)
-      store(i)(0) = 0
-      path(i)(0) = (1, 0)
-    })
-
-    null
+    groups.map(_.words)
   }
 }
