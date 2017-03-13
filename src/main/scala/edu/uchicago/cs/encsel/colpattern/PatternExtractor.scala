@@ -191,6 +191,15 @@ class PatternExtractor {
         apointer = hsi + 1
         bpointer = grpi + 1
       })
+      newgroups ++=
+        (apointer until hsval.length).map { i => {
+          val newgroup = new WordGroup
+          newgroup.add(hsval(i)._1, hsval(i)._2)
+          newgroup
+        }
+        }
+      newgroups ++=
+        (bpointer until groups.length).map(groups(_))
       groups.clear()
       groups ++= newgroups
     })
