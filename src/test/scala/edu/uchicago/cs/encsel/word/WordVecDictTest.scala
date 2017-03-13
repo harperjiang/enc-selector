@@ -6,7 +6,7 @@ class WordVecDictTest {
 
   @Test
   def testFind: Unit = {
-    val words = new WordVecDict("/home/harper/Downloads/glove.42B.300d.txt")
+    val words = new WordEmbedDict("/home/harper/Downloads/glove.42B.300d.txt")
 
     println(words.compare("st.", "rd."))
     println(words.compare("street", "st."))
