@@ -159,7 +159,6 @@ class PatternExtractor {
   }
 
   def align(hotspots: Array[Array[String]]): IndexedSeq[Set[String]] = {
-    val numLine = hotspots.length
     val groups = new ArrayBuffer[WordGroup]
 
     hotspots.foreach(hs => {
@@ -172,18 +171,17 @@ class PatternExtractor {
       var apointer = 0
       var bpointer = 0
 
+      val createGroup = (i: Int) => {
+        val newgroup = new WordGroup
+        newgroup.add(hsval(i)._1, hsval(i)._2)
+        newgroup
+      }
+
       assign.foreach(pair => {
         val hsi = pair._1
         val grpi = pair._2
-        newgroups ++=
-          (apointer until hsi).map { i => {
-            val newgroup = new WordGroup
-            newgroup.add(hsval(i)._1, hsval(i)._2)
-            newgroup
-          }
-          }
-        newgroups ++=
-          (bpointer until grpi).map(groups(_))
+        newgroups ++= (apointer until hsi).map(createGroup(_))
+        newgroups ++= (bpointer until grpi).map(groups(_))
         val newwd = hsval(hsi)
         val grp = groups(grpi)
         grp.add(newwd._1, newwd._2)
@@ -191,15 +189,8 @@ class PatternExtractor {
         apointer = hsi + 1
         bpointer = grpi + 1
       })
-      newgroups ++=
-        (apointer until hsval.length).map { i => {
-          val newgroup = new WordGroup
-          newgroup.add(hsval(i)._1, hsval(i)._2)
-          newgroup
-        }
-        }
-      newgroups ++=
-        (bpointer until groups.length).map(groups(_))
+      newgroups ++= (apointer until hsval.length).map(createGroup(_))
+      newgroups ++= (bpointer until groups.length).map(groups(_))
       groups.clear()
       groups ++= newgroups
     })
