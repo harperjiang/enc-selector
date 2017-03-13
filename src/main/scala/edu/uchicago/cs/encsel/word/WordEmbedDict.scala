@@ -28,18 +28,18 @@ import scala.io.Source
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 
-object WordVecDict {
+object WordEmbedDict {
   val bufferSize = 500
 }
 
-class WordVecDict(source: String) {
+class WordEmbedDict(source: String) {
 
   val buffer = new HashMap[String, Option[INDArray]]
 
   def find(key: String): Option[INDArray] = {
     buffer.getOrElseUpdate(key, {
-      if (buffer.size >= WordVecDict.bufferSize) {
-        buffer.drop(buffer.size - WordVecDict.bufferSize + 1)
+      if (buffer.size >= WordEmbedDict.bufferSize) {
+        buffer.drop(buffer.size - WordEmbedDict.bufferSize + 1)
       }
       load(key)
     })
