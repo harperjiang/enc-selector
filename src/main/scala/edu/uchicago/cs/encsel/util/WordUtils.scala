@@ -92,7 +92,7 @@ object WordUtils {
    * @return an array representing the matching pair. The number in the tuple represents
    *         the index in a and b
    */
-  def similar(a: IndexedSeq[INDArray], b: IndexedSeq[INDArray]): IndexedSeq[(Int, Int)] = {
+  def similar(a: Seq[INDArray], b: Seq[INDArray]): Seq[(Int, Int)] = {
     val store = (0 to a.length).map(i => new Array[Double](b.length + 1)).toArray
     val path = (0 to a.length).map(i => new Array[(Int, Int)](b.length + 1)).toArray
 

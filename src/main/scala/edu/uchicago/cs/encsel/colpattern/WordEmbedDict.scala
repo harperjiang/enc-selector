@@ -20,34 +20,48 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.word
+package edu.uchicago.cs.encsel.colpattern
 
-import scala.collection.mutable.HashMap
 import org.nd4j.linalg.api.ndarray.INDArray
-import scala.io.Source
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
+
+import scala.collection.mutable.HashMap
+import scala.io.Source
 
 object WordEmbedDict {
   val bufferSize = 500
 }
 
+/**
+  * Read word embedding files
+  * @param source the dictionary file to load
+  */
 class WordEmbedDict(source: String) {
 
-  val buffer = new HashMap[String, Option[INDArray]]
+  private val buffer = new HashMap[String, Option[INDArray]]
+  private val additional = new HashMap[String, Option[INDArray]]
 
   def find(key: String): Option[INDArray] = {
-    buffer.getOrElseUpdate(key, {
-      if (buffer.size >= WordEmbedDict.bufferSize) {
-        buffer.drop(buffer.size - WordEmbedDict.bufferSize + 1)
-      }
-      load(key)
-    })
+    if (additional.contains(key))
+      additional.getOrElse(key, None)
+    else
+      buffer.getOrElseUpdate(key, {
+        if (buffer.size >= WordEmbedDict.bufferSize) {
+          buffer.drop(buffer.size - WordEmbedDict.bufferSize + 1)
+        }
+        load(key)
+      })
+  }
+
+  def addPhrase(text: String, words: Array[String]) = {
+    val sum = words.map(find(_)).flatten.reduce((a, b) => a.add(b))
+    additional.put(text, Some(sum))
   }
 
   /**
-   * Compute the cosine similarity between two vectors
-   */
+    * Compute the cosine similarity between two vectors
+    */
   def compare(word1: String, word2: String): Double = {
     val data1 = find(word1)
     val data2 = find(word2)
@@ -59,10 +73,12 @@ class WordEmbedDict(source: String) {
 
   protected def load(key: String): Option[INDArray] = {
     val found = Source.fromFile(source).getLines.map(_.split("\\s+"))
-      .find { _(0).equals(key) }
+      .find {
+        _ (0).equals(key)
+      }
     found.isEmpty match {
       case true => None
-      case _ => Some(Nd4j.create(found.get.drop(1).map { _.toDouble }))
+      case _ => Some(Nd4j.create(found.get.drop(1).map(_.toDouble)))
     }
   }
 }

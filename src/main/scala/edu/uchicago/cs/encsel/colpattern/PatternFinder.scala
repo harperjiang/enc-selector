@@ -25,11 +25,8 @@ package edu.uchicago.cs.encsel.colpattern
 import scala.collection.Set
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
-
 import org.nd4j.linalg.api.ndarray.INDArray
-
 import edu.uchicago.cs.encsel.util.WordUtils
-import edu.uchicago.cs.encsel.word.WordEmbedDict
 
 
 class WordGroup {
@@ -42,17 +39,42 @@ class WordGroup {
     wordCounter.put(word, wordCounter.getOrElseUpdate(word, 0) + 1)
     sumVec = sumVec match {
       case None => Some(wvec)
-      case Some(e) => Some(e.addi(wvec))
+      case Some(e) => Some(e.add(wvec))
     }
     counter += 1
   }
 
   def repr: INDArray = sumVec match {
     case None => null
-    case Some(sum) => sum.divi(counter)
+    case Some(sum) => sum.div(counter)
   }
 
   def words: Set[String] = wordCounter.keySet
+}
+
+object Phrase {
+  /**
+    * Find all children combinations of the words(at least 2), long to short
+    * @param words
+    * @return
+    */
+  def children(words: Array[String]): Iterator[Array[String]] = {
+    throw new UnsupportedOperationException("Not implemented")
+  }
+}
+
+class Phrase(words: Array[String], p: Phrase) {
+  val content = words
+  var parent = Some(p)
+
+  override def hashCode(): Int = content.hashCode()
+
+  override def equals(obj: scala.Any): Boolean = {
+    if (obj.isInstanceOf[Phrase]) {
+      return content.equals(obj.asInstanceOf[Phrase].content)
+    }
+    return super.equals(obj)
+  }
 }
 
 object PatternFinder {
@@ -65,35 +87,101 @@ object PatternFinder {
 class PatternFinder {
 
   private val lexer = Lexer
-
   private val wordFrequency = new HashMap[String, Double]
-  private val sections = new ArrayBuffer[Section]
 
   private val dict = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
 
   def extract(lines: Seq[String]): Pattern = {
-
+    // Parse sentences to tokens
     val tokens = lines.map(lexer.tokenize(_)
-      .map(_.content.toLowerCase()).toIndexedSeq)
+      .map(_.content.toLowerCase()).toSeq)
 
     // Compute word frequency
-    wordFrequency.clear()
+    // Multiple words in each sentence are counted once
+    // Only count words appear in more than one sentences
     val tokenGroup = tokens.map(_.toSet.toList)
       .flatten.groupBy(k => k).mapValues(_.length).filter(_._2 > 1)
     val lineCount = lines.length
+    wordFrequency.clear
     wordFrequency ++= tokenGroup.mapValues(_.toDouble / lineCount)
 
     // Look for hot spots in lines
-    val hspots = tokens.map(_.map(word => (word, wordFrequency.getOrElse(word, 0d)))
-      .filter(_._2 >= PatternFinder.threshold).map(_._1).toArray).toArray
+    val hspots = tokens.map(_.zipWithIndex.map(word =>
+      (word._1, word._2, wordFrequency.getOrElse(word._1, 0d)))
+      .filter(_._3 >= PatternFinder.threshold))
 
-    // Align hot spots. This looks for an assignment that minimize the entropy
-    val aligned = align(hspots)
+    // Merge adjacent hotspots
+    val merged = merge(hspots)
+
+    // Group hotspots words. This looks for an assignment that maximize the word similarity
+    val grouped = group(merged)
 
     null
   }
 
-  def align(hotspots: Array[Array[String]]): IndexedSeq[Set[String]] = {
+  /**
+    * Merge adjacent hotspots with high correlation together into phrases
+    *
+    * To determine whether words should be combined, we compute the frequency of all phrases.
+    * If the frequency of a phrase is higher enough, we recognize it as an independent
+    * hotspot and replace all occurrence
+    *
+    * @param hspots (word, index, frequency) in each line
+    * @return
+    */
+  def merge(hspots: Seq[Seq[(String, Int, Double)]]): Seq[Seq[String]] = {
+    val phraseCounter = new HashMap[Array[String], Double]
+    val phraseBuffer = new ArrayBuffer[(String, Int)]
+
+    val record = {
+      val words = phraseBuffer.map(_._1).toArray
+      if (words.length > 1)
+        Phrase.children(words).foreach(p =>
+          phraseCounter.put(p, phraseCounter.getOrElseUpdate(p, 0) + 1))
+      phraseBuffer.clear
+    }
+    // Record common phrases
+    hspots.map(line => {
+      line.foreach(word => {
+        if (!phraseBuffer.isEmpty && phraseBuffer.last._2 != word._2 - 1) // non-adjacent words
+          record
+        phraseBuffer += ((word._1, word._2))
+
+      })
+      record
+    })
+    val validPhrase = phraseCounter.mapValues(_ / hspots.length)
+      .filter(_._2 >= PatternFinder.threshold)
+
+    val combine = {
+      val words = phraseBuffer.map(_._1).toArray
+      val text = words.mkString(" ")
+      // Choose the longest one when multiple words combinations are available
+      // Alternative, choose the most popular
+      val children = Phrase.children(words)
+      val valid = children.find(validPhrase.contains(_))
+      valid match {
+        case None => words
+        case Some(e) => Array(e.mkString(" "))
+      }
+    }
+    hspots.map(line => {
+      val combined = new ArrayBuffer[String]
+      line.foreach(word => {
+        if (!phraseBuffer.isEmpty && phraseBuffer.last._2 != word._2 - 1)
+          combined ++= combine
+      })
+      combined ++= combine
+    })
+  }
+
+  /**
+    * Group hotspots by their similarity.
+    *
+    * @param hotspots hotspot words in each sentence
+    * @return hotspot words separated into groups
+    */
+  def group(hotspots: Seq[Seq[String]]): Seq[Set[String]] = {
     val groups = new ArrayBuffer[WordGroup]
 
     hotspots.foreach(hs => {
