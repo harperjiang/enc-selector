@@ -22,7 +22,7 @@
 
 package edu.uchicago.cs.encsel.colpattern
 
-import scala.collection.Set
+import scala.collection.{Set, mutable}
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -55,26 +55,37 @@ class WordGroup {
 object Phrase {
   /**
     * Find all children combinations of the words(at least 2), long to short
+    *
     * @param words
     * @return
     */
-  def children(words: Array[String]): Iterator[Array[String]] = {
-    throw new UnsupportedOperationException("Not implemented")
-  }
-}
+  def children(words: Array[String]): Iterator[(Seq[String], Range)] =
+    new Iterator[(Seq[String], Range)]() {
+      val buffer = new mutable.Queue[Range]
+      val unique = new mutable.HashSet[Range]
+      buffer.enqueue(words.indices)
+      unique += words.indices
 
-class Phrase(words: Array[String], p: Phrase) {
-  val content = words
-  var parent = Some(p)
+      override def next() = {
+        val item = buffer.dequeue
+        unique.remove(item)
+        if (item.length > 2) {
+          val left = item.dropRight(1)
+          if (!unique.contains(left)) {
+            buffer.enqueue(left)
+            unique += left
+          }
+          val right = item.drop(1)
+          if (!unique.contains(right)) {
+            buffer.enqueue(right)
+            unique += right
+          }
+        }
+        (item.map(words(_)), item)
+      }
 
-  override def hashCode(): Int = content.hashCode()
-
-  override def equals(obj: scala.Any): Boolean = {
-    if (obj.isInstanceOf[Phrase]) {
-      return content.equals(obj.asInstanceOf[Phrase].content)
+      override def hasNext = !buffer.isEmpty
     }
-    return super.equals(obj)
-  }
 }
 
 object PatternFinder {
@@ -130,48 +141,57 @@ class PatternFinder {
     * @return
     */
   def merge(hspots: Seq[Seq[(String, Int, Double)]]): Seq[Seq[String]] = {
-    val phraseCounter = new HashMap[Array[String], Double]
+    val phraseCounter = new HashMap[Seq[String], Double]
     val phraseBuffer = new ArrayBuffer[(String, Int)]
 
-    val record = {
+    val record = () => {
       val words = phraseBuffer.map(_._1).toArray
       if (words.length > 1)
         Phrase.children(words).foreach(p =>
-          phraseCounter.put(p, phraseCounter.getOrElseUpdate(p, 0) + 1))
+          phraseCounter.put(p._1, phraseCounter.getOrElseUpdate(p._1, 0) + 1))
       phraseBuffer.clear
     }
     // Record common phrases
-    hspots.map(line => {
+    hspots.foreach(line => {
       line.foreach(word => {
         if (!phraseBuffer.isEmpty && phraseBuffer.last._2 != word._2 - 1) // non-adjacent words
-          record
+          record()
         phraseBuffer += ((word._1, word._2))
-
       })
-      record
+      record()
     })
     val validPhrase = phraseCounter.mapValues(_ / hspots.length)
       .filter(_._2 >= PatternFinder.threshold)
 
-    val combine = {
+    val combine = () => {
       val words = phraseBuffer.map(_._1).toArray
-      val text = words.mkString(" ")
-      // Choose the longest one when multiple words combinations are available
-      // Alternative, choose the most popular
-      val children = Phrase.children(words)
-      val valid = children.find(validPhrase.contains(_))
-      valid match {
-        case None => words
-        case Some(e) => Array(e.mkString(" "))
+      phraseBuffer.clear
+      if (words.length <= 1)
+        words
+      else {
+        // Choose the longest one when multiple words combinations are available
+        // Alternative, choose the most popular
+        val children = Phrase.children(words)
+        val valid = children.find(p => validPhrase.contains(p._1))
+        valid match {
+          case None => words
+          case Some(e) => {
+            val range = e._2
+            val before = (0 until range.start).map(words(_))
+            val after = (range.end until words.length).map(words(_)).toArray
+            before ++: Array(e._1.mkString(" ")) ++: after
+          }
+        }
       }
     }
     hspots.map(line => {
       val combined = new ArrayBuffer[String]
       line.foreach(word => {
         if (!phraseBuffer.isEmpty && phraseBuffer.last._2 != word._2 - 1)
-          combined ++= combine
+          combined ++= combine()
+        phraseBuffer += ((word._1, word._2))
       })
-      combined ++= combine
+      combined ++= combine()
     })
   }
 
