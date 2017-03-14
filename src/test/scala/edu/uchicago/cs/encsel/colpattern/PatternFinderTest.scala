@@ -47,16 +47,16 @@ class PatternFinderTest {
   @Test
   def testMerge: Unit = {
 
-    val hspots = Array(Array(("p.o.", 0, 0.1), ("box", 1, 0.1), ("street", 4, 0.4)),
-      Array(("ap", 1, 0.1), ("e", 3, 0.1), ("st.", 5, 0.1)), Array(("n", 1, 0.1), ("avenue", 3, 0.1))).map(_.toSeq)
+    val hspots = Array(Array(("p.o.", 0, 0.1), ("box", 1, 0.1), ("street", 4, 0.4), ("kk", 5, 0.3)),
+      Array(("ap", 1, 0.1), ("e", 3, 0.1), ("st.", 5, 0.1)), Array(("n", 1, 0.1), ("avenue", 3, 0.1), ("pm", 4, 0.2))).map(_.toSeq)
     val finder = new PatternFinder
     val merged = finder.merge(hspots)
 
     assertEquals(3, merged.length)
 
-    assertTrue(Array("p.o. box", "street").deep == merged(0).toArray.deep)
+    assertTrue(Array("p.o. box", "street kk").deep == merged(0).toArray.deep)
     assertTrue(Array("ap", "e", "st.").deep == merged(1).toArray.deep)
-    assertTrue(Array("n", "avenue").deep == merged(2).toArray.deep)
+    assertTrue(Array("n", "avenue pm").deep == merged(2).toArray.deep)
   }
 
   @Test
