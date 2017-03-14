@@ -20,8 +20,25 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.colpattern;
+package edu.uchicago.cs.encsel.colpattern.lexer
 
-public enum TokenType {
-	STRING, INT, DOUBLE, SEPARATOR
+import java.io.StringReader
+import java_cup.runtime.Symbol
+/**
+ * Created by harper on 3/8/17.
+ */
+object Scanner {
+
+  def scan(line: String): Iterator[Symbol] = {
+    val lexer = new Lexer(new StringReader(line))
+    return new Iterator[Symbol] {
+      var nextsym:Symbol = null
+
+      override def hasNext = {
+        nextsym = lexer.scan()
+        nextsym != null
+      }
+      override def next() = nextsym
+    }
+  }
 }
