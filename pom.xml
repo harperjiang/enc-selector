@@ -145,7 +145,24 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<plugin>
+				<groupId>de.jflex</groupId>
+				<artifactId>maven-jflex-plugin</artifactId>
+				<version>1.4.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>src/main/java</outputDirectory>
+							<lexDefinitions>
+								<lexDefinition>src/main/jflex</lexDefinition>
+							</lexDefinitions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
@@ -300,6 +317,12 @@
 			<groupId>org.nd4j</groupId>
 			<artifactId>nd4s_2.11</artifactId>
 			<version>0.7.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/de.jflex/jflex -->
+		<dependency>
+			<groupId>de.jflex</groupId>
+			<artifactId>jflex</artifactId>
+			<version>1.6.1</version>
 		</dependency>
 
 	</dependencies>

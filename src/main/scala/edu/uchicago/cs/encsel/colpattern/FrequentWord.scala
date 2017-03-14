@@ -22,18 +22,18 @@
 
 package edu.uchicago.cs.encsel.colpattern
 
-import scala.collection.{Set, mutable}
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.HashMap
 import org.nd4j.linalg.api.ndarray.INDArray
-import edu.uchicago.cs.encsel.util.WordUtils
+import org.nd4j.linalg.ops.transforms.Transforms
+
+import scala.collection.mutable.{ArrayBuffer, HashMap}
+import scala.collection.{Set, mutable}
 
 
 class WordGroup {
 
+  protected val wordCounter = new HashMap[String, Int]
   protected var sumVec: Option[INDArray] = None
   protected var counter = 0
-  protected val wordCounter = new HashMap[String, Int]
 
   def add(word: String, wvec: INDArray): Unit = {
     wordCounter.put(word, wordCounter.getOrElseUpdate(word, 0) + 1)
@@ -52,7 +52,78 @@ class WordGroup {
   def words: Set[String] = wordCounter.keySet
 }
 
-object Phrase {
+object FrequentWord {
+  /**
+    * Threshold of popular words
+    */
+  val threshold = 0.1
+
+  /**
+    * Find a combination that maximize the similarity using dynamic programming.
+    *
+    * The algorithm initialize a 2d array <strong>store</strong> of size
+    * [a.length + 1, b.length + 1], of which the element [i + 1,j + 1] represents the
+    * maximal similarity up to a_i and b_j, and a 2d array <strong>path</strong> of
+    * the same size, with elements indicating the matching path up to here.
+    *
+    * The value in store is calculated as following:
+    * store[i,j] = max( store[i, j - 1],
+    * store[i - 1, j],
+    * store[i - 1, j - 1] + sim(a[i-1],j[i-1]))
+    *
+    * Case 1 represents a_{i-1} does not participate in match
+    * Case 2 represents b_{j-1} does not participate in match
+    * Case 3 represents a_{i-1} and b_{j-1} are matched and their contirbution
+    * is calculated using the sim function
+    *
+    * @return an array representing the matching pair. The number in the tuple represents
+    *         the index in a and b
+    */
+  def similar(a: Seq[INDArray], b: Seq[INDArray]): Seq[(Int, Int)] = {
+    val store = (0 to a.length).map(i => new Array[Double](b.length + 1)).toArray
+    val path = (0 to a.length).map(i => new Array[(Int, Int)](b.length + 1)).toArray
+
+    (0 to a.length).foreach(i => {
+      store(i)(0) = 0
+      path(i)(0) = (0, 0)
+    })
+    (0 to b.length).foreach(i => {
+      store(0)(i) = 0
+      path(0)(i) = (0, 0)
+    })
+
+    for (ai <- 1 to a.length; bi <- 1 to b.length) {
+      val cosine_sim = Transforms.cosineSim(a(ai - 1), b(bi - 1))
+      // Compute the score
+      val max = Array(store(ai)(bi - 1), store(ai - 1)(bi),
+        store(ai - 1)(bi - 1) + cosine_sim)
+        .zipWithIndex.maxBy(_._1)
+      store(ai)(bi) = max._1
+      // A match is used, record the path
+      path(ai)(bi) = max._2 match {
+        case 0 => (ai, bi - 1)
+        case 1 => (ai - 1, bi)
+        case 2 => (ai - 1, bi - 1)
+        case _ => throw new IllegalArgumentException("Unexpected Option")
+      }
+    }
+
+    // Look backward for path
+    val maxpath = new ArrayBuffer[(Int, Int)]
+    var apointer = a.length
+    var bpointer = b.length
+
+    while (apointer > 0 && bpointer > 0) {
+      val next = path(apointer)(bpointer)
+      if (next == (apointer - 1, bpointer - 1)) {
+        maxpath.insert(0, (apointer - 1, bpointer - 1))
+      }
+      apointer = next._1
+      bpointer = next._2
+    }
+    maxpath
+  }
+
   /**
     * Find all children combinations of the words(at least 2), long to short
     *
@@ -86,26 +157,20 @@ object Phrase {
 
       override def hasNext = !buffer.isEmpty
     }
+
 }
 
-object PatternFinder {
-  /**
-    * Threshold of popular words
-    */
-  val threshold = 0.1
-}
+class FrequentWord {
 
-class PatternFinder {
-
-  private val lexer = Lexer
   private val wordFrequency = new HashMap[String, Double]
 
   private val dict = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
 
-  def extract(lines: Seq[String]): Pattern = {
+  def extract(lines: Seq[String]): Unit = {
     // Parse sentences to tokens
-    val tokens = lines.map(lexer.tokenize(_)
-      .map(_.content.toLowerCase()).toSeq)
+    val tokens = lines.map(lexer.Scanner.scan(_)
+      .filter(sym => sym.sym <= lexer.Sym.WORD)
+      .map(_.value.toString.toLowerCase()).toSeq)
 
     // Compute word frequency
     // Multiple words in each sentence are counted once
@@ -119,7 +184,7 @@ class PatternFinder {
     // Look for hot spots in lines
     val hspots = tokens.map(_.zipWithIndex.map(word =>
       (word._1, word._2, wordFrequency.getOrElse(word._1, 0d)))
-      .filter(_._3 >= PatternFinder.threshold))
+      .filter(_._3 >= FrequentWord.threshold))
 
     // Merge adjacent hotspots
     val merged = merge(hspots)
@@ -147,7 +212,7 @@ class PatternFinder {
     val record = () => {
       val words = phraseBuffer.map(_._1).toArray
       if (words.length > 1)
-        Phrase.children(words).foreach(p =>
+        FrequentWord.children(words).foreach(p =>
           phraseCounter.put(p._1, phraseCounter.getOrElseUpdate(p._1, 0) + 1))
       phraseBuffer.clear
     }
@@ -161,7 +226,7 @@ class PatternFinder {
       record()
     })
     val validPhrase = phraseCounter.mapValues(_ / hspots.length)
-      .filter(_._2 >= PatternFinder.threshold)
+      .filter(_._2 >= FrequentWord.threshold)
 
     val combine = () => {
       val words = phraseBuffer.map(_._1).toArray
@@ -171,7 +236,7 @@ class PatternFinder {
       else {
         // Choose the longest one when multiple words combinations are available
         // Alternative, choose the most popular
-        val children = Phrase.children(words)
+        val children = FrequentWord.children(words)
         val valid = children.find(p => validPhrase.contains(p._1))
         valid match {
           case None => words
@@ -208,7 +273,7 @@ class PatternFinder {
       val hsval = hs.map(k => (k, dict.find(k)))
         .filter(!_._2.isEmpty).map(p => (p._1, p._2.get))
       val grpval = groups.map(_.repr)
-      val assign = WordUtils.similar(hsval.map(_._2), grpval)
+      val assign = FrequentWord.similar(hsval.map(_._2), grpval)
       val newgroups = new ArrayBuffer[WordGroup]
 
       var apointer = 0
