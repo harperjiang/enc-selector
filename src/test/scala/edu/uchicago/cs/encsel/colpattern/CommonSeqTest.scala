@@ -1,6 +1,8 @@
 package edu.uchicago.cs.encsel.colpattern
 
+import edu.uchicago.cs.encsel.colpattern.lexer.Sym
 import org.junit.Test
+import org.junit.Assert._
 
 import scala.io.Source
 
@@ -19,7 +21,7 @@ class CommonSeqTest {
 
     val common = CommonSeq.find(atokens, btokens)
 
-    println(common)
+    assertEquals(2, common.size)
   }
 
   @Test
@@ -29,7 +31,20 @@ class CommonSeqTest {
 
     val extractor = new CommonSeq
 
-    extractor.extract(lines)
+    val result = extractor.extract(lines)
+    assertEquals(1, result.size)
+    val symarray = result(0).toArray
+    assertEquals(10, symarray.length)
+    assertEquals(Sym.SPACE, symarray(0).sym)
+    assertEquals(Sym.INTEGER, symarray(1).sym)
+    assertEquals(Sym.SPACE, symarray(2).sym)
+    assertEquals(Sym.LPARA, symarray(3).sym)
+    assertEquals(Sym.INTEGER, symarray(4).sym)
+    assertEquals(Sym.RPARA, symarray(5).sym)
+    assertEquals(Sym.SPACE, symarray(6).sym)
+    assertEquals(Sym.INTEGER, symarray(7).sym)
+    assertEquals(Sym.DASH, symarray(8).sym)
+    assertEquals(Sym.INTEGER, symarray(9).sym)
   }
 }
 
