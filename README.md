@@ -1,28 +1,28 @@
-# Encoding Selector
-This project explores efficient lightweight encoding for column-based databases.
+# Smart Encoding Selector
+This project explores an automated method to select efficient lightweight encoding schemes for column-based databases.
+
 ## Dataset Collection
+Our work is based on analysis and evaluation of real-world datasets. We have created an automated framework to collect datasets, extract columns from them, organize and persist the records for further analysis. The framework could accept various input formats including csv, txt, JSon and MS Excel files. It also supports recognition of column data type for unattended data collection. For further analysis purpose, the framework provides API enabling customized features to be extracted from the columns.
 
-We collect over 7000 columns extracted from over 1200 datasets with a total size of over 500G data. These datasets are all from real-world datasources and contain various data types (integer, date, address, etc.). They are a good representation of real-world data distribution.
+Using this framework, we have collected over 7000 columns from ~1200 datasets with a total size of 500G data. These datasets are all from real-world data sources and cover a rich collection of data types (integer, date, address, etc.). They are a good representation of real-world data distribution. We use Apache Parquet's built-in encoders to encode these data columns with different encoding schemes, looking for the one performing best for each column. We also developed some customized encoders to compare their performance.
 
-We use Apache Parquet to encode these data columns with different encoding schemes, looking for the one performing best for each column. 
 
-## Pattern Extraction
-Data type is crucial to a proper encoding selection. For example, storing a date info in string format requires at least 8 bytes, while storing it in integer format takes no more than 4 bytes. If we further observe the effective data range, this can further be reduced to 23 bit per record. 
+## Pattern Mining
+Data type is crucial to encoding selection. A proper data type determination can greatly reduce space requirement for encoded data. For example, storing a date field in string format requires at least 8 bytes, while storing it in integer format takes no more than 4 bytes. If we further observe the effective data range, this can be further reduced to 23 bits. However, most real-world datasets are semi-structured, in which only part of the data contains valid common structures. Pattern Mining targets at automatically identify and extract these structures, allowing more efficient encoding to be applied on them. In this project, we have developed two methods for Pattern Mining, **Common Sequence** and **Frequent Similar Words**.
 
-### Subtypes
-Besides the common known data type such as string, integer and double, there are sub-types that can achieve further compression. For example, a typical address has the following format: 1234 [NSEW] ABC [ROAD|BOULEVARD|STREET], CITY, STATE, ZIP. If encoded as string, this takes in average 30-50 bytes. While a smart encoding will take only half of it.
+### Common Sequence
+First, we notice that many patterns can be described by a sequences of tokens. E.g. a telephone number can be described by the sequence "(NUM) NUM-NUM". To look for such patterns, Common Sequence method first splits records into sequences of tokens, then look for longest non-overlapping common sub-sequences of tokens from them. 
 
-Determination of sub-types involves first tokenizing the string and then match them with maximal likelihood on each separation point. Given a set of strings, we first tokenize them using common separators such as space, comma and slash/backslash. In the ideal case, all data will have same number of tokens, which allows us to naturally match them and check the possibility of performing compression. However, in most cases the number of tokens from different lines will not be the same, which will require a matching / partitioning between fields. 
+When comparing tokens, we first make sure they are of the same type. Noticing the fact that number in general has a better compression ratio than text, we treat number tokens as equal regardless of the actual content, but force text token to be equal only when the content is the same. We then use Dynamic Programming to implement an  O(n^2l) algorithm to look for common tokens. It is then straight-forward to convert the token sequences into regular expressions that can be used for data extraction and compression.
 
-We execute the following steps to look for potential patterns:
-* Explicit separators such as comma, colon and semicolons have highest priority. 
-* Separator separating different data types, e.g. Integer - String will be honored
-* Common Words will be 
+### Frequent Similar Words
+Some patterns involve understanding of natural languages, which are obvious to human eyes, but are much harder for program to learn. For example, a typical U.S. address has the following pattern: \<Apt No.> [E|S|W|N] \<Road Name> [Rd.|Ave.|St.] \<City> \<State>, \<ZIP>. However, to extract this pattern from a list of addresses, program must have the knowledge that "Rd.", "St." and "Ave." are similar things and thus can be used as separator. To achieve this, Frequent Similar Words use NLP techniques to recognize and group these words.
+
+The algorithm first look for words appearing multiple times in different records ("frequent words"), compute their frequencies, and group the words by their similarity while maintaining their relative sequences. E.g., record 1 contains "apt" and "st.", record 2 contains "p.o. box" and "rd.". As "st." and "rd." are more similar, the grouping result will be ("apt","p.o. box") and ("rd.", "st."). These groups are then used as separators to split text into finer sequences, allowing us to further looking for common patterns. 
+ 
+We use GloVe(Global Vectors for Word Representation) from Stanford NLP group to determine the similarity of words. The dataset maps words into vectors and maintains their semantic similarity. That is, semantically similar words will have higher cosine similarity. The dataset contains 2.2 million vocabularies, which covers most daily words.
 
 ## Data Driven Encoding Prediction
 
-Given a data column, we assume the following features are available 
-* Column name
-* Limited samples of data (first several rows)
+In this project, we target at building a encoding selector that is able to "predict" the best encoding scheme by only looking at a limited section of the entire dataset(e.g., the first 1% of the records). To do this, we plan to use the collected data columns and the "ground truth" best encoding scheme to train a neural network for this purpose. 
 
-Sometimes column name contains keywords that can be used to infer data type
