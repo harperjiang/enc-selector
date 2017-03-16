@@ -20,26 +20,47 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining.lexer
-
-import java.io.StringReader
-import java_cup.runtime.Symbol
+package edu.uchicago.cs.encsel.ptnmining
 
 /**
- * Created by harper on 3/8/17.
- */
-object Scanner {
+  * Created by harper on 3/16/17.
+  */
+trait Match {
+  def group(): String
 
-  def scan(line: String): Iterator[Symbol] = {
-    val lexer = new Lexer(new StringReader(line))
-    return new Iterator[Symbol] {
-      var nextsym:Symbol = null
+  def group(idx: Int): String
+}
 
-      override def hasNext = {
-        nextsym = lexer.scan()
-        nextsym != null
+class SimpleMatch(content: String, grp: Seq[String]) extends Match {
+  def group() = content
+
+  def group(idx: Int) = grp(idx)
+}
+
+trait Pattern {
+  def find(input: String): Option[Match]
+
+  def numGroup: Int
+}
+
+class RegExPattern(re: String, g: Int) extends Pattern {
+
+  val regex = re
+
+  val compiledRegex = regex.r
+
+  def numGroup = g
+
+  def find(line: String): Option[Match] = {
+    val found = compiledRegex.findFirstIn(line)
+    found match {
+      case Some(e) => {
+        val matcher = compiledRegex.pattern.matcher(e)
+        Some(new SimpleMatch(e, (0 until g).map(matcher.group(_))))
       }
-      override def next() = nextsym
+      case None => {
+        None
+      }
     }
   }
 }

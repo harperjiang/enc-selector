@@ -22,9 +22,8 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
-import edu.uchicago.cs.encsel.util.WordUtils
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
 
 import scala.io.Source
@@ -48,7 +47,8 @@ class FrequentWordTest {
   def testMerge: Unit = {
 
     val hspots = Array(Array(("p.o.", 0, 0.1), ("box", 1, 0.1), ("street", 4, 0.4), ("kk", 5, 0.3)),
-      Array(("ap", 1, 0.1), ("e", 3, 0.1), ("st.", 5, 0.1)), Array(("n", 1, 0.1), ("avenue", 3, 0.1), ("pm", 4, 0.2))).map(_.toSeq)
+      Array(("ap", 1, 0.1), ("e", 3, 0.1), ("st.", 5, 0.1)),
+      Array(("n", 1, 0.1), ("avenue", 3, 0.1), ("pm", 4, 0.2))).map(_.toSeq)
     val finder = new FrequentWord
     val merged = finder.merge(hspots)
 
@@ -62,7 +62,21 @@ class FrequentWordTest {
   @Test
   def testGroup: Unit = {
 
+    val hspots = Array(Array("p.o.", "st."), Array("rd."),
+      Array("ap", "rd."), Array("avenue"), Array("apt", "ave."),
+      Array("apt", "e", "road"))
+      .map(_.toSeq).toSeq
+    val finder = new FrequentWord
+
+    val group = finder.group(hspots)
+
+    assertEquals(3, group.size)
+    println(group)
+    assertTrue(group(0).contains("p.o."))
+    assertTrue(group(0).contains("ap"))
+    assertTrue(group(0).contains("apt"))
   }
+
 
   @Test
   def testChildren: Unit = {
@@ -94,23 +108,23 @@ class FrequentWordTest {
 
     val similar = FrequentWord.similar(a, b)
 
-    assertTrue(Array((1,0)).deep == similar.toArray.deep)
+    assertTrue(Array((1, 0)).deep == similar.toArray.deep)
 
     val a2 = Array(d180, d0, d180)
     val b2 = Array(d0, d0)
     val similar2 = FrequentWord.similar(a2, b2)
-    assertTrue(Array((1,0)).deep == similar2.toArray.deep)
+    assertTrue(Array((1, 0)).deep == similar2.toArray.deep)
 
     val a3 = Array(d180, d180)
     val b3 = Array(d0, d0)
 
     val similar3 = FrequentWord.similar(a3, b3)
-    assertTrue(Array.empty[(Int,Int)].deep == similar3.toArray.deep)
+    assertTrue(Array.empty[(Int, Int)].deep == similar3.toArray.deep)
 
     val a4 = Array(d180, d0, d90, d0)
     val b4 = Array(d0, d0)
-    val similar4 = FrequentWord.similar(a4,b4)
-    assertTrue(Array((1,0),(3,1)).deep == similar4.toArray.deep)
+    val similar4 = FrequentWord.similar(a4, b4)
+    assertTrue(Array((1, 0), (3, 1)).deep == similar4.toArray.deep)
   }
 
 }

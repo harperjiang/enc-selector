@@ -25,7 +25,6 @@ package edu.uchicago.cs.encsel.ptnmining
 import java_cup.runtime._
 
 import edu.uchicago.cs.encsel.ptnmining.lexer.Sym
-import edu.uchicago.cs.encsel.ptnmining.lexer
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -110,6 +109,7 @@ class CommonSeq {
     * and separators
     *
     * @param lines
+    * @return common sequences
     */
   def extract(lines: Seq[String]): Seq[Seq[Symbol]] = {
     val symlines = lines.map(lexer.Scanner.scan(_).toSeq)
