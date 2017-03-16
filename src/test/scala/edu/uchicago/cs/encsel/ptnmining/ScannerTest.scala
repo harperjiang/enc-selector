@@ -1,4 +1,4 @@
-package edu.uchicago.cs.encsel.colpattern.lexer
+package edu.uchicago.cs.encsel.ptnmining.lexer
 
 import org.junit.Test
 import org.junit.Assert._

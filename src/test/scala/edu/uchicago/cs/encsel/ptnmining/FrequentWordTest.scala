@@ -20,7 +20,7 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.colpattern
+package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.util.WordUtils
 import org.junit.Test

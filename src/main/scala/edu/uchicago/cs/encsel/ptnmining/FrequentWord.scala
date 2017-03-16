@@ -20,8 +20,9 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.colpattern
+package edu.uchicago.cs.encsel.ptnmining
 
+import edu.uchicago.cs.encsel.ptnmining.lexer.{Scanner, Sym}
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.ops.transforms.Transforms
 
@@ -168,8 +169,8 @@ class FrequentWord {
 
   def extract(lines: Seq[String]): Unit = {
     // Parse sentences to tokens
-    val tokens = lines.map(lexer.Scanner.scan(_)
-      .filter(sym => sym.sym <= lexer.Sym.WORD)
+    val tokens = lines.map(Scanner.scan(_)
+      .filter(sym => sym.sym <= Sym.WORD)
       .map(_.value.toString.toLowerCase()).toSeq)
 
     // Compute word frequency

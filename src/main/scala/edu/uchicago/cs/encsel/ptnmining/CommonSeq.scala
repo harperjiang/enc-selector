@@ -20,11 +20,12 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.colpattern
+package edu.uchicago.cs.encsel.ptnmining
 
 import java_cup.runtime._
 
-import edu.uchicago.cs.encsel.colpattern.lexer.Sym
+import edu.uchicago.cs.encsel.ptnmining.lexer.Sym
+import edu.uchicago.cs.encsel.ptnmining.lexer
 
 import scala.collection.mutable.ArrayBuffer
 

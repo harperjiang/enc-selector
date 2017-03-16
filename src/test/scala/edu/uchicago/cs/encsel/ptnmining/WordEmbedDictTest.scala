@@ -1,4 +1,4 @@
-package edu.uchicago.cs.encsel.colpattern
+package edu.uchicago.cs.encsel.ptnmining
 
 import org.junit.Test
 import org.junit.Assert._
