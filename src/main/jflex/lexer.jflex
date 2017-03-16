@@ -1,7 +1,7 @@
 /**
  * Lexer for Pattern Extractor
  */
-package edu.uchicago.cs.encsel.colpattern.lexer;
+package edu.uchicago.cs.encsel.ptnmining.lexer;
 
 import java_cup.runtime.*;
 %%

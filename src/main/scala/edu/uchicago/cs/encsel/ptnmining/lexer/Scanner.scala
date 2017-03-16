@@ -20,10 +20,12 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.colpattern.lexer
+package edu.uchicago.cs.encsel.ptnmining.lexer
 
 import java.io.StringReader
 import java_cup.runtime.Symbol
+
+import edu.uchicago.cs.encsel.ptnmining.lexer.Lexer
 /**
  * Created by harper on 3/8/17.
  */
