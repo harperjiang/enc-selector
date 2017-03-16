@@ -1,10 +1,18 @@
-# Smart Encoding Selector
-This project explores an automated method to select efficient lightweight encoding schemes for column-based databases.
+# Data-Driven Encoding Selector
+This project explores an automated method to select efficient lightweight encoding schemes for column-based databases. Comparing to other techniques that reduces data storage size, lightweight encoding has the following features:
+* Fast. Lightweight encodings involve only simple operations and usually has negligible impact on data access time. 
+* Local Processing. Lightweight encoding allows operations to be applied on each tuple independently, without the need to access other tuples in the same dataset
+* In-place Query. Some lightweight encoding schemes also enables in-place query, which allows query to be directly applied on encoded data and further reduce the time needed for query processing. 
 
+However, there is no simple rule on how to choose the best encoding scheme. Existing systems either rely on database administrators' personal experience, or use simple if-else rules to make selection. In practice, none of these two methods could achieve optimal performance. Our method tries to combine the advantage of both approaches and attacks the problem in a systematic data-driven way.  
+ 
 ## Dataset Collection
 Our work is based on analysis and evaluation of real-world datasets. We have created an automated framework to collect datasets, extract columns from them, organize and persist the records for further analysis. The framework could accept various input formats including csv, txt, JSon and MS Excel files. It also supports recognition of column data type for unattended data collection. For further analysis purpose, the framework provides API enabling customized features to be extracted from the columns.
 
 Using this framework, we have collected over 7000 columns from ~1200 datasets with a total size of 500G data. These datasets are all from real-world data sources and cover a rich collection of data types (integer, date, address, etc.). They are a good representation of real-world data distribution. We use Apache Parquet's built-in encoders to encode these data columns with different encoding schemes, looking for the one performing best for each column. We also developed some customized encoders to compare their performance.
+
+### Data Analysis
+
 
 
 ## Pattern Mining
@@ -24,5 +32,8 @@ We use GloVe(Global Vectors for Word Representation) from Stanford NLP group to 
 
 ## Data Driven Encoding Prediction
 
-In this project, we target at building a encoding selector that is able to "predict" the best encoding scheme by only looking at a limited section of the entire dataset(e.g., the first 1% of the records). To do this, we plan to use the collected data columns and the "ground truth" best encoding scheme to train a neural network for this purpose. 
+In this project, we target at building a encoding selector that is able to "predict" the best encoding scheme by looking at only a limited section of the entire dataset, e.g., the first 1% of the records. To do this, we plan to use the collected data columns and the "ground truth" best encoding scheme to train a neural network for this purpose. 
+
+Choosing core features that truly represents the relationship between data and label is crucial to the success of neural network training task. The features we choose including statistical information such as mean and variance of data length, entropy. We also use NLP technique to learn from column names. Finally, we also try to use LSTM RNN network to learn patterns from the sampled column. 
+
 
