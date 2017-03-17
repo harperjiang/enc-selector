@@ -1,19 +1,20 @@
 # Data-Driven Encoding Selector
-This project explores an automated method to select efficient lightweight encoding schemes for column-based databases. Comparing to other techniques that reduces data storage size, lightweight encoding has the following features:
-* Fast. Lightweight encodings involve only simple operations and usually has negligible impact on data access time. 
-* Local Processing. Lightweight encoding allows operations to be applied on each tuple independently, without the need to access other tuples in the same dataset
-* In-place Query. Some lightweight encoding schemes also enables in-place query, which allows query to be directly applied on encoded data and further reduce the time needed for query processing. 
+This project explores an automated method to select efficient lightweight encoding schemes for column-based databases, such as run length and bitmap encoding. Comparing to popular compression techniques like gzip and snappy, lightweight encoding has the following benefits:
+* Speed: Lightweight encodings involve only simple operations and usually has negligible impact on data access time. 
+* Local Computation: Most Lightweight encoding schemes only access adjacent local tuples during encoding/decoding process, without the need to go through entire dataset.
+* In-Site Query Execution: Encoding schemes enable in-place query execution that allows queries to be directly applied on encoded data and further reduce the time needed for query processing, instead of requiring a large block of data to be uncompressed first.
 
-However, there is no simple rule on how to choose the best encoding scheme. Existing systems either rely on database administrators' personal experience, or use simple if-else rules to make selection. In practice, none of these two methods could achieve optimal performance. Our method tries to combine the advantage of both approaches and attacks the problem in a systematic data-driven way.  
+However, there is no simple rule on how to choose the best encoding scheme for a given attribute. Existing systems either rely on database administrators' personal experience or use simple rules to make selection. In practice, neither of these two methods achieve optimal performance. Our method attacks the problem in a systematic data-driven way. Our effort includes:
+* Dataset Collection
+* Pattern Mining
+* Data-Driven Encoding Prediction
  
 ## Dataset Collection
-Our work is based on analysis and evaluation of real-world datasets. We have created an automated framework to collect datasets, extract columns from them, organize and persist the records for further analysis. The framework could accept various input formats including csv, txt, JSon and MS Excel files. It also supports recognition of column data type for unattended data collection. For further analysis purpose, the framework provides API enabling customized features to be extracted from the columns.
+Our work is based on analysis and evaluation of real-world datasets. We have created an automated framework to collect datasets, extract columns from them, organize, and persist the records for further analysis. The framework could accept various input formats including csv, txt, JSon and MS Excel files. It also supports recognition of column data type for unattended data collection. For further analysis purpose, the framework provides API enabling customized features to be extracted from the columns.
 
-Using this framework, we have collected over 7000 columns from ~1200 datasets with a total size of 500G data. These datasets are all from real-world data sources and cover a rich collection of data types (integer, date, address, etc.). They are a good representation of real-world data distribution. We use Apache Parquet's built-in encoders to encode these data columns with different encoding schemes, looking for the one performing best for each column. We also developed some customized encoders to compare their performance.
+Using this framework, we have collected over 7000 columns from approximately 1200 datasets with a total size of 500G data. These datasets are all from real-world data sources and cover a rich collection of data types (integer, date, address, etc.), with diverse data distributions. We use Apache Parquet's built-in encoders to encode these data columns with different encoding schemes, looking for the one performing best for each column. We also developed some customized encoders to compare their performance.
 
-### Data Analysis
-
-
+[Insert some charts we generated for the dataset]
 
 ## Pattern Mining
 Data type is crucial to encoding selection. A proper data type determination can greatly reduce space requirement for encoded data. For example, storing a date field in string format requires at least 8 bytes, while storing it in integer format takes no more than 4 bytes. If we further observe the effective data range, this can be further reduced to 23 bits. However, most real-world datasets are semi-structured, in which only part of the data contains valid common structures. Pattern Mining targets at automatically identify and extract these structures, allowing more efficient encoding to be applied on them. In this project, we have developed two methods for Pattern Mining, **Common Sequence** and **Frequent Similar Words**.
