@@ -32,7 +32,7 @@ class CommonSeqTest {
 
     val extractor = new CommonSeq
 
-    val result = extractor.extract(lines)
+    val result = extractor.discover(lines)
     assertEquals(1, result.size)
     val symarray = result(0).toArray
     assertEquals(10, symarray.length)

@@ -40,7 +40,7 @@ class FrequentWordTest {
 
     val extractor = new FrequentWord
 
-    extractor.extract(lines)
+    extractor.discover(lines)
   }
 
   @Test
