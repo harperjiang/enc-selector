@@ -12,7 +12,7 @@ import java_cup.runtime.*;
 %type Symbol
 %{
   private Symbol symbol(int type) {
-    return new Symbol(type, yyline, yycolumn);
+    return new Symbol(type, yyline, yycolumn, yytext());
   }
   private Symbol symbol(int type, Object value) {
     return new Symbol(type, yyline, yycolumn, value);
@@ -28,9 +28,9 @@ WordLiteral=[a-zA-Z][a-zA-Z\.']*
 %%
 
 <YYINITIAL> {
-{IntLiteral}        {return symbol(Sym.INTEGER, yytext());}
-{DoubleLiteral}     {return symbol(Sym.DOUBLE, yytext());}
-{WordLiteral}       {return symbol(Sym.WORD, yytext());}
+{IntLiteral}        {return symbol(Sym.INTEGER);}
+{DoubleLiteral}     {return symbol(Sym.DOUBLE);}
+{WordLiteral}       {return symbol(Sym.WORD);}
 {Whitespace}        {return symbol(Sym.SPACE);}
 "-"                 {return symbol(Sym.DASH);}
 "_"                 {return symbol(Sym.UNDERSCORE);}

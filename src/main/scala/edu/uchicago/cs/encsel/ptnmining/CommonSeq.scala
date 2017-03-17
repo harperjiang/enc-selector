@@ -111,7 +111,7 @@ class CommonSeq {
     * @param lines
     * @return common sequences
     */
-  def extract(lines: Seq[String]): Seq[Seq[Symbol]] = {
+  def discover(lines: Seq[String]): Pattern = {
     val symlines = lines.map(lexer.Scanner.scan(_).toSeq)
 
     val commons = new ArrayBuffer[Seq[Symbol]]
@@ -131,6 +131,39 @@ class CommonSeq {
       commons.clear
       commons ++= newcommons
     })
-    commons
+    // Generate pattern
+    build(commons)
+  }
+
+  def build(commons: Seq[Seq[Symbol]]): Pattern = {
+    val symbolsum = commons.flatten.filter(_.sym != Sym.SPACE).size
+    val regstr = new StringBuilder
+
+    regstr.append("^.*")
+    commons.foreach(common => {
+      common.foreach(sym => {
+        sym.sym match {
+          case Sym.INTEGER => {
+            regstr.append("([0-9]+)")
+          }
+          case Sym.DOUBLE => {
+            regstr.append("""([0-9]+\.[0-9]+)""")
+          }
+          case Sym.SPACE => {
+            regstr.append("\\s+")
+          }
+          case Sym.WORD => {
+            regstr.append("(%s)".format(sym.value))
+          }
+          // TODO Separate escape and non-escape
+          case _ => {
+            regstr.append("(\\%s)".format(sym.value))
+          }
+        }
+      })
+      regstr.append(".*$")
+    })
+
+    new RegexPattern(regstr.toString, symbolsum)
   }
 }

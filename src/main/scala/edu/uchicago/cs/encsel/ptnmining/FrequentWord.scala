@@ -167,7 +167,7 @@ class FrequentWord {
 
   private val dict = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
 
-  def extract(lines: Seq[String]): Unit = {
+  def discover(lines: Seq[String]): Pattern = {
     // Parse sentences to tokens
     val tokens = lines.map(Scanner.scan(_)
       .filter(sym => sym.sym <= Sym.WORD)
@@ -193,7 +193,7 @@ class FrequentWord {
     // Group hotspots words. This looks for an assignment that maximize the word similarity
     val grouped = group(merged)
 
-    null
+    build(grouped)
   }
 
   /**
@@ -304,5 +304,19 @@ class FrequentWord {
       groups ++= newgroups
     })
     groups.map(_.words)
+  }
+
+  def build(groups: Seq[Set[String]]): Pattern = {
+    val regstr = new StringBuilder
+
+    regstr.append("^.*")
+
+    groups.foreach(group => {
+      regstr.append("(%s)".format(group.mkString("|")))
+      regstr.append(".*")
+    })
+    regstr.append("$")
+
+    new RegexPattern(regstr.toString, groups.length)
   }
 }

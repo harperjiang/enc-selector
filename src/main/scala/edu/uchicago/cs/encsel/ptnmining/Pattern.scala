@@ -43,7 +43,7 @@ trait Pattern {
   def numGroup: Int
 }
 
-class RegExPattern(re: String, g: Int) extends Pattern {
+class RegexPattern(re: String, g: Int) extends Pattern {
 
   val regex = re
 
