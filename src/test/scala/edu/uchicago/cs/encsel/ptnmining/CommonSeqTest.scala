@@ -26,26 +26,15 @@ class CommonSeqTest {
   }
 
   @Test
-  def testExtractFile: Unit = {
+  def testDiscover:Unit = {
 
     val lines = Source.fromFile("src/test/resource/sample_address").getLines.toSeq
 
     val extractor = new CommonSeq
 
     val result = extractor.discover(lines)
-    assertEquals(1, result.size)
-    val symarray = result(0).toArray
-    assertEquals(10, symarray.length)
-    assertEquals(Sym.SPACE, symarray(0).sym)
-    assertEquals(Sym.INTEGER, symarray(1).sym)
-    assertEquals(Sym.SPACE, symarray(2).sym)
-    assertEquals(Sym.LPARA, symarray(3).sym)
-    assertEquals(Sym.INTEGER, symarray(4).sym)
-    assertEquals(Sym.RPARA, symarray(5).sym)
-    assertEquals(Sym.SPACE, symarray(6).sym)
-    assertEquals(Sym.INTEGER, symarray(7).sym)
-    assertEquals(Sym.DASH, symarray(8).sym)
-    assertEquals(Sym.INTEGER, symarray(9).sym)
+
+    val pattern = result.asInstanceOf[RegexPattern]
   }
 }
 
