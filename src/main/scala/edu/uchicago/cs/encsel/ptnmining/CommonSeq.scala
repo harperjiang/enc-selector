@@ -24,7 +24,7 @@ package edu.uchicago.cs.encsel.ptnmining
 
 import java_cup.runtime._
 
-import edu.uchicago.cs.encsel.ptnmining.lexer.Sym
+import edu.uchicago.cs.encsel.ptnmining.parser.Sym
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -112,7 +112,7 @@ class CommonSeq {
     * @return common sequences
     */
   def discover(lines: Seq[String]): Pattern = {
-    val symlines = lines.map(lexer.Scanner.scan(_).toSeq)
+    val symlines = lines.map(parser.Scanner.scan(_).toSeq)
 
     val commons = new ArrayBuffer[Seq[Symbol]]
     commons += symlines(0)

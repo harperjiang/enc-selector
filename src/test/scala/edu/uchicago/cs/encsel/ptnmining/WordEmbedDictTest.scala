@@ -6,6 +6,13 @@ import org.junit.Assert._
 class WordEmbedDictTest {
 
   @Test
+  def testOutput:Unit = {
+    val words = new WordEmbedDict("/home/harper/Downloads/glove.42B.300d.txt")
+    println(words.find("rhode"))
+    println(words.find("island"))
+  }
+
+  @Test
   def testFind: Unit = {
     val words = new WordEmbedDict("/home/harper/Downloads/glove.42B.300d.txt")
 

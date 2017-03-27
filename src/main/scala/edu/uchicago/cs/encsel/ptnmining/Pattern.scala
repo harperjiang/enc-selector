@@ -22,45 +22,64 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
+import edu.uchicago.cs.encsel.ptnmining.parser._
+
 /**
   * Created by harper on 3/16/17.
   */
-trait Match {
-  def group(): String
 
-  def group(idx: Int): String
-}
+object Pattern {
+  def generate(in: Seq[Seq[Token]]): Pattern = {
+    // Generate a direct pattern by translating tokens
 
-class SimpleMatch(content: String, grp: Seq[String]) extends Match {
-  def group() = content
+    val translated = new PUnion(in.map(l => new PSeq(l.map(new PToken(_)))))
 
-  def group(idx: Int) = grp(idx)
-}
+    // Repeatedly refine the pattern using supplied rules
+    var toRefine = translated
+    while (true) {
+      val refined = refine(toRefine)
+      if (refined == toRefine)
+        return refined
+    }
+    throw new RuntimeException("Failed to infer a pattern")
+  }
 
-trait Pattern {
-  def find(input: String): Option[Match]
+  def refine(root: Pattern): Pattern = {
 
-  def numGroup: Int
-}
+    // First look for union and extract common patterns from it
+    val commonseq: Pattern => Unit = (union: Pattern) => {
+      if(union.isInstanceOf[PUnion]) {
 
-class RegexPattern(re: String, g: Int) extends Pattern {
-
-  val regex = re
-
-  val compiledRegex = regex.r
-
-  def numGroup = g
-
-  def find(line: String): Option[Match] = {
-    val found = compiledRegex.findFirstIn(line)
-    found match {
-      case Some(e) => {
-        val matcher = compiledRegex.pattern.matcher(e)
-        Some(new SimpleMatch(e, (0 until g).map(matcher.group(_))))
-      }
-      case None => {
-        None
       }
     }
+    traverse(root, commonseq)
+
+    null
+  }
+
+  private def traverse(root: Pattern, callback: Pattern => Unit): Unit = {
+    root match {
+      case token: PToken => {}
+      case seq: PSeq => {
+        seq.content.foreach(traverse(_, callback))
+      }
+      case union: PUnion => {
+        union.content.foreach(traverse(_, callback))
+      }
+    }
+    callback(root)
   }
 }
+
+trait Pattern
+
+class PToken(token: Token) extends Pattern
+
+class PSeq(c: Seq[Pattern]) extends Pattern {
+  val content = c
+}
+
+class PUnion(c: Seq[Pattern]) extends Pattern {
+  val content = c
+}
+

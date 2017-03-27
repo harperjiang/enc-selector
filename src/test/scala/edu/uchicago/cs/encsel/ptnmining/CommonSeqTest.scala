@@ -1,7 +1,8 @@
 package edu.uchicago.cs.encsel.ptnmining
 
-import edu.uchicago.cs.encsel.ptnmining.lexer.{Scanner, Sym}
-import edu.uchicago.cs.encsel.ptnmining.lexer
+import edu.uchicago.cs.encsel.ptnmining.parser.{Scanner, Sym}
+import edu.uchicago.cs.encsel.ptnmining.parser
+import edu.uchicago.cs.encsel.ptnmining.parser.Scanner
 import org.junit.Test
 import org.junit.Assert._
 
@@ -18,7 +19,7 @@ class CommonSeqTest {
     val b = "Ap #285-7193 Ullamcorper Avenue Amesbury HI 93373 (302) 259-2375"
 
     val atokens = Scanner.scan(a).toSeq
-    val btokens = lexer.Scanner.scan(b).toSeq
+    val btokens = Scanner.scan(b).toSeq
 
     val common = CommonSeq.find(atokens, btokens)
 

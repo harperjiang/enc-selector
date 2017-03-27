@@ -20,26 +20,40 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining.lexer
+package edu.uchicago.cs.encsel.ptnmining
 
-import java.io.StringReader
-import java_cup.runtime.Symbol
+import org.junit.Test
+import org.junit.Assert._
 
 /**
- * Created by harper on 3/8/17.
- */
-object Scanner {
+  * Created by harper on 3/26/17.
+  */
+class SearchTableTest {
 
-  def scan(line: String): Iterator[Symbol] = {
-    val lexer = new Lexer(new StringReader(line))
-    return new Iterator[Symbol] {
-      var nextsym:Symbol = null
+  @Test
+  def testSearchTable:Unit = {
+    val st = new SearchTable
 
-      override def hasNext = {
-        nextsym = lexer.scan()
-        nextsym != null
-      }
-      override def next() = nextsym
-    }
+    st.add(Array("a","b"))
+    st.add(Array("a","b","d"))
+    st.add(Array("a","t","t"))
+    st.add(Array("c","d","e"))
+
+    assertTrue(st.accept("a"))
+    assertFalse(st.isEnd)
+    assertTrue(st.accept("b"))
+    assertTrue(st.isEnd)
+    assertTrue(st.accept("d"))
+    assertTrue(st.isEnd)
+    assertFalse(st.accept("w"))
+
+    st.reset
+
+    assertTrue(st.accept("a"))
+    assertFalse(st.isEnd)
+    assertTrue(st.accept("b"))
+    assertTrue(st.isEnd)
+    assertFalse(st.accept("c"))
+    assertTrue(st.isEnd)
   }
 }
