@@ -22,7 +22,8 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.{PSeq, PUnion, Pattern}
+import edu.uchicago.cs.encsel.ptnmining.parser.TWord
+import edu.uchicago.cs.encsel.ptnmining.{PSeq, PToken, PUnion, Pattern}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -44,18 +45,41 @@ class CommonSeqRule extends RewriteRule {
         case _ => Array(p).toSeq
       }
     })
+    val cseq = new CommonSeq
     // Look for common sequence
-    val commonseq = CommonSeq.find(flattened, patternCompare)
-    if (!commonseq.isEmpty) {
+    val seq = cseq.find(flattened, compare)
+    if (!seq.isEmpty) {
       // Common Seq split tokens into pieces and generate new union
-      val buffers = Array.fill(commonseq.length + 1)(new ArrayBuffer[Pattern])
+      val pos = cseq.positions()
+      val buffers = Array.fill(seq.length + 1)(new ArrayBuffer[Pattern])
 
 
     }
     null
   }
 
-  def patternCompare(a: Pattern, b: Pattern): Boolean = {
-    false
+  def compare(a: Pattern, b: Pattern): Boolean = {
+    (a, b) match {
+      case (pta: PToken, ptb: PToken) => {
+        if (pta.token.getClass != ptb.token.getClass) {
+          false
+        } else {
+          !pta.token.isInstanceOf[TWord] ||
+            pta.token.value.equals(ptb.token.value)
+        }
+      }
+      case (pua: PUnion, pub: PUnion) => {
+        // TODO There's no need to compare union, temporarily return false
+        false
+      }
+      case (psa: PSeq, psb: PSeq) => {
+        (psa.content.length == psb.content.length) &&
+          psa.content.zip(psb.content).map(p => compare(p._1, p._2))
+            .reduce((b1, b2) => b1 || b2)
+      }
+      case _ => {
+        false
+      }
+    }
   }
 }
