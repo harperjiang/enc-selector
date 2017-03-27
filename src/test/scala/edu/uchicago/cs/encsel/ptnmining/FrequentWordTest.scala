@@ -22,6 +22,7 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
+import edu.uchicago.cs.encsel.ptnmining.parser.{Scanner, Tokenizer}
 import org.junit.Assert._
 import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
@@ -33,51 +34,58 @@ import scala.io.Source
   */
 class FrequentWordTest {
 
-  @Test
-  def testExtractFile: Unit = {
-
-    val lines = Source.fromFile("src/test/resource/sample_address").getLines.toSeq
-
-    val extractor = new FrequentWord
-
-    extractor.discover(lines)
-  }
 
   @Test
   def testMerge: Unit = {
 
-    val hspots = Array(Array(("p.o.", 0, 0.1), ("box", 1, 0.1), ("street", 4, 0.4), ("kk", 5, 0.3)),
-      Array(("ap", 1, 0.1), ("e", 3, 0.1), ("st.", 5, 0.1)),
-      Array(("n", 1, 0.1), ("avenue", 3, 0.1), ("pm", 4, 0.2))).map(_.toSeq)
-    val finder = new FrequentWord
-    val merged = finder.merge(hspots)
+    val data = Array("This is New York",
+      "New York has the best ",
+      "Where New York can",
+      "What New York good at",
+      "No New York at good",
+      "312 New York",
+      "New York",
+      "kk New York Mpv",
+      "5221 New York",
+      "4242 New York",
+      "242 New York St.")
 
-    assertEquals(3, merged.length)
+    val tokens = data.map(Tokenizer.tokenize(_).toSeq).toSeq
 
-    assertTrue(Array("p.o. box", "street kk").deep == merged(0).toArray.deep)
-    assertTrue(Array("ap", "e", "st.").deep == merged(1).toArray.deep)
-    assertTrue(Array("n", "avenue pm").deep == merged(2).toArray.deep)
+    val fw = new FrequentWord
+    fw.init(tokens)
+
+    val merged = fw.merge()
+
+    assertEquals(11, merged.length)
+
+    assertEquals(5, merged(0).length)
+    assertEquals("New York", merged(0)(4).value)
+
+    assertEquals(8, merged(1).length)
+    assertEquals("New York", merged(1)(0).value)
   }
 
-  @Test
-  def testGroup: Unit = {
+  /*
+    @Test
+    def testGroup: Unit = {
 
-    val hspots = Array(Array("p.o.", "st."), Array("rd."),
-      Array("ap", "rd."), Array("avenue"), Array("apt", "ave."),
-      Array("apt", "e", "road"))
-      .map(_.toSeq).toSeq
-    val finder = new FrequentWord
+      val hspots = Array(Array("p.o.", "st."), Array("rd."),
+        Array("ap", "rd."), Array("avenue"), Array("apt", "ave."),
+        Array("apt", "e", "road"))
+        .map(_.toSeq).toSeq
+      val finder = new FrequentWord
 
-    val group = finder.group(hspots)
+      val group = finder.group(hspots)
 
-    assertEquals(3, group.size)
-    println(group)
-    assertTrue(group(0).contains("p.o."))
-    assertTrue(group(0).contains("ap"))
-    assertTrue(group(0).contains("apt"))
-  }
+      assertEquals(3, group.size)
+      println(group)
+      assertTrue(group(0).contains("p.o."))
+      assertTrue(group(0).contains("ap"))
+      assertTrue(group(0).contains("apt"))
+    }
 
-
+  */
   @Test
   def testChildren: Unit = {
 

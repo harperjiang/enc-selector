@@ -22,7 +22,7 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
-import edu.uchicago.cs.encsel.ptnmining.lexer.{Scanner, Sym}
+import edu.uchicago.cs.encsel.ptnmining.parser._
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.ops.transforms.Transforms
 
@@ -51,6 +51,37 @@ class WordGroup {
   }
 
   def words: Set[String] = wordCounter.keySet
+}
+
+private[ptnmining] class SearchNode {
+  var end: Boolean = false
+  val next = new HashMap[String, SearchNode]
+}
+
+private[ptnmining] class SearchTable {
+  val root = new SearchNode
+  var path = root
+
+  def add(phrase: Seq[String]) = {
+    var current = root
+    phrase.foreach(word => current = current.next.getOrElseUpdate(word, new SearchNode))
+    current.end = true
+  }
+
+  def reset: Unit = path = root
+
+  def accept(word: String): Boolean = {
+    if (path.next.contains(word)) {
+      path = path.next.get(word).get
+      return true
+    } else {
+      return false
+    }
+  }
+
+  def isStart: Boolean = path != root
+
+  def isEnd: Boolean = path.end
 }
 
 object FrequentWord {
@@ -167,51 +198,46 @@ class FrequentWord {
 
   private val dict = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
 
-  def discover(lines: Seq[String]): Pattern = {
-    // Parse sentences to tokens
-    val tokens = lines.map(Scanner.scan(_)
-      .filter(sym => sym.sym <= Sym.WORD)
-      .map(_.value.toString.toLowerCase()).toSeq)
+  private val tokens = new ArrayBuffer[Seq[Token]]
 
+  def init(tkns: Seq[Seq[Token]]): Unit = {
+    tokens.clear()
+    tokens ++= tkns
     // Compute word frequency
     // Multiple words in each sentence are counted once
     // Only count words appear in more than one sentences
-    val tokenGroup = tokens.map(_.toSet.toList)
+    val words = tokens.map(_.filter(t => {
+      t.isInstanceOf[TWord] || t.isInstanceOf[TInt] || t.isInstanceOf[TDouble]
+    }).map(_.value))
+    val wordGroups = words.map(_.toSet.toList)
       .flatten.groupBy(k => k).mapValues(_.length).filter(_._2 > 1)
-    val lineCount = lines.length
+    val lineCount = tokens.length
     wordFrequency.clear
-    wordFrequency ++= tokenGroup.mapValues(_.toDouble / lineCount)
-
-    // Look for hot spots in lines
-    val hspots = tokens.map(_.zipWithIndex.map(word =>
-      (word._1, word._2, wordFrequency.getOrElse(word._1, 0d)))
-      .filter(_._3 >= FrequentWord.threshold))
-
-    // Merge adjacent hotspots
-    val merged = merge(hspots)
-
-    // Group hotspots words. This looks for an assignment that maximize the word similarity
-    val grouped = group(merged)
-
-    build(grouped)
+    wordFrequency ++= wordGroups.mapValues(_.toDouble / lineCount)
   }
 
   /**
     * Merge adjacent hotspots with high correlation together into phrases
     *
     * To determine whether words should be combined, we compute the frequency of all phrases.
-    * If the frequency of a phrase is higher enough, we recognize it as an independent
+    * If the frequency of a phrase is high enough, we recognize it as an independent
     * hotspot and replace all occurrence
     *
-    * @param hspots (word, index, frequency) in each line
     * @return
     */
-  def merge(hspots: Seq[Seq[(String, Int, Double)]]): Seq[Seq[String]] = {
+  def merge(): Seq[Seq[Token]] = {
+    // Look for hot spots in lines
+    // hotspot index does not count symbol/whitespaces
+
+    val hspots = tokens.map(_.filter(_.isData).zipWithIndex.map(token =>
+      (token._1, token._2, wordFrequency.getOrElse(token._1.value, 0d)))
+      .filter(_._3 >= FrequentWord.threshold))
+
     val phraseCounter = new HashMap[Seq[String], Double]
-    val phraseBuffer = new ArrayBuffer[(String, Int)]
+    val phraseBuffer = new ArrayBuffer[(Token, Int)]
 
     val record = () => {
-      val words = phraseBuffer.map(_._1).toArray
+      val words = phraseBuffer.map(_._1.value).toArray
       if (words.length > 1)
         FrequentWord.children(words).foreach(p =>
           phraseCounter.put(p._1, phraseCounter.getOrElseUpdate(p._1, 0) + 1))
@@ -229,36 +255,62 @@ class FrequentWord {
     val validPhrase = phraseCounter.mapValues(_ / hspots.length)
       .filter(_._2 >= FrequentWord.threshold)
 
-    val combine = () => {
-      val words = phraseBuffer.map(_._1).toArray
-      phraseBuffer.clear
-      if (words.length <= 1)
-        words
-      else {
-        // Choose the longest one when multiple words combinations are available
-        // Alternative, choose the most popular
-        val children = FrequentWord.children(words)
-        val valid = children.find(p => validPhrase.contains(p._1))
-        valid match {
-          case None => words
-          case Some(e) => {
-            val range = e._2
-            val before = (0 until range.start).map(words(_))
-            val after = (range.end until words.length).map(words(_)).toArray
-            before ++: Array(e._1.mkString(" ")) ++: after
+    // Build a search table for valid phrases
+    val searchtable = new SearchTable
+    validPhrase.keySet.foreach(searchtable.add(_))
+
+    tokens.map(combine(_, searchtable))
+  }
+
+  /**
+    * Using the given search table to combine input tokens
+    *
+    * @param in
+    * @param st
+    * @return
+    */
+  private def combine(in: Seq[Token], st: SearchTable): Seq[Token] = {
+    val output = new ArrayBuffer[Token]
+    val buffer = new ArrayBuffer[Token]
+    val symbuffer = new ArrayBuffer[Token]
+    st.reset
+    in.foreach(token => {
+      token.isData match {
+        case true => {
+          if (st.accept(token.value)) {
+            buffer ++= symbuffer
+            buffer += token
+          } else {
+            if (st.isEnd) {
+              output += new TWord(buffer.map(_.value).mkString(""))
+            } else {
+              output ++= buffer
+            }
+            buffer.clear
+            output ++= symbuffer
+            st.reset
+            if (st.accept(token.value))
+              buffer += token
+            else
+              output.append(token)
           }
+          symbuffer.clear
+        }
+        case false => {
+          if (st.isStart)
+            symbuffer += token
+          else
+            output += token
         }
       }
-    }
-    hspots.map(line => {
-      val combined = new ArrayBuffer[String]
-      line.foreach(word => {
-        if (!phraseBuffer.isEmpty && phraseBuffer.last._2 != word._2 - 1)
-          combined ++= combine()
-        phraseBuffer += ((word._1, word._2))
-      })
-      combined ++= combine()
     })
+    if (st.isEnd) {
+      output += new TWord(buffer.map(_.value).mkString(""))
+    } else {
+      output ++= buffer
+    }
+    output ++= symbuffer
+    output
   }
 
   /**
@@ -306,17 +358,4 @@ class FrequentWord {
     groups.map(_.words)
   }
 
-  def build(groups: Seq[Set[String]]): Pattern = {
-    val regstr = new StringBuilder
-
-    regstr.append("^.*")
-
-    groups.foreach(group => {
-      regstr.append("(%s)".format(group.mkString("|")))
-      regstr.append(".*")
-    })
-    regstr.append("$")
-
-    new RegexPattern(regstr.toString, groups.length)
-  }
 }

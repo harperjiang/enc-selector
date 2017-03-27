@@ -1,7 +1,7 @@
 /**
  * Lexer for Pattern Extractor
  */
-package edu.uchicago.cs.encsel.ptnmining.lexer;
+package edu.uchicago.cs.encsel.ptnmining.parser;
 
 import java_cup.runtime.*;
 %%
@@ -9,15 +9,7 @@ import java_cup.runtime.*;
 %unicode
 %cupsym Sym
 %function scan
-%type Symbol
-%{
-  private Symbol symbol(int type) {
-    return new Symbol(type, yyline, yycolumn, yytext());
-  }
-  private Symbol symbol(int type, Object value) {
-    return new Symbol(type, yyline, yycolumn, value);
-  }
-%}
+%type Token
 
 LineTerminator = \r|\n|\r\n
 Whitespace     = ({LineTerminator} | [ \t\f])+
@@ -25,27 +17,28 @@ Whitespace     = ({LineTerminator} | [ \t\f])+
 IntLiteral=[0-9]+
 DoubleLiteral=[0-9]+\.[0-9]+
 WordLiteral=[a-zA-Z][a-zA-Z\.']*
+
 %%
 
 <YYINITIAL> {
-{IntLiteral}        {return symbol(Sym.INTEGER);}
-{DoubleLiteral}     {return symbol(Sym.DOUBLE);}
-{WordLiteral}       {return symbol(Sym.WORD);}
-{Whitespace}        {return symbol(Sym.SPACE);}
-"-"                 {return symbol(Sym.DASH);}
-"_"                 {return symbol(Sym.UNDERSCORE);}
-"("                 {return symbol(Sym.LPARA);}
-")"                 {return symbol(Sym.RPARA);}
-"["                 {return symbol(Sym.LBRAK);}
-"]"                 {return symbol(Sym.RBRAK);}
-"{"                 {return symbol(Sym.LBRAC);}
-"}"                 {return symbol(Sym.RBRAC);}
-","                 {return symbol(Sym.COMMA);}
-"."                 {return symbol(Sym.PERIOD);}
-":"                 {return symbol(Sym.SEMICOLON);}
-";"                 {return symbol(Sym.COLON);}
-"/"                 {return symbol(Sym.SLASH);}
-"\\"                 {return symbol(Sym.BACKSLASH);}
+{IntLiteral}        {return new TInt(yytext());}
+{DoubleLiteral}     {return new TDouble(yytext());}
+{WordLiteral}       {return new TWord(yytext());}
+{Whitespace}        {return new TSpace();}
+"-"                 {return new TSymbol(yytext());}
+"_"                 {return new TSymbol(yytext());}
+"("                 {return new TPara(Sym.PARA, true);}
+")"                 {return new TPara(Sym.PARA, false);}
+"["                 {return new TPara(Sym.BRAK, true);}
+"]"                 {return new TPara(Sym.BRAK, false);}
+"{"                 {return new TPara(Sym.BRAC, true);}
+"}"                 {return new TPara(Sym.BRAC, false);}
+","                 {return new TSymbol(yytext());}
+"."                 {return new TSymbol(yytext());}
+":"                 {return new TSymbol(yytext());}
+";"                 {return new TSymbol(yytext());}
+"/"                 {return new TSymbol(yytext());}
+"\\"                 {return new TSymbol(yytext());}
 }
-.                   {return symbol(Sym.OTHER);}
+.                   {return new TSymbol(yytext());}
 
