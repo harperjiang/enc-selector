@@ -23,6 +23,7 @@
 package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.ptnmining.parser.{TSpace, Token, Tokenizer}
+import edu.uchicago.cs.encsel.ptnmining.preprocess.FrequentWord
 
 import scala.collection.mutable
 

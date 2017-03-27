@@ -20,7 +20,7 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.preprocess
 
 import edu.uchicago.cs.encsel.ptnmining.parser._
 import org.nd4j.linalg.api.ndarray.INDArray

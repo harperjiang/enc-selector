@@ -23,57 +23,54 @@
 package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.ptnmining.parser._
+import edu.uchicago.cs.encsel.ptnmining.rule.CommonSeqRule
 
 /**
   * Created by harper on 3/16/17.
   */
 
 object Pattern {
+
+  val rules = Array(new CommonSeqRule)
+
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
 
     val translated = new PUnion(in.map(l => new PSeq(l.map(new PToken(_)))))
 
     // Repeatedly refine the pattern using supplied rules
-    var toRefine = translated
+    var toRefine: Pattern = translated
     while (true) {
       val refined = refine(toRefine)
-      if (refined == toRefine)
-        return refined
+      if (refined._2) {
+        toRefine = refined._1
+      } else {
+        return refined._1
+      }
     }
     throw new RuntimeException("Failed to infer a pattern")
   }
 
-  def refine(root: Pattern): Pattern = {
+  def refine(root: Pattern): (Pattern, Boolean) = {
+    var current = root
 
-    // First look for union and extract common patterns from it
-    val commonseq: Pattern => Unit = (union: Pattern) => {
-      if(union.isInstanceOf[PUnion]) {
-
+    rules.indices.foreach(i => {
+      current = rules(i).rewrite(current)
+      if (rules(i).happened) {
+        // Apply the first valid rule
+        return (current, true)
       }
-    }
-    traverse(root, commonseq)
-
-    null
-  }
-
-  private def traverse(root: Pattern, callback: Pattern => Unit): Unit = {
-    root match {
-      case token: PToken => {}
-      case seq: PSeq => {
-        seq.content.foreach(traverse(_, callback))
-      }
-      case union: PUnion => {
-        union.content.foreach(traverse(_, callback))
-      }
-    }
-    callback(root)
+    })
+    return (root, false)
   }
 }
 
-trait Pattern
+trait Pattern {
+}
 
-class PToken(token: Token) extends Pattern
+class PToken(t: Token) extends Pattern {
+  val token = t
+}
 
 class PSeq(c: Seq[Pattern]) extends Pattern {
   val content = c

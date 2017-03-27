@@ -22,14 +22,40 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.Pattern
+import edu.uchicago.cs.encsel.ptnmining.{PSeq, PUnion, Pattern}
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Created by harper on 3/27/17.
   */
-class CommonSeqRule extends RefineRule {
+class CommonSeqRule extends RewriteRule {
 
-  def apply(ptn: Pattern): Unit = {
+  def rewrite(ptn: Pattern): Pattern = {
+    // First look for union and extract common patterns from it
+    modify(ptn, p => p.isInstanceOf[PUnion], update).get
+  }
 
+  def update(union: Pattern): Pattern = {
+    // flatten the union content
+    val flattened = union.asInstanceOf[PUnion].content.map(p => {
+      p match {
+        case seq: PSeq => seq.content
+        case _ => Array(p).toSeq
+      }
+    })
+    // Look for common sequence
+    val commonseq = CommonSeq.find(flattened, patternCompare)
+    if (!commonseq.isEmpty) {
+      // Common Seq split tokens into pieces and generate new union
+      val buffers = Array.fill(commonseq.length + 1)(new ArrayBuffer[Pattern])
+
+
+    }
+    null
+  }
+
+  def patternCompare(a: Pattern, b: Pattern): Boolean = {
+    false
   }
 }
