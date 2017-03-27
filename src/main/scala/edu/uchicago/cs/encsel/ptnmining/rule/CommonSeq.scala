@@ -28,7 +28,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by Hao Jiang on 3/14/17.
   */
-object CommonSeq {
+class CommonSeq {
 
   val sequence_length = 3
   // Percentage that a common sequence is not in some sentence
@@ -116,6 +116,13 @@ object CommonSeq {
       }
     })
     not_overlap
+  }
+
+  /**
+    * Return the location
+    */
+  def positions(): Seq[Seq[(Int, Int, Int)]] = {
+    throw new UnsupportedOperationException()
   }
 }
 
