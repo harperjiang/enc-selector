@@ -1,7 +1,7 @@
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.preprocess
 
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 class WordEmbedDictTest {
 

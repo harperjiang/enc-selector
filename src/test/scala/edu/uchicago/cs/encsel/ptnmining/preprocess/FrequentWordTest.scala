@@ -20,14 +20,12 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.preprocess
 
-import edu.uchicago.cs.encsel.ptnmining.parser.{Scanner, Tokenizer}
+import edu.uchicago.cs.encsel.ptnmining.parser.Tokenizer
 import org.junit.Assert._
 import org.junit.Test
 import org.nd4j.linalg.factory.Nd4j
-
-import scala.io.Source
 
 /**
   * Created by harper on 3/9/17.

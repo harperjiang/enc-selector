@@ -20,10 +20,10 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.preprocess
 
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 /**
   * Created by harper on 3/26/17.

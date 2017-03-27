@@ -20,11 +20,7 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining
-
-import java_cup.runtime._
-
-import edu.uchicago.cs.encsel.ptnmining.parser.Sym
+package edu.uchicago.cs.encsel.ptnmining.rule
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -42,22 +38,52 @@ object CommonSeq {
   implicit def bool2int(b: Boolean) = if (b) 1 else 0
 
   /**
+    * Look for common sequences that comprised of only numbers
+    * and separators
+    *
+    * @param lines
+    * @return common sequences
+    */
+  def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[Seq[T]] = {
+
+    val commons = new ArrayBuffer[Seq[T]]
+    commons += lines(0)
+    lines.drop(1).foreach(line => {
+      val newcommons = new ArrayBuffer[Seq[T]]
+      // Commons sorted by length
+      val subseqs = commons.map(find(_, line, equal)).flatten.sortBy(-_._3)
+      // Make sure they don't overlap on the new line
+      val pholder = Array.fill(line.length)(0)
+      subseqs.foreach(ss => {
+        if (pholder.slice(ss._1, ss._1 + ss._3).toSet.filter(_ >= ss._3).size == 0) {
+          (ss._1 until ss._1 + ss._3).foreach(pholder(_) = ss._3)
+          newcommons += line.slice(ss._2, ss._2 + ss._3)
+        }
+      })
+      commons.clear
+      commons ++= newcommons
+    })
+    commons
+  }
+
+  /**
     * Find Common sub-sequence in two sequences
     *
     * This method will choose longer sequence for two overlapped sequences.
     *
-    * @param a the first sequence
-    * @param b the second sequence
+    * @param a     the first sequence
+    * @param b     the second sequence
+    * @param equal equality function
     * @return sequence of common symbols with length >= <code>sequence_length</code>
     */
-  def find(a: Seq[Symbol], b: Seq[Symbol]): Seq[(Int, Int, Int)] = {
+  def find[T](a: Seq[T], b: Seq[T], equal: (T, T) => Boolean): Seq[(Int, Int, Int)] = {
     val data = a.indices.map(i => new Array[Int](b.length))
-    a.indices.foreach(i => data(i)(0) = equalSymbol(a(i), b(0)))
-    b.indices.foreach(i => data(0)(i) = equalSymbol(a(0), b(i)))
+    a.indices.foreach(i => data(i)(0) = equal(a(i), b(0)))
+    b.indices.foreach(i => data(0)(i) = equal(a(0), b(i)))
 
     val candidates = new ArrayBuffer[(Int, Int, Int)]
     for (i <- 1 until a.length; j <- 1 until b.length) {
-      data(i)(j) = equalSymbol(a(i), b(j)) match {
+      data(i)(j) = equal(a(i), b(j)) match {
         case true => {
           if ((i == a.length - 1 || j == b.length - 1)
             && data(i - 1)(j - 1) >= sequence_length - 1) {
@@ -91,79 +117,5 @@ object CommonSeq {
     })
     not_overlap
   }
-
-  protected def equalSymbol(a: Symbol, b: Symbol): Boolean = {
-    a.sym match {
-      case wd if wd == b.sym && wd == Sym.WORD => a.value.equals(b.value)
-      case neq if neq != b.sym => false
-      case _ => true
-    }
-  }
 }
 
-
-class CommonSeq {
-
-  /**
-    * Look for common sequences that comprised of only numbers
-    * and separators
-    *
-    * @param lines
-    * @return common sequences
-    */
-  def discover(lines: Seq[String]): Pattern = {
-    val symlines = lines.map(parser.Scanner.scan(_).toSeq)
-
-    val commons = new ArrayBuffer[Seq[Symbol]]
-    commons += symlines(0)
-    symlines.drop(1).foreach(symline => {
-      val newcommons = new ArrayBuffer[Seq[Symbol]]
-      // Commons sorted by length
-      val subseqs = commons.map(CommonSeq.find(_, symline)).flatten.sortBy(-_._3)
-      // Make sure they don't overlap on the new line
-      val pholder = Array.fill(symline.length)(0)
-      subseqs.foreach(ss => {
-        if (pholder.slice(ss._1, ss._1 + ss._3).toSet.filter(_ >= ss._3).size == 0) {
-          (ss._1 until ss._1 + ss._3).foreach(pholder(_) = ss._3)
-          newcommons += symline.slice(ss._2, ss._2 + ss._3)
-        }
-      })
-      commons.clear
-      commons ++= newcommons
-    })
-    // Generate pattern
-    build(commons)
-  }
-
-  def build(commons: Seq[Seq[Symbol]]): Pattern = {
-    val symbolsum = commons.flatten.filter(_.sym != Sym.SPACE).size
-    val regstr = new StringBuilder
-
-    regstr.append("^.*")
-    commons.foreach(common => {
-      common.foreach(sym => {
-        sym.sym match {
-          case Sym.INTEGER => {
-            regstr.append("([0-9]+)")
-          }
-          case Sym.DOUBLE => {
-            regstr.append("""([0-9]+\.[0-9]+)""")
-          }
-          case Sym.SPACE => {
-            regstr.append("\\s+")
-          }
-          case Sym.WORD => {
-            regstr.append("(%s)".format(sym.value))
-          }
-          // TODO Separate escape and non-escape
-          case _ => {
-            regstr.append("(\\%s)".format(sym.value))
-          }
-        }
-      })
-      regstr.append(".*$")
-    })
-
-    new RegexPattern(regstr.toString, symbolsum)
-  }
-}

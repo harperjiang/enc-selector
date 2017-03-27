@@ -1,10 +1,8 @@
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.parser.{Scanner, Sym}
-import edu.uchicago.cs.encsel.ptnmining.parser
 import edu.uchicago.cs.encsel.ptnmining.parser.Scanner
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 import scala.io.Source
 
