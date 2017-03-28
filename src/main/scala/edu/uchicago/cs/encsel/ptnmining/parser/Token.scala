@@ -27,22 +27,37 @@ package edu.uchicago.cs.encsel.ptnmining.parser
   */
 trait Token {
   def value: String
-  def isData:Boolean = false
+
+  def isData: Boolean = false
+
   override def toString = value
+
+  override def equals(obj: scala.Any): Boolean = {
+    if (obj.isInstanceOf[Token]) {
+      val token = obj.asInstanceOf[Token]
+      return token.getClass == getClass && token.value.equals(value)
+    }
+    return super.equals(obj)
+  }
+
+  override def hashCode(): Int = getClass.hashCode() * 13 + value.hashCode
 }
 
 class TWord(v: AnyRef) extends Token {
   val value = v.toString
+
   override def isData = true
 }
 
 class TInt(v: AnyRef) extends Token {
   val value = v.toString
+
   override def isData = true
 }
 
 class TDouble(v: AnyRef) extends Token {
   val value = v.toString
+
   override def isData = true
 }
 

@@ -37,6 +37,8 @@ class CommonSeq {
 
   implicit def bool2int(b: Boolean) = if (b) 1 else 0
 
+  val positions = new ArrayBuffer[Seq[(Int, Int, Int)]]
+
   /**
     * Look for common sequences that comprised of only numbers
     * and separators
@@ -45,7 +47,7 @@ class CommonSeq {
     * @return common sequences
     */
   def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[Seq[T]] = {
-
+    positions.clear
     val commons = new ArrayBuffer[Seq[T]]
     commons += lines(0)
     lines.drop(1).foreach(line => {
@@ -54,14 +56,17 @@ class CommonSeq {
       val subseqs = commons.map(find(_, line, equal)).flatten.sortBy(-_._3)
       // Make sure they don't overlap on the new line
       val pholder = Array.fill(line.length)(0)
+      val nonOverlap = new ArrayBuffer[(Int, Int, Int)]
       subseqs.foreach(ss => {
         if (pholder.slice(ss._1, ss._1 + ss._3).toSet.filter(_ >= ss._3).size == 0) {
           (ss._1 until ss._1 + ss._3).foreach(pholder(_) = ss._3)
+          nonOverlap += ss
           newcommons += line.slice(ss._2, ss._2 + ss._3)
         }
       })
       commons.clear
       commons ++= newcommons
+      positions += nonOverlap.sortBy(_._1)
     })
     commons
   }
@@ -118,11 +123,5 @@ class CommonSeq {
     not_overlap
   }
 
-  /**
-    * Return the location
-    */
-  def positions(): Seq[Seq[(Int, Int, Int)]] = {
-    throw new UnsupportedOperationException()
-  }
 }
 
