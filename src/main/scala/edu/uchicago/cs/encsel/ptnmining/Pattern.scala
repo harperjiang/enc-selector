@@ -25,6 +25,9 @@ package edu.uchicago.cs.encsel.ptnmining
 import edu.uchicago.cs.encsel.ptnmining.parser._
 import edu.uchicago.cs.encsel.ptnmining.rule.CommonSeqRule
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
+
 /**
   * Created by harper on 3/16/17.
   */
@@ -70,13 +73,38 @@ trait Pattern {
 
 class PToken(t: Token) extends Pattern {
   val token = t
+
+  override def equals(obj: scala.Any): Boolean = {
+    if (obj.isInstanceOf[PToken]) {
+      val t = obj.asInstanceOf[PToken]
+      return t.token.equals(token)
+    }
+    return super.equals(obj)
+  }
 }
 
 class PSeq(c: Seq[Pattern]) extends Pattern {
   val content = c
+
+  override def equals(obj: scala.Any): Boolean = {
+    if (obj.isInstanceOf[PSeq]) {
+      val seq = obj.asInstanceOf[PSeq]
+      return seq.content.equals(content)
+    }
+    return super.equals(obj)
+  }
 }
 
 class PUnion(c: Seq[Pattern]) extends Pattern {
-  val content = c
+  val content = c.toSet
+
+  override def equals(obj: scala.Any): Boolean = {
+    if (obj.isInstanceOf[PUnion]) {
+      val union = obj.asInstanceOf[PUnion]
+      return union.content.equals(content)
+    }
+    return super.equals(obj)
+  }
+
 }
 

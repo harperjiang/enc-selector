@@ -30,6 +30,8 @@ import edu.uchicago.cs.encsel.ptnmining.{PSeq, PToken, PUnion, Pattern}
 trait RewriteRule {
   private var modified: Boolean = false
 
+  protected def happen = modified = true
+
   def happened = modified
 
   /**
@@ -51,17 +53,11 @@ trait RewriteRule {
   def modify(root: Pattern, condition: Pattern => Boolean, update: Pattern => Pattern): Option[Pattern] = {
     root match {
       case token: PToken => Some(condition(token) match {
-        case true => {
-          modified |= true
-          update(token)
-        }
+        case true => update(token)
         case false => token
       })
       case union: PUnion => Some(condition(union) match {
-        case true => {
-          modified |= true
-          update(union)
-        }
+        case true => update(union)
         case false => {
           val oldmod = modified
           modified = false
@@ -77,10 +73,7 @@ trait RewriteRule {
       })
       case seq: PSeq => {
         Some(condition(seq) match {
-          case true => {
-            modified |= true
-            update(seq)
-          }
+          case true => update(seq)
           case false => {
             val oldmod = modified
             modified = false

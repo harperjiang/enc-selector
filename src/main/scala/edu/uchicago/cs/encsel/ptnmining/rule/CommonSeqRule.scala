@@ -28,6 +28,8 @@ import edu.uchicago.cs.encsel.ptnmining.{PSeq, PToken, PUnion, Pattern}
 import scala.collection.mutable.ArrayBuffer
 
 /**
+  * Look for common sequence from a union and split it into smaller pieces
+  *
   * Created by harper on 3/27/17.
   */
 class CommonSeqRule extends RewriteRule {
@@ -39,23 +41,46 @@ class CommonSeqRule extends RewriteRule {
 
   def update(union: Pattern): Pattern = {
     // flatten the union content
-    val flattened = union.asInstanceOf[PUnion].content.map(p => {
+    val unionData = union.asInstanceOf[PUnion].content.map(p => {
       p match {
         case seq: PSeq => seq.content
         case _ => Array(p).toSeq
       }
-    })
+    }).toSeq
     val cseq = new CommonSeq
     // Look for common sequence
-    val seq = cseq.find(flattened, compare)
+    val seq = cseq.find(unionData, compare)
     if (!seq.isEmpty) {
-      // Common Seq split tokens into pieces and generate new union
-      val pos = cseq.positions()
+      // Common Seq split tokens into pieces
+      val commonPos = cseq.positions()
       val buffers = Array.fill(seq.length + 1)(new ArrayBuffer[Pattern])
+      //
+      commonPos.zip(unionData).foreach(lp => {
+        val pos = lp._1
+        val data = lp._2
+        val interval = new ArrayBuffer[(Int, Int)]
+        var start = 0
+        pos.foreach(p => {
+          interval += ((start, p._1))
+          start = p._2
+        })
+        interval += ((start, data.length))
 
+        interval.map(p => data.slice(p._1, p._2)).zip(buffers)
+          .foreach(i => i._2 += new PSeq(i._1))
+      })
 
-    }
-    null
+      // Create new pattern
+      val content = new ArrayBuffer[Pattern]
+      seq.indices.foreach(i => {
+        content += new PUnion(buffers(i))
+        content += new PSeq(seq(i))
+      })
+      content += new PUnion(buffers.last)
+      happen
+      new PSeq(content)
+    } else
+      union
   }
 
   def compare(a: Pattern, b: Pattern): Boolean = {
