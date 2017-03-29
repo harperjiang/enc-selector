@@ -108,3 +108,4 @@ class PUnion(c: Traversable[Pattern]) extends Pattern {
 
 }
 
+object PEmpty extends Pattern
