@@ -52,7 +52,7 @@ class CommonSeqRule extends RewriteRule {
     val seq = cseq.find(unionData, compare)
     if (!seq.isEmpty) {
       // Common Seq split tokens into pieces
-      val commonPos = cseq.positions()
+      val commonPos = cseq.positions
       val buffers = Array.fill(seq.length + 1)(new ArrayBuffer[Pattern])
       //
       commonPos.zip(unionData).foreach(lp => {
@@ -66,7 +66,7 @@ class CommonSeqRule extends RewriteRule {
         })
         interval += ((start, data.length))
 
-        interval.map(p => data.slice(p._1, p._2)).zip(buffers)
+        interval.map(p => data.slice(p._1, p._1 + p._2)).zip(buffers)
           .foreach(i => i._2 += new PSeq(i._1))
       })
 
