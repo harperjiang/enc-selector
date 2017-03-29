@@ -28,6 +28,8 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by Hao Jiang on 3/14/17.
   */
+
+
 class CommonSeq {
 
   val sequence_length = 2
@@ -37,41 +39,38 @@ class CommonSeq {
 
   implicit def bool2int(b: Boolean) = if (b) 1 else 0
 
-  val positions = new ArrayBuffer[Seq[(Int, Int)]]
+  var positions = new ArrayBuffer[(Int, Int)]
 
   /**
-    * Look for common sequences that comprised of only numbers
-    * and separators
+    * Look for common sequence in a list of lines. For implementation
+    * simplicity, only the longest common seq is returned
     *
     * @param lines
     * @return common sequences
     */
-  def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[Seq[T]] = {
+  def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[T] = {
     positions.clear
-    val commons = new ArrayBuffer[Seq[T]]
-    commons += lines(0)
+    var common: Seq[T] = lines(0)
     lines.drop(1).foreach(line => {
-      val newcommons = new ArrayBuffer[Seq[T]]
-      // Commons sorted by length
-      val subseqs = commons.map(between(_, line, equal)).flatten.sortBy(-_._3)
-      // Make sure they don't overlap on the new line
-      val pholder = Array.fill(line.length)(0)
-      val nonOverlap = new ArrayBuffer[(Int, Int, Int)]
-      subseqs.foreach(ss => {
-        if (pholder.slice(ss._2, ss._2 + ss._3).toSet.filter(_ >= ss._3).size == 0) {
-          (ss._2 until ss._2 + ss._3).foreach(pholder(_) = ss._3)
-          nonOverlap += ss
-          newcommons += line.slice(ss._2, ss._2 + ss._3)
+      if (!common.isEmpty) {
+        // Longest common
+        val commonBetween = between(common, line, equal)
+        if (!commonBetween.isEmpty) {
+          val nextCommon = commonBetween.maxBy(_._3)
+          if (positions.length == 0) {
+            positions += ((nextCommon._1, nextCommon._3))
+          } else if (commonBetween.length != common.length) {
+            // Modify old position info
+            positions = positions.map(pos => (pos._1 + nextCommon._1, nextCommon._3))
+          }
+          positions += ((nextCommon._2, nextCommon._3))
+          common = line.slice(nextCommon._2, nextCommon._2 + nextCommon._3)
+        } else {
+          common = Seq.empty[T]
         }
-      })
-      commons.clear
-      commons ++= newcommons
-      if (positions.length == 0) {
-        positions += nonOverlap.map(p => (p._1, p._3)).sortBy(_._1)
       }
-      positions += nonOverlap.map(p => (p._2, p._3)).sortBy(_._1)
     })
-    commons
+    common
   }
 
   /**
@@ -126,6 +125,5 @@ class CommonSeq {
     })
     not_overlap.sortBy(_._1)
   }
-
 }
 

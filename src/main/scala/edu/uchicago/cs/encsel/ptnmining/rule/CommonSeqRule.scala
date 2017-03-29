@@ -23,7 +23,7 @@
 package edu.uchicago.cs.encsel.ptnmining.rule
 
 import edu.uchicago.cs.encsel.ptnmining.parser.TWord
-import edu.uchicago.cs.encsel.ptnmining.{PSeq, PToken, PUnion, Pattern}
+import edu.uchicago.cs.encsel.ptnmining._
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -39,7 +39,7 @@ class CommonSeqRule extends RewriteRule {
     modify(ptn, p => p.isInstanceOf[PUnion], update).get
   }
 
-  def update(union: Pattern): Pattern = {
+  protected def update(union: Pattern): Pattern = {
     // flatten the union content
     val unionData = union.asInstanceOf[PUnion].content.map(p => {
       p match {
@@ -53,37 +53,31 @@ class CommonSeqRule extends RewriteRule {
     if (!seq.isEmpty) {
       // Common Seq split tokens into pieces
       val commonPos = cseq.positions
-      val buffers = Array.fill(seq.length + 1)(new ArrayBuffer[Pattern])
+      val beforeBuffer = new ArrayBuffer[Pattern]
+      val afterBuffer = new ArrayBuffer[Pattern]
       //
       commonPos.zip(unionData).foreach(lp => {
         val pos = lp._1
         val data = lp._2
-        val interval = new ArrayBuffer[(Int, Int)]
-        var start = 0
-        pos.foreach(p => {
-          interval += ((start, p._1))
-          start = p._2
-        })
-        interval += ((start, data.length))
 
-        interval.map(p => data.slice(p._1, p._1 + p._2)).zip(buffers)
-          .foreach(i => i._2 += new PSeq(i._1))
+        beforeBuffer += (pos._1 match {
+          case 0 => PEmpty
+          case _ => new PSeq(data.slice(0, pos._1))
+        })
+        afterBuffer += (pos._1 + pos._2 match {
+          case len if len == data.length => PEmpty
+          case _ => new PSeq(data.slice(pos._2, data.length))
+        })
       })
 
       // Create new pattern
-      val content = new ArrayBuffer[Pattern]
-      seq.indices.foreach(i => {
-        content += new PUnion(buffers(i))
-        content += new PSeq(seq(i))
-      })
-      content += new PUnion(buffers.last)
       happen
-      new PSeq(content)
+      new PSeq(Array(new PUnion(beforeBuffer), new PSeq(seq), new PUnion(afterBuffer)))
     } else
       union
   }
 
-  def compare(a: Pattern, b: Pattern): Boolean = {
+  private def compare(a: Pattern, b: Pattern): Boolean = {
     (a, b) match {
       case (pta: PToken, ptb: PToken) => {
         if (pta.token.getClass != ptb.token.getClass) {
@@ -103,7 +97,7 @@ class CommonSeqRule extends RewriteRule {
             .reduce((b1, b2) => b1 || b2)
       }
       case _ => {
-        false
+        a == b
       }
     }
   }

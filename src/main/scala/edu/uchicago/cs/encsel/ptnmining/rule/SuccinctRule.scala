@@ -34,7 +34,7 @@ class SuccinctRule extends RewriteRule {
     modify(ptn, p => p.isInstanceOf[PUnion] || p.isInstanceOf[PSeq], update).get
   }
 
-  def update(up: Pattern): Pattern = {
+  protected def update(up: Pattern): Pattern = {
     up match {
       case seq: PSeq if seq.content.length == 1 => {
         happen
