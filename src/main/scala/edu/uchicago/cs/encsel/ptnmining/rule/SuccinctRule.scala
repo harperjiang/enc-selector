@@ -40,9 +40,9 @@ class SuccinctRule extends RewriteRule {
         happen
         seq.content(0)
       }
-      case union: PUnion if union.content.length == 1 => {
+      case union: PUnion if union.content.size == 1 => {
         happen
-        union.content(0)
+        union.content.toSeq(0)
       }
       case _ => up
     }

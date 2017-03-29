@@ -30,14 +30,14 @@ import scala.collection.mutable.ArrayBuffer
   */
 class CommonSeq {
 
-  val sequence_length = 3
+  val sequence_length = 2
   // Percentage that a common sequence is not in some sentence
   // TODO: the tolerance is not supported now
   val tolerance = 0.1
 
   implicit def bool2int(b: Boolean) = if (b) 1 else 0
 
-  val positions = new ArrayBuffer[Seq[(Int, Int, Int)]]
+  val positions = new ArrayBuffer[Seq[(Int, Int)]]
 
   /**
     * Look for common sequences that comprised of only numbers
@@ -53,20 +53,23 @@ class CommonSeq {
     lines.drop(1).foreach(line => {
       val newcommons = new ArrayBuffer[Seq[T]]
       // Commons sorted by length
-      val subseqs = commons.map(find(_, line, equal)).flatten.sortBy(-_._3)
+      val subseqs = commons.map(between(_, line, equal)).flatten.sortBy(-_._3)
       // Make sure they don't overlap on the new line
       val pholder = Array.fill(line.length)(0)
       val nonOverlap = new ArrayBuffer[(Int, Int, Int)]
       subseqs.foreach(ss => {
-        if (pholder.slice(ss._1, ss._1 + ss._3).toSet.filter(_ >= ss._3).size == 0) {
-          (ss._1 until ss._1 + ss._3).foreach(pholder(_) = ss._3)
+        if (pholder.slice(ss._2, ss._2 + ss._3).toSet.filter(_ >= ss._3).size == 0) {
+          (ss._2 until ss._2 + ss._3).foreach(pholder(_) = ss._3)
           nonOverlap += ss
           newcommons += line.slice(ss._2, ss._2 + ss._3)
         }
       })
       commons.clear
       commons ++= newcommons
-      positions += nonOverlap.sortBy(_._1)
+      if (positions.length == 0) {
+        positions += nonOverlap.map(p => (p._1, p._3)).sortBy(_._1)
+      }
+      positions += nonOverlap.map(p => (p._2, p._3)).sortBy(_._1)
     })
     commons
   }
@@ -78,10 +81,11 @@ class CommonSeq {
     *
     * @param a     the first sequence
     * @param b     the second sequence
-    * @param equal equality function
-    * @return sequence of common symbols with length >= <code>sequence_length</code>
+    * @param equal equality test function
+    * @return sequence of common symbols with length >= <code>sequence_length</code>.
+    *         (a_start, b_start, length)
     */
-  def find[T](a: Seq[T], b: Seq[T], equal: (T, T) => Boolean): Seq[(Int, Int, Int)] = {
+  def between[T](a: Seq[T], b: Seq[T], equal: (T, T) => Boolean): Seq[(Int, Int, Int)] = {
     val data = a.indices.map(i => new Array[Int](b.length))
     a.indices.foreach(i => data(i)(0) = equal(a(i), b(0)))
     b.indices.foreach(i => data(0)(i) = equal(a(0), b(i)))
@@ -120,7 +124,7 @@ class CommonSeq {
         (c._2 until c._2 + c._3).foreach(phb(_) = c._3)
       }
     })
-    not_overlap
+    not_overlap.sortBy(_._1)
   }
 
 }

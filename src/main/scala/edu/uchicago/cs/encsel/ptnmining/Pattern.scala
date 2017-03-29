@@ -95,7 +95,7 @@ class PSeq(c: Seq[Pattern]) extends Pattern {
   }
 }
 
-class PUnion(c: Seq[Pattern]) extends Pattern {
+class PUnion(c: Traversable[Pattern]) extends Pattern {
   val content = c.toSet
 
   override def equals(obj: scala.Any): Boolean = {
