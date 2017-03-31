@@ -31,16 +31,24 @@ class SuccinctRule extends RewriteRule {
 
   def rewrite(ptn: Pattern): Pattern = {
     // First look for union and extract common patterns from it
-    modify(ptn, p => p.isInstanceOf[PUnion] || p.isInstanceOf[PSeq], update).get
+    modify(ptn, condition, update).get
+  }
+
+  protected def condition(p: Pattern): Boolean = {
+    p match {
+      case u: PUnion => u.content.size == 1
+      case s: PSeq => s.content.length == 1
+      case _ => false
+    }
   }
 
   protected def update(up: Pattern): Pattern = {
     up match {
-      case seq: PSeq if seq.content.length == 1 => {
+      case seq: PSeq => {
         happen
         seq.content(0)
       }
-      case union: PUnion if union.content.size == 1 => {
+      case union: PUnion => {
         happen
         union.content.toSeq(0)
       }
