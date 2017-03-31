@@ -20,18 +20,11 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining.parser
-
-import java.io.StringReader
-import java_cup.runtime.Symbol
+package edu.uchicago.cs.encsel.ptnmining.rule
 
 /**
- * Created by harper on 3/8/17.
- */
-object Scanner {
+  * Created by harper on 3/31/17.
+  */
+class FreqSimilarWordRule {
 
-  def scan(line: String): Iterator[Symbol] = {
-    val lexer = new Lexer(new StringReader(line))
-    null
-  }
 }

@@ -20,22 +20,20 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining.parser
+package edu.uchicago.cs.encsel.ptnmining.validation
 
-import org.junit.Assert._
-import org.junit.Test
+import edu.uchicago.cs.encsel.ptnmining.Pattern
+import edu.uchicago.cs.encsel.ptnmining.parser.Token
+
 /**
-  * Created by harper on 3/14/17.
+  * Created by harper on 3/31/17.
   */
-class ScannerTest {
+class PatternValidator {
 
-  @Test
-  def testScan:Unit = {
-    val line = "778-9383 Suspendisse Av. Weirton IN 93479 (326) 677-3419"
+  def validate(ptn:Pattern, vset:Seq[Seq[Token]]):Pattern = {
 
-    val tokens = Scanner.scan(line).toArray
-
-    assertEquals(21, tokens.length)
-
+    vset.foreach(vsample=>{
+      ptn.matchon(vsample)
+    })
   }
 }

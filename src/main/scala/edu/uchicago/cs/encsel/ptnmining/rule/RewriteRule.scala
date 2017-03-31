@@ -56,6 +56,10 @@ trait RewriteRule {
         case true => update(token)
         case false => token
       })
+      case any:PAny => Some(condition(any) match {
+        case true => update(any)
+        case false => any
+      })
       case union: PUnion => Some(condition(union) match {
         case true => update(union)
         case false => {

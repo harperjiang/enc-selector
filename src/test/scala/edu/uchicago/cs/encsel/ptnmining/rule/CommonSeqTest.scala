@@ -1,7 +1,7 @@
 package edu.uchicago.cs.encsel.ptnmining.rule
 
 import edu.uchicago.cs.encsel.ptnmining.{PToken, Pattern}
-import edu.uchicago.cs.encsel.ptnmining.parser.{Scanner, TWord, Token, Tokenizer}
+import edu.uchicago.cs.encsel.ptnmining.parser.{TWord, Token, Tokenizer}
 import org.junit.Assert._
 import org.junit.Test
 

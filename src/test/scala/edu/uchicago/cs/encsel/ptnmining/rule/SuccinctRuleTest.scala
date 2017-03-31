@@ -11,10 +11,10 @@ class SuccinctRuleTest {
 
   @Test
   def testRewrite: Unit = {
-    val pattern = new PSeq(Array(
+    val pattern = new PSeq(
       new PUnion(Array(PEmpty, new PToken(new TWord("ddd")))),
-      new PSeq(Array(new PToken(new TInt("32342")))),
-      new PUnion(Array(new PToken(new TWord("abc")), new PToken(new TWord("abc"))))))
+      new PSeq(new PToken(new TInt("32342"))),
+      new PUnion(Array(new PToken(new TWord("abc")), new PToken(new TWord("abc")))))
 
     val rule = new SuccinctRule
 
