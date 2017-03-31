@@ -22,7 +22,7 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.{PSeq, PToken, PUnion, Pattern}
+import edu.uchicago.cs.encsel.ptnmining._
 
 /**
   * Created by harper on 3/27/17.
@@ -86,6 +86,12 @@ trait RewriteRule {
             modified |= oldmod
             modified_seq
           }
+        })
+      }
+      case PEmpty => {
+        Some(condition(PEmpty) match {
+          case true => update(PEmpty)
+          case false => PEmpty
         })
       }
     }

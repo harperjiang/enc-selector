@@ -2,12 +2,14 @@ package edu.uchicago.cs.encsel.ptnmining.rule
 
 import edu.uchicago.cs.encsel.ptnmining.parser.{TInt, TWord}
 import edu.uchicago.cs.encsel.ptnmining.{PEmpty, PSeq, PToken, PUnion}
+import org.junit.Test
 import org.junit.Assert._
 /**
   * Created by harper on 3/29/17.
   */
 class SuccinctRuleTest {
 
+  @Test
   def testRewrite: Unit = {
     val pattern = new PSeq(Array(
       new PUnion(Array(PEmpty, new PToken(new TWord("ddd")))),
@@ -16,8 +18,20 @@ class SuccinctRuleTest {
 
     val rule = new SuccinctRule
 
-    rule.rewrite(pattern)
+    val rewritten = rule.rewrite(pattern)
 
     assertTrue(rule.happened)
+
+    assertTrue(rewritten.isInstanceOf[PSeq])
+    val newseq = rewritten.asInstanceOf[PSeq]
+    assertEquals(3, newseq.content.length)
+
+    assertTrue(newseq.content(0).isInstanceOf[PUnion])
+    assertTrue(newseq.content(1).isInstanceOf[PToken])
+    assertTrue(newseq.content(2).isInstanceOf[PToken])
+
+    assertEquals(2, newseq.content(0).asInstanceOf[PUnion].content.size)
+    assertEquals("32342",newseq.content(1).asInstanceOf[PToken].token.value)
+    assertEquals("abc",newseq.content(2).asInstanceOf[PToken].token.value)
   }
 }
