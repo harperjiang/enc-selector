@@ -57,6 +57,7 @@ object Pattern {
 
     val generalized = generalize(refineResult)
     val named = naming(generalized)
+    named
   }
 
   def refine(root: Pattern): (Pattern, Boolean) = {
