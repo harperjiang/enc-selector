@@ -33,7 +33,7 @@ class PatternValidator {
   def validate(ptn:Pattern, vset:Seq[Seq[Token]]):Pattern = {
 
     vset.foreach(vsample=>{
-      ptn.matchon(vsample)
     })
+    null
   }
 }

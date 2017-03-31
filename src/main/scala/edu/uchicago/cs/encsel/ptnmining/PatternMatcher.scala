@@ -36,7 +36,7 @@ class PatternMatcher {
     // Look for the first leaf that consumes all tokens
     val validpath = find(root)
     // Construct data from the path
-
+    None
   }
 
   def build(ptn: Pattern, ts: Seq[Token], start: Int): MatchNode = {
@@ -57,14 +57,13 @@ class PatternMatcher {
       }
       case union: PUnion => {
         union.content.map(item => {
-          build(item, 0, )
         })
       }
     }
     new MatchNode(start, matched, children)
   }
 
-  def find(node:MatchNode):Seq[MatchNode]
+  def find(node:MatchNode):Seq[MatchNode] = null
 }
 
 class MatchNode(s: Int, m: Int, c: Seq[MatchNode]) {
