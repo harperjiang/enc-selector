@@ -39,19 +39,24 @@ object Pattern {
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
 
-    val translated = new PUnion(in.map(l => new PSeq(l.map(new PToken(_)))))
+    val translated = new PUnion(in.map(l => new PSeq(l.map(new PToken(_)): _*)))
 
     // Repeatedly refine the pattern using supplied rules
     var toRefine: Pattern = translated
-    while (true) {
+    var needRefine = true
+    var refineResult: Pattern = toRefine
+    while (needRefine) {
       val refined = refine(toRefine)
       if (refined._2) {
         toRefine = refined._1
       } else {
-        return refined._1
+        needRefine = false
+        refineResult = refined._1
       }
     }
-    throw new RuntimeException("Failed to infer a pattern")
+
+    val generalized = generalize(refineResult)
+    val named = naming(generalized)
   }
 
   def refine(root: Pattern): (Pattern, Boolean) = {
@@ -66,9 +71,22 @@ object Pattern {
     })
     return (root, false)
   }
+
+  def generalize(ptn: Pattern): Pattern = {
+    ptn
+  }
+
+  def naming(ptn: Pattern): Pattern = {
+    ptn
+  }
 }
 
 trait Pattern {
+  private[ptnmining] var name = ""
+
+  def getName = name
+
+  def flatten: Seq[Pattern] = Seq(this)
 }
 
 class PToken(t: Token) extends Pattern {
@@ -81,10 +99,13 @@ class PToken(t: Token) extends Pattern {
     }
     return super.equals(obj)
   }
+
 }
 
-class PSeq(c: Seq[Pattern]) extends Pattern {
-  val content = c
+class PSeq(cnt: Pattern*) extends Pattern {
+  val content = cnt
+
+  def this(ps: Traversable[Pattern]) = this(ps.toSeq: _*)
 
   override def equals(obj: scala.Any): Boolean = {
     if (obj.isInstanceOf[PSeq]) {
@@ -93,10 +114,14 @@ class PSeq(c: Seq[Pattern]) extends Pattern {
     }
     return super.equals(obj)
   }
+
+  override def flatten: Seq[Pattern] = content.flatMap(_.flatten)
 }
 
-class PUnion(c: Traversable[Pattern]) extends Pattern {
-  val content = c.toSet
+class PUnion(cnt: Pattern*) extends Pattern {
+  val content = cnt.toSet.toSeq
+
+  def this(c: Traversable[Pattern]) = this(c.toSeq: _*)
 
   override def equals(obj: scala.Any): Boolean = {
     if (obj.isInstanceOf[PUnion]) {
@@ -106,6 +131,16 @@ class PUnion(c: Traversable[Pattern]) extends Pattern {
     return super.equals(obj)
   }
 
+  override def flatten: Seq[Pattern] = content.flatMap(_.flatten)
+
 }
 
 object PEmpty extends Pattern
+
+class PAny extends Pattern
+
+object PWordAny extends PAny
+
+object PIntAny extends PAny
+
+object PDoubleAny extends PAny
