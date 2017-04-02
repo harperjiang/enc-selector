@@ -20,53 +20,20 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.matching
 
 import edu.uchicago.cs.encsel.ptnmining.parser.Token
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 
 /**
   * Created by harper on 3/31/17.
   */
-class PatternMatcher {
+class Record {
+  val values: mutable.HashMap[String, Token] = new mutable.HashMap[String, Token]
 
-  def matchon(ptn: Pattern, ts: Seq[Token]): Option[Data] = {
-    val root = build(ptn, ts, 0)
-    // Look for the first leaf that consumes all tokens
-    val validpath = find(root)
-    // Construct data from the path
-    None
+  def add(name: String, value: Token) = {
+    values += ((name, value))
   }
-
-  def build(ptn: Pattern, ts: Seq[Token], start: Int): MatchNode = {
-    var matched = 0
-    val children = new ArrayBuffer[MatchNode]
-    ptn match {
-      case token: PToken => {
-
-        matched += 1
-      }
-      case any: PAny => {
-
-        matched += 1
-      }
-      case PEmpty => {}
-      case seq: PSeq => {
-
-      }
-      case union: PUnion => {
-        union.content.map(item => {
-        })
-      }
-    }
-    new MatchNode(start, matched, children)
-  }
-
-  def find(node:MatchNode):Seq[MatchNode] = null
 }
 
-class MatchNode(s: Int, m: Int, c: Seq[MatchNode]) {
-  val start = s
-  val children: Seq[MatchNode] = c
-}

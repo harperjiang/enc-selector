@@ -23,7 +23,7 @@
 package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.ptnmining.parser._
-import edu.uchicago.cs.encsel.ptnmining.rule.CommonSeqRule
+import edu.uchicago.cs.encsel.ptnmining.rule.{CommonSeqRule, SuccinctRule}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -34,7 +34,7 @@ import scala.collection.mutable.ArrayBuffer
 
 object Pattern {
 
-  val rules = Array(new CommonSeqRule)
+  val rules = Array(new CommonSeqRule, new SuccinctRule)
 
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
@@ -60,7 +60,7 @@ object Pattern {
     named
   }
 
-  def refine(root: Pattern): (Pattern, Boolean) = {
+  protected def refine(root: Pattern): (Pattern, Boolean) = {
     var current = root
 
     rules.indices.foreach(i => {
@@ -78,16 +78,65 @@ object Pattern {
   }
 
   def naming(ptn: Pattern): Pattern = {
+    val namingV = new PatternVisitor {
+
+      var counter = new mutable.Stack[Int]
+      counter.push(0)
+
+      override def on(ptn: Pattern): Unit = {
+        val parentName = path.isEmpty match {
+          case true => ""
+          case false => path(0).name
+        }
+        var current = counter.pop
+        ptn.name = "%s_%d".format(parentName, current)
+        current += 1
+        counter.push(current)
+      }
+
+      override def enter(container: Pattern): Unit = {
+        super.enter(container)
+        counter.push(0)
+      }
+
+      override def exit(container: Pattern): Unit = {
+        super.exit(container)
+        counter.pop
+      }
+    }
+    ptn.visit(namingV)
     ptn
   }
 }
+
+trait PatternVisitor {
+
+  protected val path = new mutable.Stack[Pattern]
+
+  def on(ptn: Pattern): Unit
+
+  def enter(container: Pattern): Unit = path.push(container)
+
+  def exit(container: Pattern): Unit = path.pop()
+}
+
 
 trait Pattern {
   private[ptnmining] var name = ""
 
   def getName = name
 
+  /**
+    * @return all leaf patterns
+    */
   def flatten: Seq[Pattern] = Seq(this)
+
+  /**
+    * Recursively visit the pattern elements starting from the root
+    *
+    * @param visitor
+    */
+  def visit(visitor: PatternVisitor): Unit = visitor.on(this)
 }
 
 class PToken(t: Token) extends Pattern {
@@ -117,6 +166,13 @@ class PSeq(cnt: Pattern*) extends Pattern {
   }
 
   override def flatten: Seq[Pattern] = content.flatMap(_.flatten)
+
+  override def visit(visitor: PatternVisitor): Unit = {
+    visitor.on(this)
+    visitor.enter(this)
+    content.foreach(_.visit(visitor))
+    visitor.exit(this)
+  }
 }
 
 class PUnion(cnt: Pattern*) extends Pattern {
@@ -134,14 +190,20 @@ class PUnion(cnt: Pattern*) extends Pattern {
 
   override def flatten: Seq[Pattern] = content.flatMap(_.flatten)
 
+  override def visit(visitor: PatternVisitor): Unit = {
+    visitor.on(this)
+    visitor.enter(this)
+    content.foreach(_.visit(visitor))
+    visitor.exit(this)
+  }
 }
 
 object PEmpty extends Pattern
 
 class PAny extends Pattern
 
-object PWordAny extends PAny
+class PWordAny extends PAny
 
-object PIntAny extends PAny
+class PIntAny extends PAny
 
-object PDoubleAny extends PAny
+class PDoubleAny extends PAny
