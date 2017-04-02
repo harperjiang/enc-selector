@@ -20,16 +20,33 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining
+package edu.uchicago.cs.encsel.ptnmining.matching
 
-import edu.uchicago.cs.encsel.ptnmining.parser.Token
-
-import scala.collection.mutable
+import edu.uchicago.cs.encsel.ptnmining.parser.TWord
+import edu.uchicago.cs.encsel.ptnmining._
+import org.junit.Test
 
 /**
-  * Created by harper on 3/31/17.
+  * Created by harper on 4/1/17.
   */
-class Data {
-  val values: mutable.HashMap[String, Token] = new mutable.HashMap[String, Token]
-}
+class PatternMatcherTest {
 
+  @Test
+  def testMatchon: Unit = {
+
+  }
+
+  @Test
+  def testMatchItems: Unit = {
+
+    val patterns = Seq(new PWordAny,
+      new PIntAny,
+      new PToken(new TWord("aab")),
+      new PToken(new TWord("wtw")),
+      PEmpty,
+      new PWordAny)
+    val matcher = new PatternMatcher
+
+    matcher.matchItems()
+  }
+}
