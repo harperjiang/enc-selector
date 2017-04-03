@@ -63,7 +63,7 @@ class LSTMDataset(file: URI, extdict: LSTMDataset) extends DatasetBase[Array[Arr
     dict += ((PAD, 0))
     inverseDict += PAD
     strlines.foreach(line =>
-      line.toCharArray().foreach { c =>
+      line.toCharArray.foreach { c =>
         dict.getOrElseUpdate(c, { inverseDict += c; dict.size })
       })
   } else {
@@ -73,7 +73,7 @@ class LSTMDataset(file: URI, extdict: LSTMDataset) extends DatasetBase[Array[Arr
 
   // Second pass, replace characters with index
   protected val lines = strlines.map(line =>
-    line.toCharArray().map(dict.getOrElse(_, 0))).sortBy(-_.length)
+    line.toCharArray.map(dict.getOrElse(_, 0))).sortBy(-_.length)
   strlines.clear
 
   this.dataSize = lines.length
@@ -94,7 +94,7 @@ class LSTMDataset(file: URI, extdict: LSTMDataset) extends DatasetBase[Array[Arr
   }
 
   def translate(input: String): Array[Int] =
-    input.toCharArray().map(dict.getOrElse(_, -1))
+    input.toCharArray.map(dict.getOrElse(_, -1))
 
   def translate(input: Double): Char = inverseDict(input.toInt)
 

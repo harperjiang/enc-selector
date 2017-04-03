@@ -10,11 +10,11 @@ class LengthTest {
   @Test
   def testRun: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_str2.data").toURI()
+    col.colFile = new File("src/test/resource/test_col_str2.data").toURI
 
     val features = Length.extract(col).toArray
 
-    assertEquals(4, features.size)
+    assertEquals(4, features.length)
     assertEquals("max", features(0).name)
     assertEquals(32, features(0).value, 0.001)
     assertEquals("min", features(1).name)

@@ -30,13 +30,14 @@ import scala.collection.mutable
   * Created by harper on 4/2/17.
   */
 class NamingVisitor extends PatternVisitor {
-  private var counter = new mutable.Stack[Int]
+  private val counter = new mutable.Stack[Int]
   counter.push(0)
 
   override def on(ptn: Pattern): Unit = {
     val parentName = path.isEmpty match {
       case true => ""
-      case false => path(0).name
+      case false => //noinspection ZeroIndexToHead
+        path(0).name
     }
     var current = counter.pop
     ptn.name = "%s_%d".format(parentName, current)

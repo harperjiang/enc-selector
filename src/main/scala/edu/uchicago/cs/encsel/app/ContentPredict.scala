@@ -61,5 +61,5 @@ object ContentPredict extends App {
     }
   }
 
-  trainer.train(50, 50, 50)
+  trainer.train(50, 50)
 }

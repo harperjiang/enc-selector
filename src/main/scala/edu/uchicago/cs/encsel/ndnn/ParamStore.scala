@@ -64,6 +64,6 @@ class FileStore(file: String) extends ParamStore {
   override def store(params: Array[INDArray]) = {
     val os = new DataOutputStream(new FileOutputStream(file))
     params.foreach(param => Nd4j.write(param, os))
-    os.close
+    os.close()
   }
 }

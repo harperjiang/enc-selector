@@ -31,7 +31,7 @@ class FailureStopper extends ColumnReaderListener {
 
   var failedCount = 0
 
-  var logger = LoggerFactory.getLogger(getClass())
+  var logger = LoggerFactory.getLogger(getClass)
 
   def start(event: ColumnReaderEvent): Unit = {
     failedCount = 0

@@ -46,7 +46,7 @@ class CommonSeqRule extends RewriteRule {
     val cseq = new CommonSeq
     // Look for common sequence
     val seq = cseq.find(unionData, compare)
-    if (!seq.isEmpty) {
+    if (seq.nonEmpty) {
       // Common Seq split tokens into pieces
       val commonPos = cseq.positions
       val beforeBuffer = new ArrayBuffer[Pattern]

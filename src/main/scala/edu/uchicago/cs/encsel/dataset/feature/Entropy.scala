@@ -40,7 +40,7 @@ object Entropy extends FeatureExtractor {
     val linecalc = new EntropyCalc()
 
     val lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
-      .filter(StringUtils.isNotEmpty(_))
+      .filter(StringUtils.isNotEmpty)
       .map(line => {
         allcalc.add(line); entropy(line, linecalc)
       }).toTraversable
@@ -66,7 +66,7 @@ class EntropyCalc {
   var counter = scala.collection.mutable.HashMap[Char, Double]()
 
   def add(data: String): Unit = {
-    data.toCharArray().foreach(c => { counter += ((c, counter.getOrElse(c, 0d) + 1)) })
+    data.toCharArray.foreach(c => { counter += ((c, counter.getOrElse(c, 0d) + 1)) })
   }
 
   def reset(): Unit = {

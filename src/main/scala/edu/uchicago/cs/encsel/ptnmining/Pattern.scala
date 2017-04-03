@@ -69,7 +69,7 @@ object Pattern {
         return (current, true)
       }
     })
-    return (root, false)
+    (root, false)
   }
 
   def validate(ptn: Pattern): Pattern = {
@@ -121,7 +121,7 @@ class PToken(t: Token) extends Pattern {
       val t = obj.asInstanceOf[PToken]
       return t.token.equals(token)
     }
-    return super.equals(obj)
+    super.equals(obj)
   }
 
 }
@@ -136,7 +136,7 @@ class PSeq(cnt: Pattern*) extends Pattern {
       val seq = obj.asInstanceOf[PSeq]
       return seq.content.equals(content)
     }
-    return super.equals(obj)
+    super.equals(obj)
   }
 
   override def flatten: Seq[Pattern] = content.flatMap(_.flatten)
@@ -159,7 +159,7 @@ class PUnion(cnt: Pattern*) extends Pattern {
       val union = obj.asInstanceOf[PUnion]
       return union.content.equals(content)
     }
-    return super.equals(obj)
+    super.equals(obj)
   }
 
   override def flatten: Seq[Pattern] = content.flatMap(_.flatten)

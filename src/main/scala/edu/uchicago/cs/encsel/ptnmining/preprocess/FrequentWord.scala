@@ -73,9 +73,9 @@ private[ptnmining] class SearchTable {
   def accept(word: String): Boolean = {
     if (path.next.contains(word)) {
       path = path.next.get(word).get
-      return true
+      true
     } else {
-      return false
+      false
     }
   }
 
@@ -187,7 +187,7 @@ object FrequentWord {
         (item.map(words(_)), item)
       }
 
-      override def hasNext = !buffer.isEmpty
+      override def hasNext = buffer.nonEmpty
     }
 
 }
@@ -246,7 +246,7 @@ class FrequentWord {
     // Record common phrases
     hspots.foreach(line => {
       line.foreach(word => {
-        if (!phraseBuffer.isEmpty && phraseBuffer.last._2 != word._2 - 1) // non-adjacent words
+        if (phraseBuffer.nonEmpty && phraseBuffer.last._2 != word._2 - 1) // non-adjacent words
           record()
         phraseBuffer += ((word._1, word._2))
       })
@@ -257,7 +257,7 @@ class FrequentWord {
 
     // Build a search table for valid phrases
     val searchtable = new SearchTable
-    validPhrase.keySet.foreach(searchtable.add(_))
+    validPhrase.keySet.foreach(searchtable.add)
 
     tokens.map(combine(_, searchtable))
   }
@@ -324,7 +324,7 @@ class FrequentWord {
 
     hotspots.foreach(hs => {
       val hsval = hs.map(k => (k, dict.find(k)))
-        .filter(!_._2.isEmpty).map(p => (p._1, p._2.get))
+        .filter(_._2.isDefined).map(p => (p._1, p._2.get))
       val grpval = groups.map(_.repr)
       val assign = FrequentWord.similar(hsval.map(_._2), grpval)
       val newgroups = new ArrayBuffer[WordGroup]

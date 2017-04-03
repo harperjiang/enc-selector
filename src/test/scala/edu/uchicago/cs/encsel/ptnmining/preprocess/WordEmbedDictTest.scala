@@ -16,7 +16,7 @@ class WordEmbedDictTest {
   def testFind: Unit = {
     val words = new WordEmbedDict("/home/harper/Downloads/glove.42B.300d.txt")
 
-    assertTrue(!words.find("st.").isEmpty)
+    assertTrue(words.find("st.").isDefined)
   }
 
   @Test
@@ -35,7 +35,7 @@ class WordEmbedDictTest {
 
     words.addPhrase("good man",Array("good","man"))
 
-    assertTrue(!words.find("good man").isEmpty)
+    assertTrue(words.find("good man").isDefined)
 
     val result = words.find("good man").get
     val good = words.find("good").get

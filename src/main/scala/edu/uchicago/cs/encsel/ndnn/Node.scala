@@ -67,9 +67,9 @@ abstract class Node(is: Node*) {
   private[ndnn] var value: INDArray = _
   private[ndnn] var grad: INDArray = _
 
-  private[ndnn] var env: NodeEnv = null
+  private[ndnn] var env: NodeEnv = _
 
-  if (is.length > 0) {
+  if (is.nonEmpty) {
     attachTo(is(0).env)
   }
 
@@ -103,7 +103,7 @@ class Input(n: String) extends Node {
   def this() = this("default_input")
 
   def setEnv(e: NodeEnv): Unit = {
-    this.env = e;
+    this.env = e
     e.attach(this)
   }
 
@@ -139,7 +139,7 @@ class Add(left: Node, right: Node) extends Node(left, right) {
   def updateGrad: Unit = {
     this.left.grad.addi(this.grad)
 
-    this.right.grad.addi(right.value.isVector() match {
+    this.right.grad.addi(right.value.isVector match {
       case false => this.grad
       case true =>
         this.grad.sum((0 until grad.rank - 1): _*)
@@ -275,8 +275,8 @@ class Collect(nodes: Node*) extends Node(nodes: _*) {
  */
 class Embed(idx: Node, map: Node) extends Node(idx, map) {
 
-  var fwdmap: INDArray = null
-  var bwdmap: INDArray = null
+  var fwdmap: INDArray = _
+  var bwdmap: INDArray = _
 
   def compute: Unit = {
 

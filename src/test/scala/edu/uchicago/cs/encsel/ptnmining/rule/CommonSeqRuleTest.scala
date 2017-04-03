@@ -36,11 +36,12 @@ class CommonSeqRuleTest {
 
     assertEquals(3, newseq.content.length)
 
+    //noinspection ZeroIndexToHead
     assertTrue(newseq.content(0).isInstanceOf[PUnion])
     assertTrue(newseq.content(1).isInstanceOf[PSeq])
     assertTrue(newseq.content(2).isInstanceOf[PUnion])
 
-    val union1 = newseq.content(0).asInstanceOf[PUnion]
+    val union1 = newseq.content.head.asInstanceOf[PUnion]
     val common = newseq.content(1).asInstanceOf[PSeq]
     val union2 = newseq.content(2).asInstanceOf[PUnion]
 

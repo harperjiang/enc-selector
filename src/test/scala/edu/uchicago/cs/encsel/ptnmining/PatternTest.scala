@@ -40,8 +40,10 @@ class PatternTest {
     pattern.naming()
 
     assertEquals("_0", pattern.getName)
+    //noinspection ZeroIndexToHead
     assertEquals("_0_0", pattern.content(0).getName)
     assertEquals("_0_1", pattern.content(1).getName)
+    //noinspection ZeroIndexToHead
     assertEquals("_0_1_0", pattern.content(1).asInstanceOf[PUnion].content(0).getName)
     assertEquals("_0_1_1", pattern.content(1).asInstanceOf[PUnion].content(1).getName)
     assertEquals("_0_2", pattern.content(2).getName)

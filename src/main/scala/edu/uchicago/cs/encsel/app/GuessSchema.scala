@@ -40,37 +40,37 @@ object GuessSchema extends App {
 
   if (args.length < 1)
     System.exit(1)
-  val source = new File(args(0)).toURI()
+  val source = new File(args(0)).toURI
 
   if (!Files.exists(Paths.get(source))) {
     System.exit(1)
   }
 
-  FileUtils.scan(new File(source).toURI(), guessSchema)
+  FileUtils.scan(new File(source).toURI, guessSchema)
 
   def guessSchema(file: Path): Unit = {
     if (logger.isDebugEnabled())
-      logger.debug("Scanning %s".format(file.toUri().toString()))
-    if (!FileUtils.isDone(file.toUri(), "gsdone") &&
-      !FileUtils.isDone(file.toUri(), "done")) {
-      val schema = guesser.guessSchema(file.toUri())
+      logger.debug("Scanning %s".format(file.toUri.toString))
+    if (!FileUtils.isDone(file.toUri, "gsdone") &&
+      !FileUtils.isDone(file.toUri, "done")) {
+      val schema = guesser.guessSchema(file.toUri)
       if (null != schema) {
         if (logger.isDebugEnabled())
-          logger.debug("Generating schema for %s".format(file.toUri().toString()))
-        val schemaLocation = FileUtils.replaceExtension(file.toUri(), "schemagen")
+          logger.debug("Generating schema for %s".format(file.toUri.toString))
+        val schemaLocation = FileUtils.replaceExtension(file.toUri, "schemagen")
         Schema.toParquetFile(schema, schemaLocation)
         if (logger.isDebugEnabled())
-          logger.debug("Schema for %s written to %s".format(file.toUri().toString(), schemaLocation))
-        FileUtils.markDone(file.toUri(), "gsdone")
+          logger.debug("Schema for %s written to %s".format(file.toUri.toString, schemaLocation))
+        FileUtils.markDone(file.toUri, "gsdone")
       } else {
         if (logger.isDebugEnabled())
-          logger.debug("No schema generated for %s".format(file.toUri().toString()))
+          logger.debug("No schema generated for %s".format(file.toUri.toString))
       }
       if (logger.isDebugEnabled())
-        logger.debug("Scanned %s".format(file.toUri().toString()))
+        logger.debug("Scanned %s".format(file.toUri.toString))
     } else {
       if (logger.isDebugEnabled())
-        logger.debug("Mark found, skipping %s".format(file.toUri().toString()))
+        logger.debug("Mark found, skipping %s".format(file.toUri.toString))
     }
   }
 }

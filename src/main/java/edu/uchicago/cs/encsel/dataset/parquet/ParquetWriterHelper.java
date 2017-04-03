@@ -65,7 +65,7 @@ public class ParquetWriterHelper {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(new File(input)));
 			int maxBitLength = 0;
-			String line = null;
+			String line;
 			while ((line = br.readLine()) != null) {
 				line = line.trim();
 				if (line.isEmpty())
@@ -86,7 +86,7 @@ public class ParquetWriterHelper {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(new File(input)));
 			int maxBitLength = 0;
-			String line = null;
+			String line;
 			while ((line = br.readLine()) != null) {
 				line = line.trim();
 				if (line.isEmpty())
@@ -114,7 +114,7 @@ public class ParquetWriterHelper {
 
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema, false);
 
-		String line = null;
+		String line;
 		List<String> holder = new ArrayList<String>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
@@ -144,7 +144,7 @@ public class ParquetWriterHelper {
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == IntEncoding.DICT);
 
-		String line = null;
+		String line;
 		List<String> holder = new ArrayList<String>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
@@ -174,7 +174,7 @@ public class ParquetWriterHelper {
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == IntEncoding.DICT);
 
-		String line = null;
+		String line;
 		List<String> holder = new ArrayList<String>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
@@ -202,7 +202,7 @@ public class ParquetWriterHelper {
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == StringEncoding.DICT);
 
-		String line = null;
+		String line;
 		List<String> holder = new ArrayList<String>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
@@ -230,7 +230,7 @@ public class ParquetWriterHelper {
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == FloatEncoding.DICT);
 
-		String line = null;
+		String line;
 		List<String> holder = new ArrayList<String>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
@@ -258,7 +258,7 @@ public class ParquetWriterHelper {
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
 				encoding == FloatEncoding.DICT);
 
-		String line = null;
+		String line;
 		List<String> holder = new ArrayList<String>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());

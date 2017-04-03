@@ -27,7 +27,7 @@ class DataCollectorForTest extends DataCollector {
     }
   }
 
-  var scanned = new ArrayBuffer[URI]();
+  var scanned = new ArrayBuffer[URI]()
 }
 
 object DataCollectorTest {
@@ -41,9 +41,9 @@ class DataCollectorTest {
 
   @Test
   def testDone(): Unit = {
-    val srcpath = new File("src/test/resource/test_columner.csv").toPath()
-    val srcdone = new File("src/test/resource/test_columner.csv.done").toPath()
-    val srcuri = srcpath.toUri()
+    val srcpath = new File("src/test/resource/test_columner.csv").toPath
+    val srcdone = new File("src/test/resource/test_columner.csv.done").toPath
+    val srcuri = srcpath.toUri
     Files.deleteIfExists(srcdone)
 
     val dc = new DataCollectorForTest()
@@ -60,7 +60,7 @@ class DataCollectorTest {
 
     //    Files.deleteIfExists(Paths.get(new File("src/test/resource/content.csv.done").toURI))
 
-    dc.collect(new File("src/test/resource/content.csv").toURI())
+    dc.collect(new File("src/test/resource/content.csv").toURI)
     //    assertTrue(Files.exists(Paths.get(new File("src/test/resource/content.csv.done").toURI)))
 
     val columns = dp.load()
@@ -76,7 +76,7 @@ class DataCollectorTest {
   def testScan(): Unit = {
     val dc = new DataCollectorForTest
 
-    dc.scan(new File("src/test/resource/scan_folder").toURI())
+    dc.scan(new File("src/test/resource/scan_folder").toURI)
 
     assertEquals(5, dc.scanned.size)
     val fileNames = dc.scanned.map {

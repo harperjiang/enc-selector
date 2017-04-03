@@ -57,10 +57,13 @@ class FrequentWordTest {
 
     assertEquals(11, merged.length)
 
+    //noinspection ZeroIndexToHead
     assertEquals(5, merged(0).length)
+    //noinspection ZeroIndexToHead
     assertEquals("New York", merged(0)(4).value)
 
     assertEquals(8, merged(1).length)
+    //noinspection ZeroIndexToHead
     assertEquals("New York", merged(1)(0).value)
   }
 

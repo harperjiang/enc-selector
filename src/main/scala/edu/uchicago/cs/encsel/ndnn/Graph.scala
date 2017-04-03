@@ -38,7 +38,7 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
   protected val inputs = new ArrayBuffer[Input]
   protected val params = new ArrayBuffer[Param]
   protected var expected: E = _
-  protected var out: Node = null
+  protected var out: Node = _
 
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
     val newparam = super.param(n)
@@ -69,7 +69,7 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
     out.grad = lossFunction.gradient
     backward
     // Update Parameters
-    params.foreach { updatePolicy.update(_) }
+    params.foreach { updatePolicy.update }
     loss
   }
 

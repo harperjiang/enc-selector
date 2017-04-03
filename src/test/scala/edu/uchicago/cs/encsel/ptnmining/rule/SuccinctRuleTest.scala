@@ -26,10 +26,12 @@ class SuccinctRuleTest {
     val newseq = rewritten.asInstanceOf[PSeq]
     assertEquals(3, newseq.content.length)
 
+    //noinspection ZeroIndexToHead
     assertTrue(newseq.content(0).isInstanceOf[PUnion])
     assertTrue(newseq.content(1).isInstanceOf[PToken])
     assertTrue(newseq.content(2).isInstanceOf[PToken])
 
+    //noinspection ZeroIndexToHead
     assertEquals(2, newseq.content(0).asInstanceOf[PUnion].content.size)
     assertEquals("32342",newseq.content(1).asInstanceOf[PToken].token.value)
     assertEquals("abc",newseq.content(2).asInstanceOf[PToken].token.value)

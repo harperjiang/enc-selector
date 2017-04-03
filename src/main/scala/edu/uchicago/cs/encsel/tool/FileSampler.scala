@@ -23,6 +23,6 @@ object FileSampler extends App {
       testOut.println(line)
   })
 
-  trainOut.close
-  testOut.close
+  trainOut.close()
+  testOut.close()
 }

@@ -33,11 +33,13 @@ class WordSplitTest {
     val split = new WordSplit()
     var res = split.split("RPTYR")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("report", res._1(0))
     assertEquals("year", res._1(1))
 
     res = split.split("SMYS")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("some", res._1(0))
     assertEquals("year", res._1(1))
   }
@@ -47,11 +49,13 @@ class WordSplitTest {
     val split = new WordSplit()
     var res = split.split("inspectioncode")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("inspection", res._1(0))
     assertEquals("code", res._1(1))
 
     res = split.split("inspectioncodes")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("inspection", res._1(0))
     assertEquals("code", res._1(1))
   }
@@ -62,6 +66,7 @@ class WordSplitTest {
     val res = split.split("actualcmd")
     println(res)
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("actual", res._1(0))
     assertEquals("command", res._1(1))
   }
@@ -71,6 +76,7 @@ class WordSplitTest {
     val split = new WordSplit()
     val res = split.split("ReportYears")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("report", res._1(0))
     assertEquals("year", res._1(1))
   }
@@ -80,6 +86,7 @@ class WordSplitTest {
     val split = new WordSplit()
     val res = split.split("column522342Day")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("column", res._1(0))
     assertEquals("day", res._1(1))
   }
@@ -89,12 +96,14 @@ class WordSplitTest {
     val split = new WordSplit()
     var res = split.split("NOVIssuedDate")
     assertEquals(3, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("nov", res._1(0))
     assertEquals("issued", res._1(1))
     assertEquals("date", res._1(2))
 
     res = split.split("GeneralID")
     assertEquals(2, res._1.length)
+    //noinspection ZeroIndexToHead
     assertEquals("general", res._1(0))
     assertEquals("id", res._1(1))
   }

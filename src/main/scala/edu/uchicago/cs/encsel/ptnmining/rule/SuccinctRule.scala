@@ -49,7 +49,8 @@ class SuccinctRule extends RewriteRule {
         val removeEmpty = seq.content.filter(_ != PEmpty)
         removeEmpty.length match {
           case 0 => PEmpty
-          case 1 => removeEmpty(0)
+          case 1 => //noinspection ZeroIndexToHead
+            removeEmpty(0)
           case _ => new PSeq(removeEmpty)
         }
       }
@@ -57,7 +58,8 @@ class SuccinctRule extends RewriteRule {
         happen
         union.content.length match {
           case 0 => PEmpty
-          case 1 => union.content(0)
+          case 1 => //noinspection ZeroIndexToHead
+            union.content(0)
         }
       }
       case _ => up

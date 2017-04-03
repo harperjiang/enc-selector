@@ -121,7 +121,7 @@ object Dict {
           val partials = words.getOrElse(input(0), ArrayBuffer.empty[(String, Int)])
             .filter(t => t._1.length <= input.length + 1 && t._1.length >= input.length - 1 && t._1.intersect(input).length() >= input.length - 1)
             .map(word => (word._1, WordUtils.levDistance2(input, word._1), freq_penalty(word._2)))
-          if (!partials.isEmpty) {
+          if (partials.nonEmpty) {
             val partial = partials.minBy(t => t._2 + t._3)
             candidates += ((partial._1, partial._2, partial._2 + partial._3))
           }
@@ -135,7 +135,7 @@ object Dict {
               val wordPrio = index.getOrElse(word._1, Int.MaxValue)
               (word._1, WordUtils.levDistance2(input, abb._1), freq_penalty(wordPrio))
             })
-          if (!abbrvPartials.isEmpty) {
+          if (abbrvPartials.nonEmpty) {
             val abbrvp = abbrvPartials.minBy(t => t._2 + t._3)
             candidates += ((abbrvp._1, abbrvp._2, abbrvp._2 + abbrvp._3))
           }

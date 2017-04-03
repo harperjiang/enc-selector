@@ -1,27 +1,27 @@
 /**
- * *****************************************************************************
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- * Contributors:
- *     Hao Jiang - initial API and implementation
- *
- * *****************************************************************************
- */
+  * *****************************************************************************
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+  * distributed with this work for additional information
+  * regarding copyright ownership.  The ASF licenses this file
+  * to you under the Apache License, Version 2.0 (the
+  * "License"); you may not use this file except in compliance
+  * with the License.  You may obtain a copy of the License at
+  *
+  * http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing,
+  * software distributed under the License is distributed on an
+  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  * KIND, either express or implied.  See the License for the
+  * specific language governing permissions and limitations
+  * under the License.
+  *
+  * Contributors:
+  * Hao Jiang - initial API and implementation
+  *
+  * *****************************************************************************
+  */
 package edu.uchicago.cs.encsel.ndnn
 
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -43,6 +43,7 @@ trait Dataset[D] {
   def size: Int = dataSize
 
   def newEpoch(): Unit
+
   def batches(batchSize: Int): Iterator[Batch[D]]
 }
 
@@ -54,7 +55,7 @@ class Batch[D](s: Int, d: D, gt: D) {
 
 abstract class DatasetBase[D] extends Dataset[D] {
 
-  protected var permuteIdx: Buffer[Int] = null
+  protected var permuteIdx: Buffer[Int] = _
 
   protected def initShuffle(permute: Boolean = true) = {
     permuteIdx = (0 to dataSize - 1).toBuffer
@@ -70,16 +71,21 @@ abstract class DatasetBase[D] extends Dataset[D] {
   }
 
   def batches(batchSize: Int): Iterator[Batch[D]] = {
-    val bSize = batchSize match { case Dataset.BATCH_ALL => dataSize case _ => batchSize }
+    val bSize = batchSize match {
+      case Dataset.BATCH_ALL => dataSize
+      case _ => batchSize
+    }
     if (0 == bSize)
       throw new IllegalArgumentException("Batch Size is ZERO")
-    val numBatch = (dataSize / bSize) + ((dataSize % bSize) match { case 0 => 0 case _ => 1 })
+    val numBatch = (dataSize / bSize) + ((dataSize % bSize) match {
+      case 0 => 0
+      case _ => 1
+    })
     val curBatchSize = bSize
-    (0 until numBatch).toIterator.map { i =>
-      {
-        val idices = permuteIdx.slice(i * curBatchSize, Math.min((i + 1) * curBatchSize, size))
-        construct(idices)
-      }
+    (0 until numBatch).toIterator.map { i => {
+      val idices = permuteIdx.slice(i * curBatchSize, Math.min((i + 1) * curBatchSize, size))
+      construct(idices)
+    }
     }
   }
 }
@@ -89,8 +95,8 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBa
   protected val dataShape = ds
   protected val gtShape = gts
 
-  protected var datas: Array[Array[Double]] = null
-  protected var groundTruths: Array[Array[Double]] = null
+  protected var datas: Array[Array[Double]] = _
+  protected var groundTruths: Array[Array[Double]] = _
 
   {
     val loaded = load()
@@ -98,15 +104,19 @@ abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBa
     datas = loaded._2
     groundTruths = loaded._3
 
-    initShuffle(true)
+    initShuffle()
   }
 
   protected def load(): (Int, Array[Array[Double]], Array[Array[Double]])
 
   protected def construct(indices: Buffer[Int]): Batch[INDArray] = {
     val bSize = indices.length
-    val data = Nd4j.create(indices.flatMap { datas(_) }.toArray, Array(bSize, ds: _*))
-    val gt = Nd4j.create(indices.flatMap { groundTruths(_) }.toArray, Array(bSize, gts: _*))
+    val data = Nd4j.create(indices.flatMap {
+      datas(_)
+    }.toArray, bSize +: ds)
+    val gt = Nd4j.create(indices.flatMap {
+      groundTruths(_)
+    }.toArray, bSize +: gts)
     new Batch[INDArray](indices.length, data, gt)
   }
 }

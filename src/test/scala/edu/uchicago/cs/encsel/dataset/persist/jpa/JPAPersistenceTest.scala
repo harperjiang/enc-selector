@@ -21,15 +21,15 @@ class JPAPersistenceTest {
   @Before
   def cleanSchema: Unit = {
     val em = JPAPersistence.emf.createEntityManager()
-    em.getTransaction.begin
+    em.getTransaction.begin()
 
     em.createNativeQuery("DELETE FROM feature WHERE 1 = 1;").executeUpdate()
     em.createNativeQuery("DELETE FROM col_data WHERE 1 = 1;").executeUpdate()
     em.flush()
 
-    em.getTransaction.commit
+    em.getTransaction.commit()
 
-    em.getTransaction.begin
+    em.getTransaction.begin()
     val col1 = new ColumnWrapper
     col1.id = 2
     col1.colName = "a"
@@ -49,8 +49,8 @@ class JPAPersistenceTest {
 
     em.persist(col1)
 
-    em.getTransaction.commit
-    em.close
+    em.getTransaction.commit()
+    em.close()
   }
 
   @Test
@@ -98,12 +98,12 @@ class JPAPersistenceTest {
   def testSaveMerge: Unit = {
     val jpa = new JPAPersistence
     val cols = jpa.load().toArray
-    assertEquals(1, cols.size)
+    assertEquals(1, cols.length)
 
     cols(0).features += new Feature("T", "PP", 3.25)
     jpa.save(cols)
 
-    assertEquals(1, cols.size)
+    assertEquals(1, cols.length)
     val features = cols(0).features
     assertEquals(2, features.size)
     assertEquals("M", features(0).name)
@@ -132,7 +132,7 @@ class JPAPersistenceTest {
 
     val cols = jpa.load().toArray
 
-    assertEquals(1, cols.size)
+    assertEquals(1, cols.length)
     val col = cols(0)
     assertEquals(1, col.features.size())
   }
@@ -142,7 +142,7 @@ class JPAPersistenceTest {
     val jpa = new JPAPersistence
     val cols = jpa.load().toArray
 
-    assertEquals(1, cols.size)
+    assertEquals(1, cols.length)
     val col = cols(0)
     assertEquals(DataType.STRING, col.dataType)
     assertEquals(5, col.colIndex)

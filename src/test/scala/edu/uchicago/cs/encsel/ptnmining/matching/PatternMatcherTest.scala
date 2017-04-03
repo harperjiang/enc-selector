@@ -54,7 +54,7 @@ class PatternMatcherTest {
 
 
     val record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"), new TInt("3232"), new TWord("mmd"), new TWord("wwtm")))
-    assertTrue(!record.isEmpty)
+    assertTrue(record.isDefined)
     val rec = record.get
     assertEquals(new TWord("mmtm"), rec.get("_0_0_0").get)
     assertEquals(new TWord("wwkp"), rec.get("_0_0_1").get)
@@ -78,7 +78,7 @@ class PatternMatcherTest {
 
     val rec1 = PatternMatcher.matchItems(patterns,
       Seq(new TWord("dkkd"), new TInt("3123"), new TWord("aab"), new TWord("wtw"), new TWord("kmpt")))
-    assertTrue(!rec1.isEmpty)
+    assertTrue(rec1.isDefined)
 
     assertEquals(new TWord("dkkd"), rec1.get.get("0").get)
     assertEquals(new TInt("3123"), rec1.get.get("1").get)

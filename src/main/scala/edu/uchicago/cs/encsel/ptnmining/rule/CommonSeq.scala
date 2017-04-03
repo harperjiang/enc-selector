@@ -50,14 +50,14 @@ class CommonSeq {
     */
   def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[T] = {
     positions.clear
-    var common: Seq[T] = lines(0)
+    var common: Seq[T] = lines.head
     lines.drop(1).foreach(line => {
-      if (!common.isEmpty) {
+      if (common.nonEmpty) {
         // Longest common
         val commonBetween = between(common, line, equal)
-        if (!commonBetween.isEmpty) {
+        if (commonBetween.nonEmpty) {
           val nextCommon = commonBetween.maxBy(_._3)
-          if (positions.length == 0) {
+          if (positions.isEmpty) {
             positions += ((nextCommon._1, nextCommon._3))
           } else if (commonBetween.length != common.length) {
             // Modify old position info
@@ -86,8 +86,8 @@ class CommonSeq {
     */
   def between[T](a: Seq[T], b: Seq[T], equal: (T, T) => Boolean): Seq[(Int, Int, Int)] = {
     val data = a.indices.map(i => new Array[Int](b.length))
-    a.indices.foreach(i => data(i)(0) = equal(a(i), b(0)))
-    b.indices.foreach(i => data(0)(i) = equal(a(0), b(i)))
+    a.indices.foreach(i => data(i)(0) = equal(a(i), b.head))
+    b.indices.foreach(i => data(0)(i) = equal(a.head, b(i)))
 
     val candidates = new ArrayBuffer[(Int, Int, Int)]
     for (i <- 1 until a.length; j <- 1 until b.length) {
@@ -115,8 +115,8 @@ class CommonSeq {
     val not_overlap = new ArrayBuffer[(Int, Int, Int)]
     // From long to short
     candidates.sortBy(-_._3).foreach(c => {
-      val afree = pha.slice(c._1, c._1 + c._3).toSet.filter(_ >= c._3).size == 0
-      val bfree = phb.slice(c._2, c._2 + c._3).toSet.filter(_ >= c._3).size == 0
+      val afree = pha.slice(c._1, c._1 + c._3).toSet.filter(_ >= c._3).isEmpty
+      val bfree = phb.slice(c._2, c._2 + c._3).toSet.filter(_ >= c._3).isEmpty
       if (afree && bfree) {
         not_overlap += c
         (c._1 until c._1 + c._3).foreach(pha(_) = c._3)

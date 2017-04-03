@@ -35,13 +35,13 @@ object PatternMatcher {
     val matchNode = Match.build(ptn)
     var items = matchNode.next
 
-    while (!items.isEmpty) {
+    while (items.nonEmpty) {
       val matched = matchItems(items, tokens)
-      if (!matched.isEmpty)
+      if (matched.isDefined)
         return matched
       items = matchNode.next
     }
-    return None
+    None
   }
 
   def matchItems(ptns: Seq[Pattern], tokens: Seq[Token]): Option[Record] = {
@@ -118,11 +118,11 @@ private class SimpleMatch(ptn: Pattern) extends Match {
 
 private class SeqMatch(seq: PSeq) extends Match {
 
-  val children = seq.content.map(Match.build(_))
+  val children = seq.content.map(Match.build)
   val items = children.map(_.next).toBuffer
 
   def next = {
-    var result = items.flatten.toArray
+    val result = items.flatten.toArray
     if (!result.isEmpty) {
       // Build next
       var pointer = items.length - 1
@@ -155,7 +155,7 @@ private class SeqMatch(seq: PSeq) extends Match {
 
 private class UnionMatch(union: PUnion) extends Match {
 
-  val children = union.content.map(Match.build(_))
+  val children = union.content.map(Match.build)
   var counter = 0
 
   def next = {

@@ -49,11 +49,11 @@ object FileUtils {
   }
 
   def isDone(file: URI, suffix: String): Boolean = {
-    return Files.exists(Paths.get(new URI("%s.%s".format(file.toString(), suffix))))
+    Files.exists(Paths.get(new URI("%s.%s".format(file.toString, suffix))))
   }
 
   def markDone(file: URI, suffix: String): Unit = {
-    Files.createFile(Paths.get(new URI("%s.%s".format(file.toString(), suffix))))
+    Files.createFile(Paths.get(new URI("%s.%s".format(file.toString, suffix))))
   }
 
   def addExtension(source: URI, ext: String): URI = {

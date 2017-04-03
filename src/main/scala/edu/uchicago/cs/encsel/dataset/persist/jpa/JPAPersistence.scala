@@ -38,7 +38,7 @@ class JPAPersistence extends Persistence {
     val em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin()
     try {
-      datalist.map(ColumnWrapper.fromColumn(_)).foreach { data =>
+      datalist.map(ColumnWrapper.fromColumn).foreach { data =>
         {
           data.id match {
             case 0 => em.persist(data)
@@ -50,7 +50,7 @@ class JPAPersistence extends Persistence {
     } catch {
       case e: Exception => {
         logger.warn("Exception while saving data", e)
-        if (em.getTransaction.isActive())
+        if (em.getTransaction.isActive)
           em.getTransaction.rollback()
         throw new RuntimeException(e)
       }
@@ -62,7 +62,7 @@ class JPAPersistence extends Persistence {
     val em = JPAPersistence.emf.createEntityManager()
     val query = em.createQuery("SELECT c FROM Column c", classOf[ColumnWrapper])
     val res = query.getResultList.map(_.asInstanceOf[Column]).toIterator
-    em.close
+    em.close()
     res
   }
 
@@ -79,7 +79,7 @@ class JPAPersistence extends Persistence {
         throw new RuntimeException(e)
       }
     }
-    em.close
+    em.close()
   }
 
   def find(id: Int): Column = {

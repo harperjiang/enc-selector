@@ -44,7 +44,7 @@ class WordSplit {
         var fidelity = 1d
         (parts.map(part => {
           val lookup = Dict.lookup(part); fidelity *= lookup._2; lookup._1 })
-          .filter(StringUtils.isNotEmpty(_)).toBuffer, fidelity)
+          .filter(StringUtils.isNotEmpty).toBuffer, fidelity)
       }
       case _ => {
         guessMemory.clear

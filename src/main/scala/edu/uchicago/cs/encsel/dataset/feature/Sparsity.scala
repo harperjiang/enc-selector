@@ -37,7 +37,7 @@ object Sparsity extends FeatureExtractor {
       line =>
         {
           counter += 1
-          if (line.trim().isEmpty()) {
+          if (line.trim().isEmpty) {
             emptyCount += 1
           }
         }

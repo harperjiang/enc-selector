@@ -19,7 +19,7 @@ class PatternValidatorTest {
       "00E5867YL1DB226913E",
       "00E5867YL1DB226913E")
 
-    val tokens = lines.map(Tokenizer.tokenize(_))
+    val tokens = lines.map(Tokenizer.tokenize)
 
 
   }

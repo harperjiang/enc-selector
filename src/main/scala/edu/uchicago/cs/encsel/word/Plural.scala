@@ -47,7 +47,7 @@ object Plural {
           return apply
       }
     })
-    return input
+    input
   }
 
   def addPlural(input: String): String = {
@@ -57,13 +57,14 @@ object Plural {
         return apply
       }
     })
-    return input
+    input
   }
 }
 
 trait Rule {
-  def add(input: String): String;
-  def remove(input: String): String;
+  def add(input: String): String
+
+  def remove(input: String): String
 }
 
 class DictRule extends Rule {

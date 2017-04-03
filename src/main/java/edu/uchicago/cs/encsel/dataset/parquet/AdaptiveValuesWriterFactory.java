@@ -256,7 +256,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 		}
 
 		public long longBound() {
-			return Long.valueOf(1) << (longBitLength - 1);
+			return 1L << (longBitLength - 1);
 		}
 	}
 

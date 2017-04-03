@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 import edu.uchicago.cs.encsel.dataset.column.Column
 
 object Features {
-  val logger = LoggerFactory.getLogger(getClass())
+  val logger = LoggerFactory.getLogger(getClass)
   var extractors = new ArrayBuffer[FeatureExtractor]()
 
   install(EncFileSize)

@@ -12,7 +12,7 @@ class XLSXColumnReaderTest {
   @Test
   def testRead(): Unit = {
     val cr = new XLSXColumnReader()
-    val schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader_xlsx.schema").toURI())
+    val schema = Schema.fromParquetFile(new File("src/test/resource/test_col_reader_xlsx.schema").toURI)
 
     val columns = cr.readColumn(new File("src/test/resource/test_col_reader_xlsx.xlsx").toURI, schema)
 

@@ -40,7 +40,7 @@ class URIConverter extends AttributeConverter[URI, String] with Converter {
   
   def convertObjectValueToDataValue(objectValue: Object, session: Session): String = convertToDatabaseColumn(objectValue.asInstanceOf[URI])
   def convertDataValueToObjectValue(dataValue: Object, session: Session): URI = convertToEntityAttribute(dataValue.toString)
-  def isMutable(): Boolean = false
+  def isMutable: Boolean = false
   def initialize(mapping: DatabaseMapping, session: Session): Unit = {}
 
 }
@@ -51,7 +51,7 @@ class DataTypeConverter extends AttributeConverter[DataType, String] with Conver
 
   def convertObjectValueToDataValue(objectValue: Object, session: Session): Object = convertToDatabaseColumn(objectValue.asInstanceOf[DataType])
   def convertDataValueToObjectValue(dataValue: Object, session: Session): Object = convertToEntityAttribute(dataValue.toString)
-  def isMutable(): Boolean = false
+  def isMutable: Boolean = false
   def initialize(mapping: DatabaseMapping, session: Session): Unit = {}
 
 }

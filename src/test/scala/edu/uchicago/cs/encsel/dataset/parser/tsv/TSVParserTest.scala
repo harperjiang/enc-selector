@@ -14,15 +14,15 @@ class TSVParserTest {
     parser.schema = new Schema()
     val result = parser.parseLine("a\t\tb\tttt\tdae_ma\tafsew")
 
-    assertEquals(6, result.length)
+    assertEquals(6, result.length())
   }
 
   @Test
   def testGuessHeader: Unit = {
     val parser = new TSVParser
-    val records = parser.parse(new File("src/test/resource/test_tsv_parser.tsv").toURI(), null).toArray
+    val records = parser.parse(new File("src/test/resource/test_tsv_parser.tsv").toURI, null).toArray
     assertArrayEquals(Array[Object]("M", "W", "N", "O"), parser.guessHeaderName.toArray[Object])
-    assertEquals(5, records.size)
+    assertEquals(5, records.length)
     assertEquals(4, records(0).length())
     assertEquals("3$$3.3$$Good Dog2$$7", records(2).toString())
     assertEquals("4,3.4,Good Dog3,8", records(3).iterator().mkString(","))

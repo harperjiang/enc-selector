@@ -42,7 +42,7 @@ class Schema {
 
   var hasHeader = false
 
-  var columns: Array[(DataType, String)] = null;
+  var columns: Array[(DataType, String)] = _
 
   def this(columns: Array[(DataType, String)], hasheader: Boolean = true) {
     this()
@@ -65,7 +65,7 @@ object Schema {
       }
     }
 
-    return new Schema(cols.toArray, hasheader)
+    new Schema(cols.toArray, hasheader)
   }
 
   def toParquetFile(schema: Schema, file: URI) = {
@@ -90,7 +90,7 @@ object Schema {
     })
     writer.println("}")
 
-    writer.close();
+    writer.close()
   }
 
   private val pattern = "^\\s*(?:required|optional)\\s+([\\d\\w]+)\\s+([^\\s]+);\\s*$".r
@@ -129,11 +129,11 @@ object Schema {
         pname.endsWith(".schema") && pathname.contains(pname.replace(".schema", ""))
       }
     }
-    if (!schemas.isEmpty) {
-      schemaUri = schemas.next().toUri()
+    if (schemas.nonEmpty) {
+      schemaUri = schemas.next().toUri
       return Schema.fromParquetFile(schemaUri)
     }
-    return null
+    null
 
   }
 

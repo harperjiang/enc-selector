@@ -48,9 +48,9 @@ class LineJsonParser extends Parser {
   override def parseLine(line: String): Record = {
     val jsonObject = jsonParser.parse(line).getAsJsonObject
     if (schema != null) {
-      new DefaultRecord(schema.columns.map(f => jsonField(jsonObject, f._2)).toArray)
+      new DefaultRecord(schema.columns.map(f => jsonField(jsonObject, f._2)))
     } else { // Read keys and order
-      new DefaultRecord(guessedHeader.map(key => jsonField(jsonObject, key)).toArray)
+      new DefaultRecord(guessedHeader.map(key => jsonField(jsonObject, key)))
     }
   }
 
@@ -62,10 +62,10 @@ class LineJsonParser extends Parser {
   protected def jsonField(jsonObject: JsonObject, key: String): String = {
     if (jsonObject.has(key))
       jsonObject.get(key) match {
-        case x if x.isJsonPrimitive() => x.getAsString
-        case x if x.isJsonArray() => x.toString()
-        case x if x.isJsonNull() => ""
-        case x if x.isJsonObject() => x.toString()
+        case x if x.isJsonPrimitive => x.getAsString
+        case x if x.isJsonArray => x.toString
+        case x if x.isJsonNull => ""
+        case x if x.isJsonObject => x.toString
       }
     else ""
   }

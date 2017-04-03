@@ -95,6 +95,6 @@ object XSSFRowRecord {
   def content(cell: XSSFCell): String = {
     if (null == cell)
       return ""
-    return formatter.formatCellValue(cell)
+    formatter.formatCellValue(cell)
   }
 }

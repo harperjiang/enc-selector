@@ -39,7 +39,7 @@ object Config {
 
   load()
 
-  val logger = LoggerFactory.getLogger(getClass())
+  val logger = LoggerFactory.getLogger(getClass)
 
   def load(): Unit = {
     try {

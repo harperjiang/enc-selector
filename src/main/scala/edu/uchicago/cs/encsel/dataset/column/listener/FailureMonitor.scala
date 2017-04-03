@@ -28,7 +28,7 @@ class FailureMonitor extends ColumnReaderListener {
   val FACTOR = 100
   var failedCount = 0
   var totalCount = 0
-  val logger = LoggerFactory.getLogger(getClass())
+  val logger = LoggerFactory.getLogger(getClass)
 
   def start(event: ColumnReaderEvent): Unit = {
     failedCount = 0
