@@ -11,7 +11,7 @@ The process of generating patterns from a collection of given token sequence is 
 4. **Frequent Similar Words** Sub-chunks do not contain common sequences and thus cannot be further separated by the steps above. To deal with this, we look for frequent similar words in those sub-chunks as separator. This further split sub-chunks into smaller sub-chunks.
 5. **Simplify** Simplify structure of patterns. For example, sequences with one item will be simplifify as a single token
 
-## Pattern Validation
+## Pattern Evolving 
 
 Patterns generated from the steps above may be interpreted in many ways. For example, the following pattern
 ~~~~

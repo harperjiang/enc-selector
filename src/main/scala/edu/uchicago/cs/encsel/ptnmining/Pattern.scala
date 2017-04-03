@@ -22,11 +22,11 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
+import edu.uchicago.cs.encsel.ptnmining.matching.{NamingVisitor, PatternMatcher, Record}
 import edu.uchicago.cs.encsel.ptnmining.parser._
 import edu.uchicago.cs.encsel.ptnmining.rule.{CommonSeqRule, SuccinctRule}
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 /**
   * Created by harper on 3/16/17.
@@ -55,9 +55,8 @@ object Pattern {
       }
     }
 
-    val generalized = generalize(refineResult)
-    val named = naming(generalized)
-    named
+    val validated= validate(refineResult)
+    validated
   }
 
   protected def refine(root: Pattern): (Pattern, Boolean) = {
@@ -73,40 +72,10 @@ object Pattern {
     return (root, false)
   }
 
-  def generalize(ptn: Pattern): Pattern = {
+  def validate(ptn: Pattern): Pattern = {
     ptn
   }
 
-  def naming(ptn: Pattern): Pattern = {
-    val namingV = new PatternVisitor {
-
-      var counter = new mutable.Stack[Int]
-      counter.push(0)
-
-      override def on(ptn: Pattern): Unit = {
-        val parentName = path.isEmpty match {
-          case true => ""
-          case false => path(0).name
-        }
-        var current = counter.pop
-        ptn.name = "%s_%d".format(parentName, current)
-        current += 1
-        counter.push(current)
-      }
-
-      override def enter(container: Pattern): Unit = {
-        super.enter(container)
-        counter.push(0)
-      }
-
-      override def exit(container: Pattern): Unit = {
-        super.exit(container)
-        counter.pop
-      }
-    }
-    ptn.visit(namingV)
-    ptn
-  }
 }
 
 trait PatternVisitor {
@@ -119,6 +88,7 @@ trait PatternVisitor {
 
   def exit(container: Pattern): Unit = path.pop()
 }
+
 
 
 trait Pattern {
@@ -137,6 +107,10 @@ trait Pattern {
     * @param visitor
     */
   def visit(visitor: PatternVisitor): Unit = visitor.on(this)
+
+  def matchon(tokens: Seq[Token]): Option[Record] = PatternMatcher.matchon(this, tokens)
+
+  def naming() = visit(new NamingVisitor)
 }
 
 class PToken(t: Token) extends Pattern {
