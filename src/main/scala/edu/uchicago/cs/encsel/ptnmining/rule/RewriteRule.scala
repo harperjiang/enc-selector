@@ -40,7 +40,7 @@ trait RewriteRule {
     * @param ptn The target Pattern
     * @return pattern after rewritten
     */
-  def rewrite(ptn: Pattern): Pattern
+  def rewrite(ptn: Pattern): Pattern = modify(ptn, condition, update).get
 
   /**
     * Utilities Function that rewrite a pattern matching given condition
@@ -56,7 +56,7 @@ trait RewriteRule {
         case true => update(token)
         case false => token
       })
-      case any:PAny => Some(condition(any) match {
+      case any: PAny => Some(condition(any) match {
         case true => update(any)
         case false => any
       })
@@ -100,4 +100,8 @@ trait RewriteRule {
       }
     }
   }
+
+  protected def condition(ptn: Pattern): Boolean
+
+  protected def update(ptn: Pattern): Pattern
 }

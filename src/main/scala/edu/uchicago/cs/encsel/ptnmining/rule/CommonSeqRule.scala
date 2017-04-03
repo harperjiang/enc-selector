@@ -30,14 +30,10 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Look for common sequence from a union and split it into smaller pieces
   *
-  * Created by harper on 3/27/17.
   */
 class CommonSeqRule extends RewriteRule {
 
-  def rewrite(ptn: Pattern): Pattern = {
-    // First look for union and extract common patterns from it
-    modify(ptn, p => p.isInstanceOf[PUnion], update).get
-  }
+  protected def condition(ptn: Pattern): Boolean = ptn.isInstanceOf[PUnion]
 
   protected def update(union: Pattern): Pattern = {
     // flatten the union content
@@ -46,7 +42,7 @@ class CommonSeqRule extends RewriteRule {
         case seq: PSeq => seq.content
         case _ => Array(p).toSeq
       }
-    }).toSeq
+    })
     val cseq = new CommonSeq
     // Look for common sequence
     val seq = cseq.find(unionData, compare)
