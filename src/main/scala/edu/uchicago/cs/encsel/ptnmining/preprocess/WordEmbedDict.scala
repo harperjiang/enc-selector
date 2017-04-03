@@ -35,6 +35,7 @@ object WordEmbedDict {
 
 /**
   * Read word embedding files
+  *
   * @param source the dictionary file to load
   */
 class WordEmbedDict(source: String) {
@@ -55,7 +56,7 @@ class WordEmbedDict(source: String) {
   }
 
   def addPhrase(text: String, words: Array[String]) = {
-    val sum = words.map(find(_)).flatten.reduce((a, b) => a.add(b))
+    val sum = words.map(find).flatten.reduce((a, b) => a.add(b))
     additional.put(text, Some(sum))
   }
 
@@ -73,9 +74,7 @@ class WordEmbedDict(source: String) {
 
   protected def load(key: String): Option[INDArray] = {
     val found = Source.fromFile(source).getLines.map(_.split("\\s+"))
-      .find {
-        _ (0).equals(key)
-      }
+      .find(data => data(0).equals(key))
     found.isEmpty match {
       case true => None
       case _ => Some(Nd4j.create(found.get.drop(1).map(_.toDouble)))

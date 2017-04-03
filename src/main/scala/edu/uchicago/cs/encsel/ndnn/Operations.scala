@@ -34,7 +34,7 @@ import org.nd4j.linalg.factory.Nd4j
 object Operations {
 
   def softmax(in: INDArray): INDArray = {
-    Nd4j.getExecutioner().execAndReturn(
+    Nd4j.getExecutioner.execAndReturn(
       new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(in))
   }
 }

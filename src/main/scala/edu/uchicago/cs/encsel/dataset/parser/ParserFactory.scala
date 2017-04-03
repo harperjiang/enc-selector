@@ -58,11 +58,11 @@ object ParserFactory {
             new ColParser
           }
           case _ =>
-            return null
+            null
         }
       }
       case _ =>
-        return null
+        null
     }
   }
 }

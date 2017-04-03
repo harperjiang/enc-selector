@@ -65,7 +65,7 @@ class CommonsCSVParser extends Parser {
 }
 
 class CSVRecordWrapper(inner: CSVRecord) extends Record {
-  var innerRecord = inner;
+  var innerRecord = inner
 
   def apply(idx: Int): String = {
     inner.get(idx)
@@ -74,7 +74,7 @@ class CSVRecordWrapper(inner: CSVRecord) extends Record {
     inner.size()
   }
   override def toString(): String = {
-    inner.toString()
+    inner.toString
   }
   def iterator(): Iterator[String] = {
     inner.iterator()

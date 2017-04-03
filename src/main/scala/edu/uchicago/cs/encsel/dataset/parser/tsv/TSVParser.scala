@@ -35,7 +35,7 @@ import edu.uchicago.cs.encsel.dataset.parser.DefaultRecord
 class TSVParser extends Parser {
 
   override def parseLine(line: String): Record = {
-    return new DefaultRecord(line.split("\t"))
+    new DefaultRecord(line.split("\t"))
   }
 
   protected override def guessHeader(line: String): Unit = {

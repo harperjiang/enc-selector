@@ -64,7 +64,7 @@ object Index {
     //    flatten.get(new SpecifiedIndex(NDArrayUtil.toInts(idxflatten): _*),
     //      NDArrayIndex.all()).reshape(idxshape: _*)
     Nd4j.create(NDArrayUtil.toInts(idxflatten)
-      .map { flatten.getScalar(_) }.toList, idxshape)
+      .map { flatten.getScalar }.toList, idxshape)
   }
 
   def put(data: INDArray, idx: INDArray, toput: INDArray): Unit = {
@@ -100,14 +100,14 @@ object Index {
         }
         if (idxShape.last != 1)
           return false
-        return true
+        true
       }
       case xp1 if xp1 == idxShape.length + 1 => {
         for (i <- 0 until dataShape.length - 1) {
           if (dataShape(i) != idxShape(i))
             return false
         }
-        return true
+        true
       }
       case _ => false
     }
@@ -148,11 +148,11 @@ object Broadcast {
     if (left.shape().sameElements(right.shape())) {
       return left.add(right)
     }
-    if (right.isVector()) {
-      if (left.isMatrix()) {
+    if (right.isVector) {
+      if (left.isMatrix) {
         return right match {
-          case row if row.isRowVector() => left.addRowVector(row)
-          case col if col.isColumnVector() => left.addRowVector(col.transpose())
+          case row if row.isRowVector => left.addRowVector(row)
+          case col if col.isColumnVector => left.addRowVector(col.transpose())
         }
       } else {
         val op = new BroadcastAddOp(left, right, left.dup(), left.shape.length - 1)
@@ -166,11 +166,11 @@ object Broadcast {
     if (left.shape().sameElements(right.shape())) {
       return left.mul(right)
     }
-    if (right.isVector()) {
-      if (left.isMatrix()) {
+    if (right.isVector) {
+      if (left.isMatrix) {
         return right match {
-          case row if row.isRowVector() => left.mulRowVector(row)
-          case col if col.isColumnVector() => left.mulRowVector(col.transpose())
+          case row if row.isRowVector => left.mulRowVector(row)
+          case col if col.isColumnVector => left.mulRowVector(col.transpose())
         }
       } else {
         val op = new BroadcastMulOp(left, right, left.dup(), left.shape.length - 1)

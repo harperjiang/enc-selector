@@ -11,8 +11,8 @@ class EncFileSizeTest {
 
   @Test
   def testExtract: Unit = {
-    val col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_int.data").toURI()
+    val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.INTEGER)
+    col.colFile = new File("src/test/resource/test_col_int.data").toURI
 
     val feature = EncFileSize.extract(col)
     assertEquals(5, feature.size)

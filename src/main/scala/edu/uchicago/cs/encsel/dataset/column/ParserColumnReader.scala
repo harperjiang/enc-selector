@@ -47,9 +47,9 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
       col.colFile = allocFileForCol(tempFolder, d._1._2, d._2)
       val writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
       (col, writer)
-    }).toArray
+    })
 
-    var parsed = parser.parse(source, schema);
+    var parsed = parser.parse(source, schema)
 
     if (schema.hasHeader)
       parsed = parsed.drop(1)
@@ -59,24 +59,24 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
         if (!validate(row, schema)) {
           fireFailRecord(source)
           logger.warn("Malformated record in %s found, skipping: %s"
-            .format(source.toString, row.toString))
+            .format(source.toString, row.toString()))
         } else {
-          row.iterator.zipWithIndex.foreach(col => {
+          row.iterator().zipWithIndex.foreach(col => {
             colWithWriter(col._2)._2.println(col._1)
           })
         }
       }
     }
-    colWithWriter.foreach(t => { t._2.close })
+    colWithWriter.foreach(t => { t._2.close() })
     fireDone(source)
 
-    return colWithWriter.map(_._1)
+    colWithWriter.map(_._1)
   }
 
   def validate(record: Record, schema: Schema): Boolean = {
     if (!Config.columnReaderEnableCheck)
       return true
-    if (record.length > schema.columns.size) {
+    if (record.length > schema.columns.length) {
       return false
     }
     schema.columns.zipWithIndex.foreach(col => {
@@ -84,6 +84,6 @@ class ParserColumnReader(p: Parser) extends ColumnReader {
         return false
     })
 
-    return true
+    true
   }
 }

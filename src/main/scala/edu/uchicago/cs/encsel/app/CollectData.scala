@@ -22,7 +22,7 @@
  *
  * *****************************************************************************
  */
-package edu.uchicago.cs.encsel.app;
+package edu.uchicago.cs.encsel.app
 
 import java.io.File
 
@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit
 object CollectData extends App {
   val f = new File(args(0))
   //  var f = new File("/home/harper/dataset")
-  new DataCollector().scan(f.toURI())
+  new DataCollector().scan(f.toURI)
 }
 
 class DataCollector {
@@ -62,7 +62,7 @@ class DataCollector {
     val tasks = scala.collection.immutable.List(target).flatMap(FileUtils.scanFunction(_)).map { p => {
       new Callable[Unit] {
         def call: Unit = {
-          collect(p.toUri())
+          collect(p.toUri)
         }
       }
     }
@@ -80,7 +80,7 @@ class DataCollector {
         return
       }
       if (logger.isDebugEnabled())
-        logger.debug("Scanning " + source.toString())
+        logger.debug("Scanning " + source.toString)
 
       if (isDone(source)) {
         if (logger.isDebugEnabled())
@@ -102,23 +102,21 @@ class DataCollector {
       }
       val columns = columner.readColumn(source, defaultSchema)
 
-      columns.foreach(extractFeature(_))
+      columns.foreach(extractFeature)
 
       persistence.save(columns)
 
       markDone(source)
       if (logger.isDebugEnabled())
-        logger.debug("Scanned " + source.toString())
+        logger.debug("Scanned " + source.toString)
 
     } catch {
-      case e: Exception => {
-        logger.error("Exception while scanning " + source.toString, e)
-      }
+      case e: Exception =>  logger.error("Exception while scanning " + source.toString, e)
     }
   }
 
   protected def isDone(file: URI): Boolean = {
-    return FileUtils.isDone(file, "done")
+    FileUtils.isDone(file, "done")
   }
 
   protected def markDone(file: URI) = {
@@ -129,9 +127,7 @@ class DataCollector {
     try {
       col.features = Features.extract(col).toList
     } catch {
-      case e: Exception => {
-        logger.warn("Exception while processing column:%s@%s".format(col.colName, col.origin), e)
-      }
+      case e: Exception => logger.warn("Exception while processing column:%s@%s".format(col.colName, col.origin), e)
     }
   }
 

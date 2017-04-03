@@ -16,7 +16,7 @@ class FilePersistenceTest {
 
   @Before
   def removeDataFile = {
-    val path = new File("storage.dat").toPath()
+    val path = new File("storage.dat").toPath
     if (Files.exists(path))
       Files.delete(path)
   }

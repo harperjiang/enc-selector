@@ -71,8 +71,8 @@ class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) ext
       labels(i) = Array(labelis.readUnsignedByte().toDouble)
     }
 
-    datais.close
-    labelis.close
+    datais.close()
+    labelis.close()
 
     (dataSize, datas, labels)
   }

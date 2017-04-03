@@ -37,7 +37,7 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var origin: URI = o
   var colIndex: Int = ci
   var colName: String = cn
-  var colFile: URI = null
+  var colFile: URI = _
   var dataType = dt
   var features: java.util.List[Feature] = ListBuffer[Feature]()
 
@@ -46,6 +46,6 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   }
 
   def findFeature(t: String, name: String): Feature = {
-    Try { features.filter { f => f.featureType.equals(t) && f.name.equals(name) }(0) }.getOrElse(null)
+    Try{ features.filter { f => f.featureType.equals(t) && f.name.equals(name) }.head}.getOrElse(null)
   }
 }

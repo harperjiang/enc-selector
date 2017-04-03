@@ -54,7 +54,7 @@ class MeanLossEvaluator extends Evaluator {
   def loss = lossSum / batchCounter
 
   def summary: String =
-    """Average loss %f, average accuracy %f""".format(lossSum / batchCounter, accSum / batchCounter)
+    """Average loss %f, average accuracy %f""".format(lossSum / batchCounter, accSum.toDouble / batchCounter)
 }
 
 trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
@@ -74,7 +74,7 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
 
     val graph = getGraph
     val loadedParams = getParamStore.load
-    if (!loadedParams.isEmpty)
+    if (loadedParams.nonEmpty)
       graph.load(loadedParams)
     // Initial test
     evaluate(testBatchSize)

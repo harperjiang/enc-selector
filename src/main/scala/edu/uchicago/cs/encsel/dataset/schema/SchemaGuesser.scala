@@ -1,27 +1,27 @@
 /**
- * *****************************************************************************
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- *
- * Contributors:
- *     Hao Jiang - initial API and implementation
- *
- * *****************************************************************************
- */
+  * *****************************************************************************
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+  * distributed with this work for additional information
+  * regarding copyright ownership.  The ASF licenses this file
+  * to you under the Apache License, Version 2.0 (the
+  * "License"); you may not use this file except in compliance
+  * with the License.  You may obtain a copy of the License at
+  *
+  * http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing,
+  * software distributed under the License is distributed on an
+  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  * KIND, either express or implied.  See the License for the
+  * specific language governing permissions and limitations
+  * under the License.
+  *
+  * Contributors:
+  * Hao Jiang - initial API and implementation
+  *
+  * *****************************************************************************
+  */
 package edu.uchicago.cs.encsel.dataset.schema
 
 import java.net.URI
@@ -42,28 +42,27 @@ class SchemaGuesser {
     val parser = ParserFactory.getParser(file)
     if (null == parser) {
       if (logger.isDebugEnabled())
-        logger.debug("No parser available for %s".format(file.toString()))
+        logger.debug("No parser available for %s".format(file.toString))
       return null
     }
     val records = parser.parse(file, null)
 
     val guessedHeader = parser.guessHeaderName
     val columns = guessedHeader.map(_.replaceAll("[^\\d\\w_]+", "_"))
-      .map((DataType.BOOLEAN, _)).toArray
+      .map((DataType.BOOLEAN, _))
 
-    records.foreach { record =>
-      {
-        for (i <- 0 until columns.length) {
-          var value = record(i)
-          if (value != null && value.trim().length() != 0) {
-            value = value.trim()
+    records.foreach { record => {
+      for (i <- 0 until columns.length) {
+        var value = record(i)
+        if (value != null && value.trim().length() != 0) {
+          value = value.trim()
 
-            val expected = testType(value, columns(i)._1)
-            if (expected != columns(i)._1)
-              columns(i) = (expected, columns(i)._2)
-          }
+          val expected = testType(value, columns(i)._1)
+          if (expected != columns(i)._1)
+            columns(i) = (expected, columns(i)._2)
         }
       }
+    }
     }
     new Schema(columns, true)
   }
@@ -88,7 +87,7 @@ class SchemaGuesser {
             Try {
               val num = numberParser.parse(input)
               num match {
-                case x if x.isInstanceOf[Double] => DataType.STRING // Too Long
+                case x if x.longValue() != x.doubleValue() => DataType.STRING // Too Long
                 case x if x.intValue() == x.longValue() => DataType.INTEGER
                 case _ => DataType.LONG
               }
@@ -104,7 +103,7 @@ class SchemaGuesser {
             Try {
               val num = numberParser.parse(input)
               num match {
-                case x if x.isInstanceOf[Double] => DataType.STRING // Too Long
+                case x if x.longValue() != x.doubleValue() => DataType.STRING // Too Long
                 case _ => DataType.LONG
               }
             }.getOrElse(DataType.STRING)

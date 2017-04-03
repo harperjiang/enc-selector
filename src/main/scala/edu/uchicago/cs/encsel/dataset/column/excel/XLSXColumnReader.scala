@@ -56,7 +56,7 @@ class XLSXColumnReader extends ColumnReader {
       col.colFile = allocFileForCol(tempFolder, d._1._2, d._2)
       val writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
       (col, writer)
-    }).toArray
+    })
 
     val workbook = new XSSFWorkbook(new File(source))
     // By default only scan the first sheet
@@ -82,9 +82,9 @@ class XLSXColumnReader extends ColumnReader {
         }
       }
     }
-    colWithWriter.foreach(t => { t._2.close })
+    colWithWriter.foreach(t => { t._2.close() })
     fireDone(source)
-    return colWithWriter.map(_._1)
+    colWithWriter.map(_._1)
   }
 
   def validate(record: XSSFRow, schema: Schema): Boolean = {
@@ -97,7 +97,7 @@ class XLSXColumnReader extends ColumnReader {
       if (!datatype.check(XSSFRowRecord.content(cell)))
         return false
     })
-    return true
+    true
   }
 
 }

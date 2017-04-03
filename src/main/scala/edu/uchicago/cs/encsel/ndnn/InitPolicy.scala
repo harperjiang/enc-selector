@@ -30,7 +30,8 @@ import org.nd4j.linalg.api.rng.distribution.impl.NormalDistribution
 import org.nd4j.linalg.factory.Nd4j
 
 trait InitPolicy {
-  def init(shape: Array[Int]): INDArray;
+  def init(shape: Array[Int]): INDArray
+
   def init(shape: Int*): INDArray = init(shape.toArray)
 }
 

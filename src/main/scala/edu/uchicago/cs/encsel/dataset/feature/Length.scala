@@ -35,7 +35,7 @@ object Length extends FeatureExtractor {
   
   def extract(input: Column): Iterable[Feature] = {
     val length = Source.fromFile(new File(input.colFile)).getLines()
-      .filter(StringUtils.isNotEmpty(_)).map(_.length().toDouble).toTraversable
+      .filter(StringUtils.isNotEmpty).map(_.length().toDouble).toTraversable
     if (0 == length.size)
       return Iterable[Feature]()
     val statforlen = DataUtils.stat(length)

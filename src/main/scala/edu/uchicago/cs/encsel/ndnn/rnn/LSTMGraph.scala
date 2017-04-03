@@ -44,8 +44,8 @@ class LSTMGraph(numChar: Int, hiddenDim: Int,
   updatePolicy: UpdatePolicy = new Adam(0.5, 0.95, 0.95, 0.95, 10))
     extends Graph[Array[Array[Int]]](Xavier, updatePolicy, new LSTMLoss) {
 
-  def hiddenDimension = hiddenDim;
-  
+  def hiddenDimension = hiddenDim
+
   val c2v = param("c2v", Array(numChar, hiddenDim))
   val v2c = param("v2c", Array(hiddenDim, numChar))
   val inputSize = 2 * hiddenDim

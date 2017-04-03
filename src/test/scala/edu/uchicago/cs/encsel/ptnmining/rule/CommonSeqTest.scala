@@ -31,6 +31,7 @@ class CommonSeqTest {
 
     assertEquals(2, commons.size)
 
+    //noinspection ZeroIndexToHead
     assertEquals((0, 3, 4), commons(0))
     assertEquals((11, 14, 8), commons(1))
   }

@@ -34,7 +34,7 @@ object GenCarbonScript extends App {
   compareSize
 
   def carbonScript: Unit = {
-    val dir = Paths.get(new File("/home/harper/dataset/carbon").toURI())
+    val dir = Paths.get(new File("/home/harper/dataset/carbon").toURI)
 
     Files.list(dir).iterator().toArray.foreach(file => {
       val filename = file.getFileName.toString.replaceAll("\\.tmp$", "")
@@ -48,11 +48,11 @@ object GenCarbonScript extends App {
   }
 
   def compareSize: Unit = {
-    val dir = Paths.get(new File("/home/harper/dataset/carbon").toURI())
+    val dir = Paths.get(new File("/home/harper/dataset/carbon").toURI)
     val carbondir = Paths.get(new File("/home/harper/Repositories/incubator-carbondata/bin/carbonshellstore/default").toURI)
     Files.list(dir).iterator().toArray.foreach(file => {
       val filename = file.getFileName.toString.replaceAll("\\.tmp$", "").toLowerCase()
-      val filesize = new File(file.toUri()).length()
+      val filesize = new File(file.toUri).length()
       val folder = carbondir.resolve(filename)
       if (Files.exists(folder)) {
         val foldersize = folderSize(folder)

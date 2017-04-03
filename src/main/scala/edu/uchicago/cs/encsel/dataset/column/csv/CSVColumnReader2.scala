@@ -54,7 +54,7 @@ class CSVColumnReader2 extends ColumnReader {
       col.colFile = allocFileForCol(tempFolder, d._1._2, d._2)
       val writer = new PrintWriter(new FileOutputStream(new File(col.colFile)))
       (col, writer)
-    }).toArray
+    })
 
     var parseFormat = CSVFormat.EXCEL
     if (schema.hasHeader)
@@ -78,15 +78,15 @@ class CSVColumnReader2 extends ColumnReader {
         }
       }
     }
-    colWithWriter.foreach(t => { t._2.close })
+    colWithWriter.foreach(t => { t._2.close() })
     fireDone(source)
-    return colWithWriter.map(_._1)
+    colWithWriter.map(_._1)
   }
 
   def validate(record: CSVRecord, schema: Schema): Boolean = {
     if (!Config.columnReaderEnableCheck)
       return true
-    if (record.size() > schema.columns.size) {
+    if (record.size() > schema.columns.length) {
       return false
     }
     schema.columns.zipWithIndex.foreach(col => {
@@ -94,6 +94,6 @@ class CSVColumnReader2 extends ColumnReader {
         return false
     })
 
-    return true
+    true
   }
 }

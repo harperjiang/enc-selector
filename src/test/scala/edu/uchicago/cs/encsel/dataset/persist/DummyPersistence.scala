@@ -27,7 +27,7 @@ class DummyPersistence extends Persistence {
     storage ++= datalist
   }
   def load(): Iterator[Column] = {
-    return storage.clone().toIterator
+    storage.clone().toIterator
   }
   def clean() = {
     storage.clear()

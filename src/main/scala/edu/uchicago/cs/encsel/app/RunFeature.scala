@@ -61,10 +61,10 @@ object RunFeature extends App {
         }
         buffer += col
         if (buffer.length >= 100) {
-          persist.save(buffer.toTraversable)
+          persist.save(buffer)
           buffer.clear()
         }
       }
   }
-  persist.save(buffer.toTraversable)
+  persist.save(buffer)
 }

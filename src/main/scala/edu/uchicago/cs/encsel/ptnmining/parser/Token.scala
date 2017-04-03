@@ -37,7 +37,7 @@ trait Token {
       val token = obj.asInstanceOf[Token]
       return token.getClass == getClass && token.value.equals(value)
     }
-    return super.equals(obj)
+    super.equals(obj)
   }
 
   override def hashCode(): Int = getClass.hashCode() * 13 + value.hashCode

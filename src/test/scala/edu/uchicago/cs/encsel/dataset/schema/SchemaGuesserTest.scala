@@ -51,9 +51,9 @@ class SchemaGuesserTest {
   def testGuessSchema(): Unit = {
     val guess = new SchemaGuesser()
 
-    val csvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.csv").toURI())
+    val csvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.csv").toURI)
 
-    assertEquals(5, csvSchema.columns.size)
+    assertEquals(5, csvSchema.columns.length)
     assertEquals("A_K", csvSchema.columns(0)._2)
     assertEquals("B_M", csvSchema.columns(1)._2)
     assertEquals("CWD", csvSchema.columns(2)._2)
@@ -65,27 +65,27 @@ class SchemaGuesserTest {
     assertEquals(DataType.STRING, csvSchema.columns(3)._1)
     assertEquals(DataType.INTEGER, csvSchema.columns(4)._1)
 
-    val xlsxSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.xlsx").toURI())
+    val xlsxSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.xlsx").toURI)
 
-    assertEquals(4, xlsxSchema.columns.size)
+    assertEquals(4, xlsxSchema.columns.length)
 
     assertEquals(DataType.DOUBLE, xlsxSchema.columns(0)._1)
     assertEquals(DataType.STRING, xlsxSchema.columns(1)._1)
     assertEquals(DataType.LONG, xlsxSchema.columns(2)._1)
     assertEquals(DataType.STRING, xlsxSchema.columns(3)._1)
 
-    val jsonSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.json").toURI())
+    val jsonSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.json").toURI)
 
-    assertEquals(4, jsonSchema.columns.size)
+    assertEquals(4, jsonSchema.columns.length)
 
     assertEquals(DataType.DOUBLE, jsonSchema.columns(0)._1)
     assertEquals(DataType.STRING, jsonSchema.columns(1)._1)
     assertEquals(DataType.INTEGER, jsonSchema.columns(2)._1)
     assertEquals(DataType.STRING, jsonSchema.columns(3)._1)
 
-    val tsvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.tsv").toURI())
+    val tsvSchema = guess.guessSchema(new File("src/test/resource/test_guess_schema.tsv").toURI)
 
-    assertEquals(5, tsvSchema.columns.size)
+    assertEquals(5, tsvSchema.columns.length)
 
     assertEquals(DataType.DOUBLE, tsvSchema.columns(0)._1)
     assertEquals(DataType.STRING, tsvSchema.columns(1)._1)

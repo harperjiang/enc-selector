@@ -303,8 +303,8 @@ class SoftMaxTest {
       assertEquals(valbackup.getDouble(i, j), softmax.value.getDouble(i, j), 0.0001)
     }
 
-    assertFalse(softmax.value.isCleanedUp())
-    assertFalse(softmax.grad.isCleanedUp())
+    assertFalse(softmax.value.isCleanedUp)
+    assertFalse(softmax.grad.isCleanedUp)
   }
 }
 

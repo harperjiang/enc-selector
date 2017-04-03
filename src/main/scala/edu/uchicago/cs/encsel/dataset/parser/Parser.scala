@@ -39,10 +39,10 @@ import java.io.File
 
 trait Parser {
 
-  var schema: Schema = null
+  var schema: Schema = _
   protected var headerInline = false
-  protected val logger = LoggerFactory.getLogger(getClass())
-  protected var blankRecord: BlankRecord = null
+  protected val logger = LoggerFactory.getLogger(getClass)
+  protected var blankRecord: BlankRecord = _
 
   def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
@@ -53,16 +53,16 @@ trait Parser {
       // Guess header, need to retrieve a line
       val line = lines.next()
       guessHeader(line)
-      blankRecord = new BlankRecord(guessedHeader.size)
+      blankRecord = new BlankRecord(guessedHeader.length)
       if (headerInline) {
         // Put the line back
         val lb = Array(line).toIterator ++ (lines)
-        return lb.map { parseLineIgnoreError(_) }
+        return lb.map { parseLineIgnoreError }
       }
     } else {
-      blankRecord = new BlankRecord(schema.columns.size)
+      blankRecord = new BlankRecord(schema.columns.length)
     }
-    return lines.map { parseLineIgnoreError(_) }
+    lines.map { parseLineIgnoreError }
   }
 
   def parse(inputFile: URI, schema: Schema): Iterator[Record] = parse(new FileInputStream(new File(inputFile)), schema)
@@ -76,13 +76,14 @@ trait Parser {
     } catch {
       case e: Exception => {
         logger.warn("Exception while parsing line:" + line, e)
-        return Record.EMPTY
+        Record.EMPTY
       }
     }
   }
 
   protected def guessHeader(line: String): Unit = {}
-  protected var guessedHeader: Array[String] = null;
+  protected var guessedHeader: Array[String] = _
+
   def guessHeaderName: Array[String] = guessedHeader
 
   protected def parseLine(line: String): Record = blankRecord

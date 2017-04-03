@@ -48,7 +48,7 @@ object GatherColumnWord extends App {
   })
   val writer = new PrintWriter(new FileOutputStream("words"))
 
-  wordset.foreach(writer.println _)
+  wordset.foreach(writer.println)
 
-  writer.close
+  writer.close()
 }

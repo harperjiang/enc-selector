@@ -12,8 +12,8 @@ class FeaturesTest {
 
   @Test
   def testFeatures: Unit = {
-    val col = new Column(new File("src/test/resource/test_columner.csv").toURI(), 0, "id", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_int.data").toURI()
+    val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.INTEGER)
+    col.colFile = new File("src/test/resource/test_col_int.data").toURI
 
     val features = Features.extract(col)
     val fa = features.toArray

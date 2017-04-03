@@ -55,6 +55,6 @@ object LSTM extends App {
   graph.bo.value = Nd4j.readNumpy("/home/harper/dataset/numpy/bo.npy")
   graph.v2c.value = Nd4j.readNumpy("/home/harper/dataset/numpy/v.npy")
 
-  trainer.train(60, 50)
+  trainer.train(60)
 
 }

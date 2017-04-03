@@ -48,11 +48,11 @@ object ColumnReaderFactory {
             new XLSXColumnReader
           }
           case _ =>
-            return null
+            null
         }
       }
       case _ =>
-        return null
+        null
     }
   }
 }

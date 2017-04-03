@@ -27,7 +27,7 @@ package edu.uchicago.cs.encsel.dataset.feature
 class Feature(t: String) extends Serializable {
 
   var featureType: String = t
-  var name: String = null
+  var name: String = _
   var value: Double = -1
 
   def this() {
@@ -45,10 +45,10 @@ class Feature(t: String) extends Serializable {
       val fea = obj.asInstanceOf[Feature]
       return this.featureType.equals(fea.featureType) && this.name.equals(fea.name)
     }
-    return super.equals(obj)
+    super.equals(obj)
   }
 
   override def hashCode(): Int = {
-    return 13 * this.featureType.hashCode() + this.name.hashCode()
+    13 * this.featureType.hashCode() + this.name.hashCode()
   }
 }

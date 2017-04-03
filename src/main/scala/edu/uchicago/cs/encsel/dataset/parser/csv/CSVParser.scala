@@ -36,8 +36,8 @@ import edu.uchicago.cs.encsel.dataset.parser.DefaultRecord
 class CSVParser extends Parser {
 
   override protected def parseLine(line: String): Record = {
-    var content = new ArrayBuffer[String]();
-    val buffer = new StringBuffer();
+    var content = new ArrayBuffer[String]()
+    val buffer = new StringBuffer()
     var state = 0 // 0 is field start, 1 is in string, 2 is in field, 3 is string end, 4 is waiting double quote ""
     line.foreach { c =>
       {
@@ -45,7 +45,7 @@ class CSVParser extends Parser {
           case 0 => {
             c match {
               case '\"' => { state = 1 }
-              case ',' => { content += buffer.toString(); buffer.delete(0, buffer.length()) }
+              case ',' => { content += buffer.toString; buffer.delete(0, buffer.length()) }
               case _ => { state = 2; buffer.append(c) }
             }
           }
@@ -57,14 +57,14 @@ class CSVParser extends Parser {
           }
           case 2 => {
             c match {
-              case ',' => { content += buffer.toString(); buffer.delete(0, buffer.length()); state = 0 }
+              case ',' => { content += buffer.toString; buffer.delete(0, buffer.length()); state = 0 }
               case _ => { buffer.append(c) }
             }
           }
           case 3 => {
             c match {
               case '\"' => { buffer.append(c); state = 1 }
-              case ',' => { content += buffer.toString(); buffer.delete(0, buffer.length()); state = 0 }
+              case ',' => { content += buffer.toString; buffer.delete(0, buffer.length()); state = 0 }
               case _ => throw new IllegalArgumentException("" + c)
             }
           }
@@ -73,8 +73,8 @@ class CSVParser extends Parser {
       }
     }
     if (state == 0 || state == 2 || state == 3) {
-      content += buffer.toString()
+      content += buffer.toString
     }
-    return new DefaultRecord(content.toArray)
+    new DefaultRecord(content.toArray)
   }
 }

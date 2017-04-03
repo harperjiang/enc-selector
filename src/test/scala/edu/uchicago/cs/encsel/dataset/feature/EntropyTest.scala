@@ -26,11 +26,11 @@ class EntropyTest {
   @Test
   def testRun: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_str2.data").toURI()
+    col.colFile = new File("src/test/resource/test_col_str2.data").toURI
 
     var features = Entropy.extract(col).toArray
 
-    assertEquals(5, features.size)
+    assertEquals(5, features.length)
     assertEquals("line_max", features(0).name)
     assertEquals(2.0556, features(0).value, 0.001)
     assertEquals("line_min", features(1).name)
@@ -42,10 +42,10 @@ class EntropyTest {
     assertEquals("total", features(4).name)
     assertEquals(2.0694, features(4).value, 0.001)
 
-    col.colFile = new File("src/test/resource/test_col_str.data").toURI()
+    col.colFile = new File("src/test/resource/test_col_str.data").toURI
 
     features = Entropy.extract(col).toArray
-    assertEquals(5, features.size)
+    assertEquals(5, features.length)
     assertEquals("line_max", features(0).name)
     assertEquals(2.4802, features(0).value, 0.001)
     assertEquals("line_min", features(1).name)

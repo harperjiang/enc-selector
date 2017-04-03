@@ -25,14 +25,17 @@
 package edu.uchicago.cs.encsel.dataset.parser
 
 trait Record {
-  def apply(idx: Int): String;
-  def length(): Int;
-  def toString(): String;
-  def iterator(): Iterator[String];
+  def apply(idx: Int): String
+
+  def length(): Int
+
+  def toString: String
+
+  def iterator(): Iterator[String]
 }
 
 class DefaultRecord(ct: Array[String]) extends Record {
-  val content = ct;
+  val content = ct
 
   def apply(idx: Int): String = {
     content(idx)
@@ -60,7 +63,7 @@ class BlankRecord(size: Int) extends Record {
   def apply(idx: Int): String = ""
   def length(): Int = size
   override def toString(): String = ""
-  def iterator: Iterator[String] = blankIterator
+  def iterator(): Iterator[String] = blankIterator
 }
 
 object Record {
