@@ -37,7 +37,7 @@ class PatternMiner {
   def mine(input: Seq[String]): Unit = {
 
     val tokens = input.map(Tokenizer.tokenize(_).toSeq)
-
+    // Pre-processing
     freqword.init(tokens)
     val merged = freqword.merge()
 

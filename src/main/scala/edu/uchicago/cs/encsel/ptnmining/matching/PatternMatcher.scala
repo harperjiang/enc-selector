@@ -25,15 +25,11 @@ package edu.uchicago.cs.encsel.ptnmining.matching
 import edu.uchicago.cs.encsel.ptnmining._
 import edu.uchicago.cs.encsel.ptnmining.parser.{TDouble, TInt, TWord, Token}
 
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-
 
 /**
   * Created by harper on 3/31/17.
   */
-class PatternMatcher {
-
+object PatternMatcher {
 
   def matchon(ptn: Pattern, tokens: Seq[Token]): Option[Record] = {
     val matchNode = Match.build(ptn)
@@ -106,7 +102,7 @@ private trait Match {
   def reset: Unit
 }
 
-class SimpleMatch(ptn: Pattern) extends Match {
+private class SimpleMatch(ptn: Pattern) extends Match {
   private var used = false
 
   def next = used match {
@@ -163,12 +159,16 @@ private class UnionMatch(union: PUnion) extends Match {
   var counter = 0
 
   def next = {
-    val res = children(counter).next
-    if (counter < children.length && res.isEmpty) {
-      counter += 1
-      next
-    } else {
-      res
+    children(counter).next match {
+      case empty if empty.isEmpty => {
+        if (counter < children.length - 1) {
+          counter += 1
+          next
+        } else {
+          empty
+        }
+      }
+      case valid => valid
     }
   }
 

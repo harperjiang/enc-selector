@@ -22,20 +22,35 @@
 
 package edu.uchicago.cs.encsel.ptnmining.matching
 
-import edu.uchicago.cs.encsel.ptnmining.parser.Token
+import edu.uchicago.cs.encsel.ptnmining.{Pattern, PatternVisitor}
 
 import scala.collection.mutable
 
 /**
-  * Created by harper on 3/31/17.
+  * Created by harper on 4/2/17.
   */
-class Record {
-  val values: mutable.HashMap[String, Token] = new mutable.HashMap[String, Token]
+class NamingVisitor extends PatternVisitor {
+  private var counter = new mutable.Stack[Int]
+  counter.push(0)
 
-  def add(name: String, value: Token) = {
-    values += ((name, value))
+  override def on(ptn: Pattern): Unit = {
+    val parentName = path.isEmpty match {
+      case true => ""
+      case false => path(0).name
+    }
+    var current = counter.pop
+    ptn.name = "%s_%d".format(parentName, current)
+    current += 1
+    counter.push(current)
   }
 
-  def get(name: String): Option[Token] = values.get(name)
-}
+  override def enter(container: Pattern): Unit = {
+    super.enter(container)
+    counter.push(0)
+  }
 
+  override def exit(container: Pattern): Unit = {
+    super.exit(container)
+    counter.pop
+  }
+}

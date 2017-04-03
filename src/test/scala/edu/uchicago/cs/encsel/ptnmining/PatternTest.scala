@@ -37,7 +37,7 @@ class PatternTest {
       new PUnion(new PWordAny, new PIntAny),
       new PToken(new TInt("3324")))
 
-    Pattern.naming(pattern)
+    pattern.naming()
 
     assertEquals("_0", pattern.getName)
     assertEquals("_0_0", pattern.content(0).getName)
