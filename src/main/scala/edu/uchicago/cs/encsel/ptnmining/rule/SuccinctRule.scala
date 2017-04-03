@@ -22,22 +22,22 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.{PSeq, PToken, PUnion, Pattern}
+import edu.uchicago.cs.encsel.ptnmining._
 
 /**
-  * Remove unnecessary seq or union structure
+  * Reduce unnecessary seq or union structure
+  * Seq(a) => a
+  * Union(a) => a
+  * Seq(a,PEmpty) => Seq(a)
+  * Seq() => PEmpty
+  * Union() => PEmpty
   */
 class SuccinctRule extends RewriteRule {
 
-  def rewrite(ptn: Pattern): Pattern = {
-    // First look for union and extract common patterns from it
-    modify(ptn, condition, update).get
-  }
-
   protected def condition(p: Pattern): Boolean = {
     p match {
-      case u: PUnion => u.content.size == 1
-      case s: PSeq => s.content.length == 1
+      case u: PUnion => u.content.size <= 1
+      case s: PSeq => s.content.length <= 1 || s.content.contains(PEmpty)
       case _ => false
     }
   }
@@ -46,11 +46,19 @@ class SuccinctRule extends RewriteRule {
     up match {
       case seq: PSeq => {
         happen
-        seq.content(0)
+        val removeEmpty = seq.content.filter(_ != PEmpty)
+        removeEmpty.length match {
+          case 0 => PEmpty
+          case 1 => removeEmpty(0)
+          case _ => new PSeq(removeEmpty)
+        }
       }
       case union: PUnion => {
         happen
-        union.content.toSeq(0)
+        union.content.length match {
+          case 0 => PEmpty
+          case 1 => union.content(0)
+        }
       }
       case _ => up
     }
