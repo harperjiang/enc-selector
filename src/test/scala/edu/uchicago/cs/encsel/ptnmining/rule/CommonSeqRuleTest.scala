@@ -45,15 +45,15 @@ class CommonSeqRuleTest {
     val common = newseq.content(1).asInstanceOf[PSeq]
     val union2 = newseq.content(2).asInstanceOf[PUnion]
 
-    assertEquals(4,union1.content.size)
-    assertEquals(3,common.content.length)
-    assertEquals(4,union2.content.size)
+    assertEquals(4, union1.content.size)
+    assertEquals(1, common.content.length)
+    assertEquals(4, union2.content.size)
 
     val u1c = union1.content.toArray
-    assertEquals(u1c(0),new PSeq(new PToken(new TWord("abc"))))
-    assertEquals(u1c(1),PEmpty)
-    assertEquals(u1c(2),new PSeq(new PToken(new TWord("kwmt")),new PToken(new TWord("ddmpt"))))
-    assertEquals(u1c(3),new PSeq(new PToken(new TWord("ttpt"))))
+    assertEquals(u1c(0), new PSeq(new PToken(new TWord("abc")), new PToken(new TInt("312"))))
+    assertEquals(u1c(1), new PSeq(new PToken(new TInt("4021"))))
+    assertEquals(u1c(2), new PSeq(new PToken(new TWord("kwmt")), new PToken(new TWord("ddmpt")), new PToken(new TInt("2323"))))
+    assertEquals(u1c(3), new PSeq(new PToken(new TWord("ttpt")), new PToken(new TInt("3232"))))
   }
 
 }

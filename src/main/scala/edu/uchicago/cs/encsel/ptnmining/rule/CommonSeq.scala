@@ -22,6 +22,7 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -32,14 +33,14 @@ import scala.collection.mutable.ArrayBuffer
 
 class CommonSeq {
 
-  val sequence_length = 2
+  val sequence_length = 1
   // Percentage that a common sequence is not in some sentence
   // TODO: the tolerance is not supported now
   val tolerance = 0.1
 
   implicit def bool2int(b: Boolean) = if (b) 1 else 0
 
-  var positions = new ArrayBuffer[(Int, Int)]
+  var positions = new ArrayBuffer[Seq[(Int, Int)]]
 
   /**
     * Look for common sequence in a list of lines. For implementation
@@ -48,29 +49,80 @@ class CommonSeq {
     * @param lines
     * @return common sequences
     */
-  def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[T] = {
+  def find[T](lines: Seq[Seq[T]], equal: (T, T) => Boolean): Seq[Seq[T]] = {
     positions.clear
-    var common: Seq[T] = lines.head
+
+    val commons = new ArrayBuffer[Seq[T]]()
+    commons += lines.head
+
     lines.drop(1).foreach(line => {
-      if (common.nonEmpty) {
-        // Longest common
-        val commonBetween = between(common, line, equal)
-        if (commonBetween.nonEmpty) {
-          val nextCommon = commonBetween.maxBy(_._3)
-          if (positions.isEmpty) {
-            positions += ((nextCommon._1, nextCommon._3))
-          } else if (commonBetween.length != common.length) {
-            // Modify old position info
-            positions = positions.map(pos => (pos._1 + nextCommon._1, nextCommon._3))
+      if (commons.nonEmpty) {
+        val commonsBetween = commons.map(between(_, line, equal))
+
+        // Remove positions that are no longer valid
+        val emptyIndices = commonsBetween.zipWithIndex
+          .filter(_._1.isEmpty).map(_._2).toSet
+        positions = positions.map(pos => pos.zipWithIndex
+          .filter(act => {
+            !emptyIndices.contains(act._2)
+          }).map(_._1))
+
+        val nonOverlap = commons.length match {
+          case 1 => commonsBetween
+          case _ => {
+            // Remove overlapped items
+            val withIndex = commonsBetween.zipWithIndex.map(outer => {
+              outer._1.zipWithIndex.map(inner => {
+                (inner._1, outer._2, inner._2)
+              })
+            }).flatten
+
+            val placeholder = Array.fill(line.length)(0)
+            val filtered = withIndex.sortBy(-_._1._3).filter(item => {
+              val piece = item._1
+              if (placeholder.slice(piece._2, piece._2 + piece._3).sum == 0) {
+                (piece._2 until piece._2 + piece._3).foreach(placeholder(_) = piece._3)
+                true
+              } else {
+                false
+              }
+            })
+
+            val grouped = filtered.groupBy(_._2).toSeq.sortBy(_._1).map(i => (i._1, i._2.map(j => (j._1, j._3))))
+
+            val nolp = new ArrayBuffer[Seq[(Int, Int, Int)]]
+            grouped.foreach(item => {
+              while (nolp.length < item._1 - 1) {
+                nolp += Seq.empty[(Int, Int, Int)]
+              }
+              nolp += item._2.sortBy(_._2).map(_._1)
+            })
+            nolp
           }
-          positions += ((nextCommon._2, nextCommon._3))
-          common = line.slice(nextCommon._2, nextCommon._2 + nextCommon._3)
-        } else {
-          common = Seq.empty[T]
         }
+
+        // Split the positions
+        if (positions.isEmpty) {
+          // For the first and second lines
+          positions += nonOverlap(0).map(cmn => (cmn._1, cmn._3))
+          positions += nonOverlap(0).map(cmn => (cmn._2, cmn._3))
+        } else {
+          positions = positions.map(pos => {
+            pos.zip(nonOverlap).map(pair => {
+              val oldpos = pair._1
+              val newseps = pair._2
+              newseps.map(newsep => (oldpos._1 + newsep._1, newsep._3))
+            }).flatten
+          })
+          positions += nonOverlap.flatten.map(item => (item._2, item._3))
+        }
+        commons.clear
+        commons ++= positions.last.map(pos => line.slice(pos._1, pos._1 + pos._2))
+      } else {
+        commons.clear()
       }
     })
-    common
+    commons
   }
 
   /**
@@ -90,25 +142,22 @@ class CommonSeq {
     b.indices.foreach(i => data(0)(i) = equal(a.head, b(i)))
 
     val candidates = new ArrayBuffer[(Int, Int, Int)]
-    for (i <- 1 until a.length; j <- 1 until b.length) {
+
+    for (i <- 1 until a.length;
+         j <- 1 until b.length) {
       data(i)(j) = equal(a(i), b(j)) match {
-        case true => {
-          if ((i == a.length - 1 || j == b.length - 1)
-            && data(i - 1)(j - 1) >= sequence_length - 1) {
-            val len = data(i - 1)(j - 1)
-            candidates += ((i - len, j - len, len + 1))
-          }
-          data(i - 1)(j - 1) + 1
-        }
-        case false => {
-          if (data(i - 1)(j - 1) >= sequence_length) {
-            val len = data(i - 1)(j - 1)
-            candidates += ((i - len, j - len, len))
-          }
-          0
-        }
+        case true => data(i - 1)(j - 1) + 1
+        case false => 0
       }
     }
+    // Collecting results
+    for (i <- 0 until a.length;
+         j <- 0 until b.length) {
+      if (data(i)(j) >= sequence_length) {
+        candidates += ((i - data(i)(j) + 1, j - data(i)(j) + 1, data(i)(j)))
+      }
+    }
+
     // Removing overlap
     val pha = Array.fill(a.length)(0)
     val phb = Array.fill(b.length)(0)

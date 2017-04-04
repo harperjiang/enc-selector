@@ -22,9 +22,11 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
-import edu.uchicago.cs.encsel.ptnmining.parser.{TInt, TWord}
+import edu.uchicago.cs.encsel.ptnmining.parser.{TInt, TWord, Tokenizer}
 import org.junit.Test
 import org.junit.Assert._
+
+import scala.io.Source
 
 /**
   * Created by harper on 3/31/17.
@@ -47,5 +49,14 @@ class PatternTest {
     assertEquals("_0_1_0", pattern.content(1).asInstanceOf[PUnion].content(0).getName)
     assertEquals("_0_1_1", pattern.content(1).asInstanceOf[PUnion].content(1).getName)
     assertEquals("_0_2", pattern.content(2).getName)
+  }
+
+  @Test
+  def testGenerate: Unit = {
+    val input = Source.fromFile("src/test/resource/pattern_miner_sample").getLines().toSeq
+
+    val pattern = Pattern.generate(input.map(Tokenizer.tokenize(_).toSeq))
+
+    assertTrue(pattern.isInstanceOf[PSeq])
   }
 }
