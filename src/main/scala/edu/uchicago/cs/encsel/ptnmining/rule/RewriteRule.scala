@@ -51,6 +51,7 @@ trait RewriteRule {
     * @return the rewritten pattern
     */
   def modify(root: Pattern, condition: Pattern => Boolean, update: Pattern => Pattern): Option[Pattern] = {
+    modified = false
     root match {
       case token: PToken => Some(condition(token) match {
         case true => update(token)

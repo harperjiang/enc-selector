@@ -33,7 +33,8 @@ import scala.collection.mutable.ArrayBuffer
   */
 class CommonSeqRule extends RewriteRule {
 
-  protected def condition(ptn: Pattern): Boolean = ptn.isInstanceOf[PUnion]
+  protected def condition(ptn: Pattern): Boolean =
+    ptn.isInstanceOf[PUnion] && ptn.asInstanceOf[PUnion].content.size > 1
 
   protected def update(union: Pattern): Pattern = {
     // flatten the union content
@@ -46,55 +47,45 @@ class CommonSeqRule extends RewriteRule {
     val cseq = new CommonSeq
     // Look for common sequence
     val seq = cseq.find(unionData, compare)
+
     if (seq.nonEmpty) {
-      // Common Seq split tokens into pieces
+      val sectionBuffers = Array.fill(seq.length + 1)(new ArrayBuffer[Pattern])
       val commonPos = cseq.positions
-      val beforeBuffer = new ArrayBuffer[Pattern]
-      val afterBuffer = new ArrayBuffer[Pattern]
-      //
       commonPos.zip(unionData).foreach(lp => {
         val pos = lp._1
         val data = lp._2
 
-        beforeBuffer += (pos._1 match {
-          case 0 => PEmpty
-          case _ => new PSeq(data.slice(0, pos._1))
+        var pointer = 0
+
+        pos.indices.foreach(i => {
+          val sec = pos(i)
+          sectionBuffers(i) += (sec._1 match {
+            case p if p == pointer => PEmpty
+            case _ => new PSeq(data.slice(pointer, sec._1))
+          })
+          pointer = sec._2
         })
-        afterBuffer += (pos._1 + pos._2 match {
-          case len if len == data.length => PEmpty
-          case _ => new PSeq(data.slice(pos._2, data.length))
+        sectionBuffers.last += (pointer match {
+          case last if last == data.length => PEmpty
+          case _ => new PSeq(data.slice(pointer, data.length))
         })
       })
-
       // Create new pattern
+
+      val patternSeqs = new ArrayBuffer[Pattern]
+      seq.indices.foreach(i => {
+        patternSeqs += new PUnion(sectionBuffers(i))
+        patternSeqs += new PSeq(seq(i))
+      })
+      patternSeqs += new PUnion(sectionBuffers.last)
+
       happen
-      new PSeq(Array(new PUnion(beforeBuffer), new PSeq(seq), new PUnion(afterBuffer)))
+      new PSeq(patternSeqs)
     } else
       union
   }
 
   private def compare(a: Pattern, b: Pattern): Boolean = {
-    (a, b) match {
-      case (pta: PToken, ptb: PToken) => {
-        if (pta.token.getClass != ptb.token.getClass) {
-          false
-        } else {
-          !pta.token.isInstanceOf[TWord] ||
-            pta.token.value.equals(ptb.token.value)
-        }
-      }
-      case (pua: PUnion, pub: PUnion) => {
-        // TODO There's no need to compare union, temporarily return false
-        false
-      }
-      case (psa: PSeq, psb: PSeq) => {
-        (psa.content.length == psb.content.length) &&
-          psa.content.zip(psb.content).map(p => compare(p._1, p._2))
-            .reduce((b1, b2) => b1 || b2)
-      }
-      case _ => {
-        a == b
-      }
-    }
+    a.equals(b)
   }
 }

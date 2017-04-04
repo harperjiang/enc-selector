@@ -24,7 +24,7 @@ package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.ptnmining.matching.{NamingVisitor, PatternMatcher, Record}
 import edu.uchicago.cs.encsel.ptnmining.parser._
-import edu.uchicago.cs.encsel.ptnmining.rule.{CommonSeqRule, SuccinctRule}
+import edu.uchicago.cs.encsel.ptnmining.rule.{CommonSeqRule, SuccinctRule, UnionSqueezeRule}
 
 import scala.collection.mutable
 
@@ -34,7 +34,7 @@ import scala.collection.mutable
 
 object Pattern {
 
-  val rules = Array(new CommonSeqRule, new SuccinctRule)
+  val rules = Array(new CommonSeqRule, new SuccinctRule, new UnionSqueezeRule)
 
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
@@ -55,7 +55,7 @@ object Pattern {
       }
     }
 
-    val validated= validate(refineResult)
+    val validated = validate(refineResult)
     validated
   }
 
@@ -88,7 +88,6 @@ trait PatternVisitor {
 
   def exit(container: Pattern): Unit = path.pop()
 }
-
 
 
 trait Pattern {
@@ -124,6 +123,7 @@ class PToken(t: Token) extends Pattern {
     super.equals(obj)
   }
 
+  override def hashCode(): Int = token.hashCode()
 }
 
 class PSeq(cnt: Pattern*) extends Pattern {
@@ -138,6 +138,12 @@ class PSeq(cnt: Pattern*) extends Pattern {
     }
     super.equals(obj)
   }
+
+  override def hashCode(): Int =
+    content.isEmpty match {
+      case true => 0
+      case false => content.map(_.hashCode).sum
+    }
 
   override def flatten: Seq[Pattern] = content.flatMap(_.flatten)
 
@@ -169,6 +175,11 @@ class PUnion(cnt: Pattern*) extends Pattern {
     visitor.enter(this)
     content.foreach(_.visit(visitor))
     visitor.exit(this)
+  }
+
+  override def hashCode(): Int = content.isEmpty match {
+    case true => 0
+    case false => content.map(_.hashCode()).sum
   }
 }
 
