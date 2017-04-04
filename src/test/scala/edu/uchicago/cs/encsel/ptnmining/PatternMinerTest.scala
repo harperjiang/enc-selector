@@ -22,29 +22,19 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
-import edu.uchicago.cs.encsel.ptnmining.parser.{TSpace, Token, Tokenizer}
-import edu.uchicago.cs.encsel.ptnmining.preprocess.FrequentWord
+import org.junit.Test
 
-import scala.collection.mutable
+import scala.io.Source
 
 /**
-  * Created by harper on 3/25/17.
+  * Created by harper on 4/4/17.
   */
-class PatternMiner {
+class PatternMinerTest {
 
-  val freqword = new FrequentWord
-
-  def mine(input: Seq[String]): Pattern = {
-
-    val tokens = input.map(Tokenizer.tokenize(_).toSeq)
-    // Pre-processing
-    freqword.init(tokens)
-    val merged = freqword.merge()
-
-    val ptn = Pattern.generate(merged)
-
-    ptn
+  @Test
+  def testMine: Unit = {
+    val input = Source.fromFile("src/test/resource/pattern_miner_sample").getLines().toSeq
+    val pm = new PatternMiner
+    pm.mine(input)
   }
-
 }
-
