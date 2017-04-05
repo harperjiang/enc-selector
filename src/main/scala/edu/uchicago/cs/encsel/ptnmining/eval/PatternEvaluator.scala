@@ -18,13 +18,32 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
+ *
  */
 
 package edu.uchicago.cs.encsel.ptnmining.eval
 
-/**
-  * Created by harper on 4/5/17.
-  */
-class PatternEvaluator {
+import edu.uchicago.cs.encsel.ptnmining.Pattern
+import edu.uchicago.cs.encsel.ptnmining.parser.Token
 
+/**
+  * <code>PatternEvaluator</code> evaluates a given pattern on a dataset to
+  * determine its efficiency
+  *
+  */
+object PatternEvaluator {
+  def evaluate(ptn: Pattern, dataset: Seq[Seq[Token]]): Double = {
+
+    ptn.naming()
+
+    // Pattern Size
+    val sizeVisitor = new SizeVisitor
+    ptn.visit(sizeVisitor)
+    val ptnSize = sizeVisitor.ptnSize
+
+    // Encoded Data Size
+    val records = dataset.map(ptn.matchon)
+
+
+  }
 }

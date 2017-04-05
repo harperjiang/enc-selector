@@ -34,6 +34,21 @@ Pattern Evaluation use a pattern to encode a given dataset and compute the total
 
 1. Use the pattern to split token streams into columns
 2. For each column, find a proper encoding scheme for it and encode it. A heuristic based method can also be used to speed up this process.
+### Compute the size of a Pattern
+The size of a pattern refers to the storage size (bytes) it occupies on disk. The computation follows these rules:
+1. The size of a token is its length
+2. The size of a sequence is the sum of its elements
+3. The size of a union is the sum of its elements.
+4. The size of special tokens is one
+
+### Compute the size of a dataset encoded with a pattern
+If a leaf token corresponds to ...
+1. `PToken` or `PSymbol`, size is 0 as the information is included in the pattern
+2. `PAny`, size is the token size
+
+For each `PUnion`, a selector is needed depending on the content size (log_2)
+
+### Token Size Calculation
 
 ## Pattern Validation
 

@@ -18,6 +18,7 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
+ *
  */
 
 package edu.uchicago.cs.encsel.ptnmining.parser
