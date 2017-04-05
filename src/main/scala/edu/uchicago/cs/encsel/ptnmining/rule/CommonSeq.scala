@@ -22,7 +22,6 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -57,50 +56,29 @@ class CommonSeq {
 
     lines.drop(1).foreach(line => {
       if (commons.nonEmpty) {
-        val commonsBetween = commons.map(between(_, line, equal))
+        val commonsBetween = new ArrayBuffer[Seq[(Int, Int, Int)]]
+
+        // val commonsBetween = commons.map(between(_, line, equal))
+        var mask = 0
+        commons.foreach(cm => {
+          val btwn = between(cm, line.drop(mask), equal)
+          commonsBetween += btwn.map(x => (x._1, x._2 + mask, x._3))
+          if (btwn.nonEmpty)
+            mask = btwn.last._2 + btwn.last._3
+        })
 
         // Remove positions that are no longer valid
         val emptyIndices = commonsBetween.zipWithIndex
           .filter(_._1.isEmpty).map(_._2).toSet
-        positions = positions.map(pos => pos.zipWithIndex
-          .filter(act => {
-            !emptyIndices.contains(act._2)
-          }).map(_._1))
-
-        val nonOverlap = commons.length match {
-          case 1 => commonsBetween
-          case _ => {
-            // Remove overlapped items
-            val withIndex = commonsBetween.zipWithIndex.map(outer => {
-              outer._1.zipWithIndex.map(inner => {
-                (inner._1, outer._2, inner._2)
-              })
-            }).flatten
-
-            val placeholder = Array.fill(line.length)(0)
-            val filtered = withIndex.sortBy(-_._1._3).filter(item => {
-              val piece = item._1
-              if (placeholder.slice(piece._2, piece._2 + piece._3).sum == 0) {
-                (piece._2 until piece._2 + piece._3).foreach(placeholder(_) = piece._3)
-                true
-              } else {
-                false
-              }
-            })
-
-            val grouped = filtered.groupBy(_._2).toSeq.sortBy(_._1).map(i => (i._1, i._2.map(j => (j._1, j._3))))
-
-            val nolp = new ArrayBuffer[Seq[(Int, Int, Int)]]
-            grouped.foreach(item => {
-              while (nolp.length < item._1 - 1) {
-                nolp += Seq.empty[(Int, Int, Int)]
-              }
-              nolp += item._2.sortBy(_._2).map(_._1)
-            })
-            nolp
-          }
+        positions = emptyIndices.isEmpty match {
+          case true => positions
+          case false => positions.map(pos => pos.zipWithIndex
+            .filter(act => {
+              !emptyIndices.contains(act._2)
+            }).map(_._1))
         }
-
+        // In this algorithm, the commons between will not overlap
+        val nonOverlap = commonsBetween
         // Split the positions
         if (positions.isEmpty) {
           // For the first and second lines
@@ -163,7 +141,7 @@ class CommonSeq {
     val phb = Array.fill(b.length)(0)
     val not_overlap = new ArrayBuffer[(Int, Int, Int)]
     // From long to short
-    candidates.sortBy(-_._3).foreach(c => {
+    candidates.sortBy(x => (-x._3, x._1, x._2)).foreach(c => {
       val afree = pha.slice(c._1, c._1 + c._3).toSet.filter(_ >= c._3).isEmpty
       val bfree = phb.slice(c._2, c._2 + c._3).toSet.filter(_ >= c._3).isEmpty
       if (afree && bfree) {

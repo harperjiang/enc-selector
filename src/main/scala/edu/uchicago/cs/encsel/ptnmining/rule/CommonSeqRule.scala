@@ -22,7 +22,6 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.parser.TWord
 import edu.uchicago.cs.encsel.ptnmining._
 
 import scala.collection.mutable.ArrayBuffer
@@ -59,28 +58,28 @@ class CommonSeqRule extends RewriteRule {
 
         pos.indices.foreach(i => {
           val sec = pos(i)
-          sectionBuffers(i) += (sec._1 match {
-            case p if p == pointer => PEmpty
-            case _ => new PSeq(data.slice(pointer, sec._1))
-          })
-          pointer = sec._2
+          sectionBuffers(i) += PSeq.make(data.slice(pointer, sec._1))
+          pointer = sec._1 + sec._2
         })
         sectionBuffers.last += (pointer match {
           case last if last == data.length => PEmpty
-          case _ => new PSeq(data.slice(pointer, data.length))
+          case _ => PSeq.make(data.slice(pointer, data.length))
         })
       })
       // Create new pattern
 
       val patternSeqs = new ArrayBuffer[Pattern]
       seq.indices.foreach(i => {
-        patternSeqs += new PUnion(sectionBuffers(i))
-        patternSeqs += new PSeq(seq(i))
+        patternSeqs += PUnion.make(sectionBuffers(i))
+        patternSeqs += (seq(i).length match {
+          case 1 => seq(i).last
+          case _ => PSeq.make(seq(i))
+        })
       })
-      patternSeqs += new PUnion(sectionBuffers.last)
+      patternSeqs += PUnion.make(sectionBuffers.last)
 
       happen
-      new PSeq(patternSeqs)
+      PSeq.make(patternSeqs)
     } else
       union
   }
