@@ -24,7 +24,7 @@ package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.ptnmining.matching.{NamingVisitor, PatternMatcher, Record}
 import edu.uchicago.cs.encsel.ptnmining.parser._
-import edu.uchicago.cs.encsel.ptnmining.rule.{CommonSeqRule, SuccinctRule, UnionSqueezeRule}
+import edu.uchicago.cs.encsel.ptnmining.rule._
 
 import scala.collection.mutable
 
@@ -34,13 +34,17 @@ import scala.collection.mutable
 
 object Pattern {
 
-  val rules = Array(new CommonSeqRule, new SuccinctRule, new UnionSqueezeRule)
+  val rules = Array(new CommonSeqRule, new SuccinctRule, new UnionSqueezeRule, new UseAnyRule)
 
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
 
     val translated = new PUnion(in.map(l => new PSeq(l.map(new PToken(_)): _*)))
 
+    rules.foreach(_ match {
+      case data: DataRewriteRule => data.generateOn(in)
+      case _ => Unit
+    })
     // Repeatedly refine the pattern using supplied rules
     var toRefine: Pattern = translated
     var needRefine = true
@@ -75,7 +79,6 @@ object Pattern {
   def validate(ptn: Pattern): Pattern = {
     ptn
   }
-
 }
 
 trait PatternVisitor {
@@ -100,16 +103,16 @@ trait Pattern {
     */
   def flatten: Seq[Pattern] = Seq(this)
 
+  def matchon(tokens: Seq[Token]): Option[Record] = PatternMatcher.matchon(this, tokens)
+
+  def naming() = visit(new NamingVisitor)
+
   /**
     * Recursively visit the pattern elements starting from the root
     *
     * @param visitor
     */
   def visit(visitor: PatternVisitor): Unit = visitor.on(this)
-
-  def matchon(tokens: Seq[Token]): Option[Record] = PatternMatcher.matchon(this, tokens)
-
-  def naming() = visit(new NamingVisitor)
 }
 
 class PToken(t: Token) extends Pattern {
@@ -124,6 +127,15 @@ class PToken(t: Token) extends Pattern {
   }
 
   override def hashCode(): Int = token.hashCode()
+}
+
+object PSeq {
+  def make(content: Seq[Pattern]): Pattern =
+    content.length match {
+      case 0 => PEmpty
+      case 1 => content(0)
+      case _ => new PSeq(content)
+    }
 }
 
 class PSeq(cnt: Pattern*) extends Pattern {
@@ -152,6 +164,16 @@ class PSeq(cnt: Pattern*) extends Pattern {
     visitor.enter(this)
     content.foreach(_.visit(visitor))
     visitor.exit(this)
+  }
+}
+
+object PUnion {
+  def make(content: Seq[Pattern]) = {
+    content.length match {
+      case 0 => PEmpty
+      case 1 => content(0)
+      case _ => new PUnion(content)
+    }
   }
 }
 
@@ -185,7 +207,15 @@ class PUnion(cnt: Pattern*) extends Pattern {
 
 object PEmpty extends Pattern
 
-class PAny extends Pattern
+class PAny extends Pattern {
+  override def equals(obj: scala.Any): Boolean =
+    obj match {
+      case any: PAny => getClass == any.getClass
+      case _ => super.equals(obj)
+    }
+
+  override def hashCode(): Int = getClass.hashCode()
+}
 
 class PWordAny extends PAny
 

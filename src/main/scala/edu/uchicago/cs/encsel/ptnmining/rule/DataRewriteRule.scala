@@ -22,22 +22,16 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
-import edu.uchicago.cs.encsel.ptnmining.{PUnion, Pattern}
+import edu.uchicago.cs.encsel.ptnmining.parser.Token
 
 /**
-  * This rule identifies common header or tail from a union
-  * and extract them
+  * <code>DataRewriteRule</code> makes a rewrite decision based on given data
   */
-class UnionSqueezeRule extends DataRewriteRule {
+abstract class DataRewriteRule extends RewriteRule {
 
-  override def condition(ptn: Pattern): Boolean = {
-    ptn.isInstanceOf[PUnion] && ptn.asInstanceOf[PUnion].content.nonEmpty
+  protected var originData: Seq[Seq[Token]] = Seq.empty[Seq[Token]]
+
+  def generateOn(origin: Seq[Seq[Token]]): Unit = {
+    originData = origin
   }
-
-  override def update(ptn: Pattern): Pattern = {
-    val union = ptn.asInstanceOf[PUnion]
-
-    ptn
-  }
-
 }

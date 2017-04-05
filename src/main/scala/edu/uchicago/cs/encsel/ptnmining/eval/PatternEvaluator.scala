@@ -20,24 +20,11 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.ptnmining.rule
-
-import edu.uchicago.cs.encsel.ptnmining.{PUnion, Pattern}
+package edu.uchicago.cs.encsel.ptnmining.eval
 
 /**
-  * This rule identifies common header or tail from a union
-  * and extract them
+  * Created by harper on 4/5/17.
   */
-class UnionSqueezeRule extends DataRewriteRule {
-
-  override def condition(ptn: Pattern): Boolean = {
-    ptn.isInstanceOf[PUnion] && ptn.asInstanceOf[PUnion].content.nonEmpty
-  }
-
-  override def update(ptn: Pattern): Pattern = {
-    val union = ptn.asInstanceOf[PUnion]
-
-    ptn
-  }
+class PatternEvaluator {
 
 }
