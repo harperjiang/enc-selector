@@ -44,6 +44,6 @@ object PatternEvaluator {
     // Encoded Data Size
     val records = dataset.map(ptn.matchon)
 
-
+    0
   }
 }

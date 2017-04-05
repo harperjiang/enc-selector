@@ -37,7 +37,7 @@ class LSTMLoss extends LossFunction[Array[Array[Int]]] {
    * @param	actual		Probability of each label. This is an <code>INDArray</code>
    * 									of shape [L,B,N], where L is the chars in a sentence, B is the
    * 									batch size, N is the dimension
-   * @param	expected	The ground truth label. This is an <code>Array[Array[Int]]</code> of
+   * @param	expected	The ground truth label. This is an <code>Array(Array(Int))</code> of
    * 									size L, B
    * @return 	mean of log loss of ground truth label in actual probability
    *
