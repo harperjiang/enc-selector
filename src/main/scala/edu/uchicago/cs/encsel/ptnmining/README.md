@@ -24,9 +24,18 @@ The process of generating patterns from a collection of given token sequence is 
    Seq() => Empty
    Union() => Empty
    ~~~~
+5. **Use `PAny` to Reduce Union** If an union contains too many choice, e.g., over 30% of the total records, use `PAny` to replace the `PToken`s and try to find a common subsequence in that to reduce the union size.
+
 ## Pattern Matching
 Given a pattern and a sequence of tokens, Pattern matching looks for the correspondence between pattern elements and tokens. To achieve this, each pattern element is assigned a unique name. If a matching is found, a mapping between name and token is returned.
-## Pattern Evolving 
+
+## Pattern Evaluation
+Pattern Evaluation use a pattern to encode a given dataset and compute the total space needed for the pattern and the dataset. The smaller the space is, the better this pattern is.
+
+1. Use the pattern to split token streams into columns
+2. For each column, find a proper encoding scheme for it and encode it. A heuristic based method can also be used to speed up this process.
+
+## Pattern Validation
 
 Patterns generated from the steps above may be interpreted in many ways. For example, the following pattern
 ~~~~
