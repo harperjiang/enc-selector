@@ -18,6 +18,7 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
+ *
  */
 
 package edu.uchicago.cs.encsel.ptnmining
@@ -34,7 +35,7 @@ import scala.collection.mutable
 
 object Pattern {
 
-  val rules = Array(new CommonSeqRule, new SuccinctRule, new UnionSqueezeRule, new UseAnyRule)
+  val rules = Array(new CommonSeqRule, new SuccinctRule, new MergeSeqRule, new UseAnyRule)
 
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
@@ -207,7 +208,7 @@ class PUnion(cnt: Pattern*) extends Pattern {
 
 object PEmpty extends Pattern
 
-class PAny extends Pattern {
+trait PAny extends Pattern {
   override def equals(obj: scala.Any): Boolean =
     obj match {
       case any: PAny => getClass == any.getClass
@@ -215,10 +216,33 @@ class PAny extends Pattern {
     }
 
   override def hashCode(): Int = getClass.hashCode()
+
+  def maxLength: Int
 }
 
-class PWordAny extends PAny
+class PWordAny extends PAny {
+  var maxLength = 0
 
-class PIntAny extends PAny
+  def this(ml: Int) = {
+    this()
+    maxLength = ml
+  }
+}
 
-class PDoubleAny extends PAny
+class PIntAny extends PAny {
+  var maxLength = 4
+
+  def this(ml: Int) = {
+    this()
+    maxLength = ml
+  }
+}
+
+class PDoubleAny extends PAny {
+  var maxLength = 8
+
+  def this(ml: Int) = {
+    this()
+    maxLength = ml
+  }
+}

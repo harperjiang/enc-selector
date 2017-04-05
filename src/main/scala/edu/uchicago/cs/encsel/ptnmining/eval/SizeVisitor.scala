@@ -18,26 +18,35 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
+ *
  */
 
-package edu.uchicago.cs.encsel.ptnmining.rule
+package edu.uchicago.cs.encsel.ptnmining.eval
 
-import edu.uchicago.cs.encsel.ptnmining.{PUnion, Pattern}
+import edu.uchicago.cs.encsel.ptnmining._
 
 /**
-  * This rule identifies common header or tail from a union
-  * and extract them
+  * Compute the size of a pattern. This includes the followings:
+  * 1. The size of pattern itself
+  * 2. Additional bytes for each records encoded using this pattern
   */
-class UnionSqueezeRule extends DataRewriteRule {
+class SizeVisitor extends PatternVisitor {
 
-  override def condition(ptn: Pattern): Boolean = {
-    ptn.isInstanceOf[PUnion] && ptn.asInstanceOf[PUnion].content.nonEmpty
+  var ptnSize = 0
+
+  var structureSize = 0
+
+  def on(ptn: Pattern): Unit = {
+    ptn match {
+      case token: PToken => ptnSize += token.token.value.length
+      case any: PAny => {
+        ptnSize += 1
+        structureSize += any.maxLength
+      }
+      case union: PUnion => {
+        structureSize += Math.ceil(Math.log(union.content.size) / Math.log(2))
+      }
+      case _ => Unit
+    }
   }
-
-  override def update(ptn: Pattern): Pattern = {
-    val union = ptn.asInstanceOf[PUnion]
-
-    ptn
-  }
-
 }
