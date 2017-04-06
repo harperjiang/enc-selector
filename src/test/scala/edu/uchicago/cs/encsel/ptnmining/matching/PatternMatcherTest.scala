@@ -53,7 +53,8 @@ class PatternMatcherTest {
     pattern.naming()
 
 
-    val record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"), new TInt("3232"), new TWord("mmd"), new TWord("wwtm")))
+    var record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"),
+      new TInt("3232"), new TWord("mmd"), new TWord("wwtm")))
     assertTrue(record.isDefined)
     val rec = record.get
     assertEquals(new TWord("mmtm"), rec.get("_0_0_0").get)
@@ -63,6 +64,19 @@ class PatternMatcherTest {
     assertEquals(new TWord("wwtm"), rec.get("_0_1_1_1_1_1").get)
     assertTrue(rec.get("_0_1_0_0").isEmpty)
     assertTrue(rec.get("_0_1_0_1").isEmpty)
+
+    record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"),
+      new TWord("nmsmd"), new TWord("mmd"), new TInt("312")))
+    assertTrue(record.isDefined)
+
+    record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"),
+      new TInt("3232"), new TWord("dassd"), new TInt("34223")))
+    assertTrue(record.isDefined)
+
+    record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"),
+      new TInt("3232"), new TWord("www")))
+    assertTrue(record.isDefined)
+
   }
 
   @Test
@@ -89,5 +103,55 @@ class PatternMatcherTest {
     val rec2 = PatternMatcher.matchItems(patterns,
       Seq(new TInt("3432"), new TWord("kkmdpt"), new TWord("wpnta")))
     assertTrue(rec2.isEmpty)
+  }
+
+  @Test
+  def testChoice: Unit = {
+    val pattern = new PSeq(
+      new PSeq(new PToken(new TWord("mmtm")), new PToken(new TWord("wwkp"))),
+      new PUnion(
+        new PSeq(new PToken(new TWord("nmsmd")), new PWordAny, new PIntAny),
+        new PSeq(
+          new PToken(new TInt("3232")),
+          new PUnion(
+            new PSeq(new PToken(new TWord("dassd")), new PToken(new TInt("34223"))),
+            new PSeq(new PToken(new TWord("mmd")), new PToken(new TWord("wwtm"))),
+            new PSeq(new PToken(new TWord("www")),
+              new PUnion(
+                new PToken(new TWord("aad")),
+                new PToken(new TInt("334"))
+              )
+            )
+          )
+        )
+      )
+    )
+
+    pattern.naming()
+
+
+    val record = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"),
+      new TInt("3232"), new TWord("mmd"), new TWord("wwtm")))
+
+    assertTrue(record.isDefined)
+
+    val rec = record.get
+
+    assertEquals(1, rec.choices.getOrElse("_0_1", (-1, -1))._1)
+    assertEquals(1, rec.choices.getOrElse("_0_1_1_1", (-1, -1))._1)
+    assertEquals(2, rec.choices.size)
+    assertFalse(rec.choices.contains("_0_1_1_1_2_1"))
+
+    val record2 = pattern.matchon(Seq(new TWord("mmtm"), new TWord("wwkp"),
+      new TInt("3232"), new TWord("www"), new TWord("aad")))
+
+    assertTrue(record2.isDefined)
+
+    val rec2 = record2.get
+
+    assertEquals(1, rec2.choices.getOrElse("_0_1", (-1, -1))._1)
+    assertEquals(2, rec2.choices.getOrElse("_0_1_1_1", (-1, -1))._1)
+    assertEquals(3, rec2.choices.size)
+    assertEquals(0, rec2.choices.getOrElse("_0_1_1_1_2_1", (-1, -1))._1)
   }
 }

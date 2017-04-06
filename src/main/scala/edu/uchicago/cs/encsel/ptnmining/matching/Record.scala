@@ -33,6 +33,8 @@ import scala.collection.mutable
 class Record {
   val values: mutable.HashMap[String, Token] = new mutable.HashMap[String, Token]
 
+  val choices: mutable.HashMap[String, (Int, Int)] = new mutable.HashMap[String, (Int, Int)]
+
   def add(name: String, value: Token) = {
     values += ((name, value))
   }

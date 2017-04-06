@@ -29,11 +29,14 @@ The process of generating patterns from a collection of given token sequence is 
 ## Pattern Matching
 Given a pattern and a sequence of tokens, Pattern matching looks for the correspondence between pattern elements and tokens. To achieve this, each pattern element is assigned a unique name. If a matching is found, a mapping between name and token is returned.
 
+For each `PUnion`, we also record whether it is in use or not for the sake of encoding size computation.
+
 ## Pattern Evaluation
 Pattern Evaluation use a pattern to encode a given dataset and compute the total space needed for the pattern and the dataset. The smaller the space is, the better this pattern is.
 
 1. Use the pattern to split token streams into columns
 2. For each column, find a proper encoding scheme for it and encode it. A heuristic based method can also be used to speed up this process.
+
 ### Compute the size of a Pattern
 The size of a pattern refers to the storage size (bytes) it occupies on disk. The computation follows these rules:
 1. The size of a token is its length
@@ -46,9 +49,15 @@ If a leaf token corresponds to ...
 1. `PToken` or `PSymbol`, size is 0 as the information is included in the pattern
 2. `PAny`, size is the token size
 
-For each `PUnion`, a selector is needed depending on the content size (log_2)
+For each `PUnion` in use, a selector is needed depending on the content size (log_2)
 
 ### Token Size Calculation
+
+If the token is 
+1. `TSymbol` 1
+2. `TInt` log_2(value)
+3. `TDouble` 4/8 depending on the size
+4. `TWord` length of the token
 
 ## Pattern Validation
 

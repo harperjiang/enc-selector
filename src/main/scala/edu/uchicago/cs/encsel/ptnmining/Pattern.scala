@@ -221,7 +221,7 @@ trait PAny extends Pattern {
 }
 
 class PWordAny extends PAny {
-  var maxLength = 0
+  var maxLength = -1
 
   def this(ml: Int) = {
     this()

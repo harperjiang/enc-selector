@@ -26,6 +26,8 @@ package edu.uchicago.cs.encsel.ptnmining.matching
 import edu.uchicago.cs.encsel.ptnmining._
 import edu.uchicago.cs.encsel.ptnmining.parser.{TDouble, TInt, TWord, Token}
 
+import scala.collection.mutable.ArrayBuffer
+
 
 /**
   * Created by harper on 3/31/17.
@@ -38,8 +40,10 @@ object PatternMatcher {
 
     while (items.nonEmpty) {
       val matched = matchItems(items, tokens)
-      if (matched.isDefined)
+      if (matched.isDefined) {
+        matched.get.choices ++= matchNode.choices
         return matched
+      }
       items = matchNode.next
     }
     None
@@ -101,6 +105,13 @@ private trait Match {
   def next: Seq[Pattern]
 
   def reset: Unit
+
+  /**
+    * Record the choices of Union under this match
+    *
+    * @return (Union_Name, Choice)
+    */
+  def choices: Map[String, (Int, Int)]
 }
 
 private class SimpleMatch(ptn: Pattern) extends Match {
@@ -115,17 +126,21 @@ private class SimpleMatch(ptn: Pattern) extends Match {
   }
 
   def reset = used = false
+
+  def choices = Map.empty[String, (Int, Int)]
 }
 
 private class SeqMatch(seq: PSeq) extends Match {
 
   val children = seq.content.map(Match.build)
-  val items = children.map(_.next).toBuffer
+
+  val items = new ArrayBuffer[Seq[Pattern]]
 
   def next = {
-    val result = items.flatten.toArray
-    if (!result.isEmpty) {
-      // Build next
+    if (items.isEmpty) {
+      items ++= children.map(_.next)
+    } else {
+      // Look for next
       var pointer = items.length - 1
       var foundNext = false
       while (pointer >= 0 && !foundNext) {
@@ -143,15 +158,16 @@ private class SeqMatch(seq: PSeq) extends Match {
         pointer -= 1
       }
       if (foundNext) {
-        for (i <- pointer until children.length) {
+        for (i <- pointer until children.length)
           items += children(i).next
-        }
       }
     }
-    result
+    items.flatten
   }
 
   def reset = children.foreach(_.reset)
+
+  def choices: Map[String, (Int, Int)] = children.map(_.choices).reduce((a1, a2) => a1 ++ a2)
 }
 
 private class UnionMatch(union: PUnion) extends Match {
@@ -177,4 +193,7 @@ private class UnionMatch(union: PUnion) extends Match {
     children.foreach(_.reset)
     counter = 0
   }
+
+  def choices: Map[String, (Int, Int)] = children(counter).choices +
+    (union.getName -> (counter, children.length))
 }

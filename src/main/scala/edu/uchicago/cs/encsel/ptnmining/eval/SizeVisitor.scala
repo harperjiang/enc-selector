@@ -32,20 +32,12 @@ import edu.uchicago.cs.encsel.ptnmining._
   */
 class SizeVisitor extends PatternVisitor {
 
-  var ptnSize = 0
-
-  var structureSize = 0
+  var size = 0
 
   def on(ptn: Pattern): Unit = {
     ptn match {
-      case token: PToken => ptnSize += token.token.value.length
-      case any: PAny => {
-        ptnSize += 1
-        structureSize += any.maxLength
-      }
-      case union: PUnion => {
-        structureSize += Math.ceil(Math.log(union.content.size) / Math.log(2))
-      }
+      case token: PToken => size += token.token.value.length
+      case any: PAny => size += 1
       case _ => Unit
     }
   }

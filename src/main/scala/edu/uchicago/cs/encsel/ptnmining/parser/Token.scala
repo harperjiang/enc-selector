@@ -31,6 +31,11 @@ trait Token {
 
   def isData: Boolean = false
 
+  /**
+    * Token length in bytes
+    */
+  def length: Int = 1
+
   override def toString = value
 
   override def equals(obj: scala.Any): Boolean = {
@@ -42,24 +47,38 @@ trait Token {
   }
 
   override def hashCode(): Int = getClass.hashCode() * 13 + value.hashCode
+
 }
 
 class TWord(v: AnyRef) extends Token {
   val value = v.toString
 
   override def isData = true
+
+  override def length = value.length
 }
 
 class TInt(v: AnyRef) extends Token {
   val value = v.toString
 
   override def isData = true
+
+  def intValue = value.toInt
+
+  override def length = Math.ceil(Math.log(intValue) / (8 * Math.log(2))).toInt
 }
 
 class TDouble(v: AnyRef) extends Token {
   val value = v.toString
 
   override def isData = true
+
+  def doubleValue = value.toDouble
+
+  override def length = doubleValue == doubleValue.toFloat match {
+    case true => 4
+    case false => 8
+  }
 }
 
 class TSpace extends Token {
