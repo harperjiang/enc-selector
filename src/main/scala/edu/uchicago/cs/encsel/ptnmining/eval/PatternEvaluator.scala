@@ -23,8 +23,9 @@
 
 package edu.uchicago.cs.encsel.ptnmining.eval
 
-import edu.uchicago.cs.encsel.ptnmining.Pattern
+import edu.uchicago.cs.encsel.ptnmining.{PAny, Pattern}
 import edu.uchicago.cs.encsel.ptnmining.parser.Token
+import org.apache.commons.lang3.StringUtils
 
 /**
   * <code>PatternEvaluator</code> evaluates a given pattern on a dataset to
@@ -34,16 +35,39 @@ import edu.uchicago.cs.encsel.ptnmining.parser.Token
 object PatternEvaluator {
   def evaluate(ptn: Pattern, dataset: Seq[Seq[Token]]): Double = {
 
-    ptn.naming()
+    if (StringUtils.isEmpty(ptn.getName))
+      ptn.naming()
 
     // Pattern Size
     val sizeVisitor = new SizeVisitor
     ptn.visit(sizeVisitor)
-    val ptnSize = sizeVisitor.ptnSize
+    val ptnSize = sizeVisitor.size
+
+    val anyNames = ptn.flatten.filter(_.isInstanceOf[PAny]).map(_.getName).toSet
 
     // Encoded Data Size
-    val records = dataset.map(ptn.matchon)
+    val matched = dataset.map(di => (ptn.matchon(di), di))
 
-    0
+    val encodedSize = matched.map(item => {
+      val record = item._1
+      val origin = item._2
+      record.isDefined match {
+        case true => {
+          val content = record.get
+          val unionSel = content.choices.values
+            .map(x => Math.ceil(Math.log(x._2) / (8 * Math.log(2))).toInt).sum
+          val anyLength = anyNames.map(name => {
+            content.get(name) match {
+              case Some(token) => token.length
+              case None => 0
+            }
+          }).sum
+          unionSel + anyLength
+        }
+        case false => origin.map(_.length).sum
+      }
+    })
+
+    ptnSize + encodedSize.sum
   }
 }
