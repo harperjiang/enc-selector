@@ -56,15 +56,19 @@ object PatternEvaluator {
           val content = record.get
           val unionSel = content.choices.values
             .map(x => Math.ceil(Math.log(x._2) / (8 * Math.log(2))).toInt).sum
-          val anyLength = anyNames.map(name => {
+          val anys = anyNames.map(name => {
             content.get(name) match {
               case Some(token) => token.length
               case None => 0
             }
-          }).sum
-          unionSel + anyLength
+          })
+          unionSel + (anys.isEmpty match {
+            case true => 0
+            case false => anys.sum + anys.size - 1
+          })
+          unionSel + anys.sum + anys.size - 1
         }
-        case false => origin.map(_.length).sum
+        case false => origin.map(_.value.length).sum
       }
     })
 

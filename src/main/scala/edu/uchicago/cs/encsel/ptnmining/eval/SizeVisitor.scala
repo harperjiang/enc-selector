@@ -37,6 +37,8 @@ class SizeVisitor extends PatternVisitor {
   def on(ptn: Pattern): Unit = {
     ptn match {
       case token: PToken => size += token.token.value.length
+      case union: PUnion => size += union.content.length + 2
+      case seq: PSeq => size += seq.content.length + 2
       case any: PAny => size += 1
       case _ => Unit
     }
