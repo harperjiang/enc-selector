@@ -64,9 +64,8 @@ object PatternEvaluator {
           })
           unionSel + (anys.isEmpty match {
             case true => 0
-            case false => anys.sum + anys.size - 1
+            case false => anys.sum + anys.size
           })
-          unionSel + anys.sum + anys.size - 1
         }
         case false => origin.map(_.value.length).sum
       }
