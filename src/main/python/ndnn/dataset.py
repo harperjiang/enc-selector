@@ -6,7 +6,20 @@ class Batch:
         self.size = sz
         self.data = data
         self.expect = label
-    
+
+class DataSet(object):
+    def __init__(self, data,label):
+        self.datas = data
+        self.expects = label
+
+    def batches(self,batch_size):
+        batch_range = range(0, len(self.datas), batch_size)
+        batches = [self.datas[idx:idx + batch_size] for idx in batch_range]
+        self.numbatch = len(batches)
+        perm = np.random.permutation(len(batches)).tolist()
+        for p in perm:
+            batch = batches[p]
+            yield Batch(len(batch), [self.datas[b] for b in batch], [self.expects[b] for b in batch])
 
 class LSTMDataSet:
     def __init__(self, filename, ds=None):
