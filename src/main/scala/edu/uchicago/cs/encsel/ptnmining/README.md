@@ -32,16 +32,16 @@ Given a pattern and a sequence of tokens, Pattern matching looks for the corresp
 For each `PUnion`, we also record whether it is in use or not for the sake of encoding size computation.
 
 ## Pattern Evaluation
-Pattern Evaluation use a pattern to encode a given dataset and compute the total space needed for the pattern and the dataset. The smaller the space is, the better this pattern is.
+Pattern Evaluation use a pattern to encode a given dataset and compute the total size needed for the pattern and the dataset. The smaller the size is, the better this pattern is.
 
 1. Use the pattern to split token streams into columns
-2. For each column, find a proper encoding scheme for it and encode it. A heuristic based method can also be used to speed up this process.
+2. (TODO)For each column, find a proper encoding scheme for it and encode it. A heuristic based method can also be used to speed up this process.
 
 ### Compute the size of a Pattern
 The size of a pattern refers to the storage size (bytes) it occupies on disk. The computation follows these rules:
 1. The size of a token is its length
-2. The size of a sequence is the sum of its elements
-3. The size of a union is the sum of its elements.
+2. The size of a sequence is the sum of its elements plus separators plus 3 (An indicator and two separators)
+3. The size of a union is the sum of its elements plus separators plus 3 (An indicator and two separators)
 4. The size of special tokens is one
 
 ### Compute the size of a dataset encoded with a pattern
@@ -51,6 +51,7 @@ If a leaf token corresponds to ...
 
 For each `PUnion` in use, a selector is needed depending on the content size (log_2)
 
+If there are x `PAny`, x-1 separators are also needed 
 ### Token Size Calculation
 
 If the token is 

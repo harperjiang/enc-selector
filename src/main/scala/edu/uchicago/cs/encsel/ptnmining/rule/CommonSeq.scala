@@ -23,6 +23,7 @@
 
 package edu.uchicago.cs.encsel.ptnmining.rule
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 
@@ -54,7 +55,7 @@ class CommonSeq {
 
     val commons = new ArrayBuffer[Seq[T]]()
     commons += lines.head
-
+    var firstLine = true
     lines.drop(1).foreach(line => {
       if (commons.nonEmpty) {
         val commonsBetween = new ArrayBuffer[Seq[(Int, Int, Int)]]
@@ -71,34 +72,42 @@ class CommonSeq {
         // Remove positions that are no longer valid
         val emptyIndices = commonsBetween.zipWithIndex
           .filter(_._1.isEmpty).map(_._2).toSet
-        positions = emptyIndices.isEmpty match {
-          case true => positions
-          case false => positions.map(pos => pos.zipWithIndex
-            .filter(act => {
-              !emptyIndices.contains(act._2)
-            }).map(_._1))
+        emptyIndices.isEmpty match {
+          case true => Unit
+          case false => {
+            val newpos = positions.view.map(pos => pos.zipWithIndex
+              .filter(act => {
+                !emptyIndices.contains(act._2)
+              }).map(_._1)).force
+            positions.clear
+            positions ++= newpos
+          }
         }
         // In this algorithm, the commons between will not overlap
-        val nonOverlap = commonsBetween
-        // Split the positions
-        if (positions.isEmpty) {
-          // For the first and second lines
-          positions += nonOverlap(0).map(cmn => (cmn._1, cmn._3))
-          positions += nonOverlap(0).map(cmn => (cmn._2, cmn._3))
-        } else {
-          positions = positions.map(pos => {
-            pos.zip(nonOverlap).map(pair => {
-              val oldpos = pair._1
-              val newseps = pair._2
-              newseps.map(newsep => (oldpos._1 + newsep._1, newsep._3))
-            }).flatten
-          })
-          positions += nonOverlap.flatten.map(item => (item._2, item._3))
+        val nonOverlap = commonsBetween.filter(_.nonEmpty)
+        nonOverlap.isEmpty match {
+          case true => commons.clear
+          case false => {
+            // Split the positions
+            if (firstLine) {
+              // For the first and second lines
+              positions += nonOverlap(0).map(cmn => (cmn._1, cmn._3))
+              positions += nonOverlap(0).map(cmn => (cmn._2, cmn._3))
+              firstLine = false
+            } else {
+              positions = positions.map(pos => {
+                pos.zip(nonOverlap).map(pair => {
+                  val oldpos = pair._1
+                  val newseps = pair._2
+                  newseps.map(newsep => (oldpos._1 + newsep._1, newsep._3))
+                }).flatten
+              })
+              positions += nonOverlap.flatten.map(item => (item._2, item._3))
+            }
+            commons.clear
+            commons ++= positions.last.map(pos => line.slice(pos._1, pos._1 + pos._2))
+          }
         }
-        commons.clear
-        commons ++= positions.last.map(pos => line.slice(pos._1, pos._1 + pos._2))
-      } else {
-        commons.clear()
       }
     })
     commons
