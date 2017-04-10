@@ -47,6 +47,32 @@ class LogLoss(Loss):
         super().__init__()
 
     '''
+    Actual shape is [B,1]
+    Expect shape is [B,1]
+    loss = -log(actual)*expect - log(1-actual)(1-expect)
+    '''
+    def loss(self, actual, expect, fortest):
+        batch_size = expect.shape[0]
+        clipped = np.maximum(actual, clip)
+
+        nexpect = 1 - expect
+        nclipped = 1 - clipped
+
+        loss = -np.log(clipped * expect + nclipped * nexpect).mean()
+        if not fortest:
+            self.grad = (-expect / clipped + nexpect / nclipped) / batch_size
+
+        predict = (actual >= 0.5)
+        self.acc = np.equal(predict, expect).sum()
+
+        return loss
+
+
+class SoftMaxLoss(Loss):
+    def __init__(self):
+        super().__init__()
+
+    '''
     Actual is of shape [A, B, ..., M]
     Expect is of shape [A, B, ..., 1]
     Should return an gradient of shape [A, B,...,M]    
