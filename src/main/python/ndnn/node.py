@@ -215,8 +215,7 @@ class Embed(Node):
         self.w2v = w2v
 
     def compute(self):
-        hidden_dim = self.w2v.value.shape[1]
-        return self.w2v.value[np.int32(self.idx.value), :].reshape(-1, hidden_dim)
+        return self.w2v.value[np.int32(self.idx.value), :]
 
     def updateGrad(self):
         grad = np.zeros_like(self.w2v.value)
