@@ -29,34 +29,38 @@ import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.ops.transforms.Transforms
 
 /**
- *
- */
+  *
+  */
 trait LossFunction[LT] {
   protected var grad: INDArray = _
   protected var acc: Int = -1
 
   def forClassification: Boolean
+
   /**
-   * @return average loss within a given batch
-   */
+    * @return average loss within a given batch
+    */
   def loss(actual: INDArray, expected: LT, fortest: Boolean = false): Double
+
   /**
-   * @return the gradients correspond to each input. The gradient return here should
-   * 				 be averaged on each batch, thus the backprop result can be directly sum
-   * 				 in a batch
-   */
+    * @return the gradients correspond to each input. The gradient return here should
+    *         be averaged on each batch, thus the backprop result can be directly sum
+    *         in a batch
+    */
   def gradient: INDArray = grad
+
   def accuracy: Int = acc
 }
 
 class SquareLoss extends LossFunction[INDArray] {
 
   def forClassification = false
+
   /**
-   * @param actual		Shape [B, N]
-   * @param	expected	Shape [B, N]
-   * @return	The averaged squared difference of actual - expected
-   */
+    * @param actual     Shape [B, N]
+    * @param 	expected Shape [B, N]
+    * @return The averaged squared difference of actual - expected
+    */
   def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double = {
     val b = actual.shape()(0)
 
@@ -73,17 +77,54 @@ object SoftMaxLogLoss {
   val clip = 1e-12
 }
 
+class LogLoss extends LossFunction[INDArray] {
+  def forClassification = true
+
+  /**
+    *
+    * @param actual
+    * @param expect
+    * @param fortest
+    * @return average loss within a given batch
+    */
+  def loss(actual: INDArray, expect: INDArray, fortest: Boolean): Double = {
+    val shape = actual.shape()
+
+    val clipval = Transforms.max(actual, SoftMaxLogLoss.clip, false)
+
+    val nexpect = Nd4j.onesLike(expect).subi(expect)
+    val nactual = Nd4j.onesLike(actual).subi(actual)
+
+    if (!fortest) {
+      // Compute gradient
+      val grad = Nd4j.zerosLike(actual)
+      // -c/x + (1-c)/(1-x)
+      this.grad =
+        nexpect.div(nactual).sub(expect.div(actual)).div(shape.product)
+    }
+    // Accuracy for classification
+    val predict = actual.gte(0.5)
+    val eq = predict.eq(expect)
+    acc = eq.sumNumber().intValue()
+
+    // - c log(x) - (1-c)log(1-x)
+    Transforms.log(actual.mul(expect).add(nactual.mul(nexpect))).negi()
+      .meanNumber().doubleValue()
+  }
+}
+
 class SoftMaxLogLoss extends LossFunction[INDArray] {
 
   def forClassification = true
+
   /**
-   * @param	actual		Probability of each label. This is an <code>INDArray</code>
-   * 									of shape [B,..., N], where B is the batch size, N is the dimension
-   * @param	expected	The ground truth label. This is an <code>INDArray</code> of
-   * 									shape [B,..., 1]
-   * @return 	mean of log loss of ground truth label in actual probability
-   *
-   */
+    * @param 	actual   Probability of each label. This is an <code>INDArray</code>
+    *                   of shape [B,..., N], where B is the batch size, N is the dimension
+    * @param 	expected The ground truth label. This is an <code>INDArray</code> of
+    *                   shape [B,..., 1]
+    * @return mean of log loss of ground truth label in actual probability
+    *
+    */
   def loss(actual: INDArray, expected: INDArray, fortest: Boolean): Double = {
     val shape = actual.shape()
 
