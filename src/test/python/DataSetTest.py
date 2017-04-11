@@ -1,6 +1,5 @@
 import unittest
 import numpy as np
-from wheel.signatures.djbec import dsa_test
 
 import ndnn.dataset as nd
 
