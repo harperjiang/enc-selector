@@ -22,99 +22,112 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
-import org.nd4j.linalg.api.ndarray.INDArray
-import java.util.Arrays
 import java.util.Collections
-import scala.collection.JavaConversions._
-import org.nd4j.linalg.factory.Nd4j
-import scala.collection.mutable.Buffer
-import org.nd4j.linalg.indexing.NDArrayIndex
 
-object Dataset {
-  val BATCH_ALL = -1
-}
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
+
+import scala.collection.JavaConversions._
 
 trait Dataset[D] {
 
-  protected var dataSize = -1
-
-  def size: Int = dataSize
-
-  def newEpoch(): Unit
-
   def batches(batchSize: Int): Iterator[Batch[D]]
+
+  def numBatch: Int
+
+  def dataSize: Int
 }
 
-class Batch[D](s: Int, d: D, gt: D) {
-  val size = s
-  val data = d
-  val groundTruth = gt
-}
+class Batch[D](val size: Int, val data: D, val groundTruth: D)
 
 abstract class DatasetBase[D] extends Dataset[D] {
 
-  protected var permuteIdx: Buffer[Int] = _
-
-  protected def initShuffle(permute: Boolean = true) = {
-    permuteIdx = (0 to dataSize - 1).toBuffer
-    if (permute)
-      Collections.shuffle(permuteIdx)
-  }
-
-  protected def construct(idices: Buffer[Int]): Batch[D]
-
-  def newEpoch() = {
-    // Shuffle data, generate random batch
-    Collections.shuffle(permuteIdx)
-  }
-
-  def batches(batchSize: Int): Iterator[Batch[D]] = {
-    val bSize = batchSize match {
-      case Dataset.BATCH_ALL => dataSize
-      case _ => batchSize
-    }
-    if (0 == bSize)
-      throw new IllegalArgumentException("Batch Size is ZERO")
-    val numBatch = (dataSize / bSize) + ((dataSize % bSize) match {
-      case 0 => 0
-      case _ => 1
-    })
-    val curBatchSize = bSize
-    (0 until numBatch).toIterator.map { i => {
-      val idices = permuteIdx.slice(i * curBatchSize, Math.min((i + 1) * curBatchSize, size))
-      construct(idices)
-    }
-    }
-  }
-}
-
-abstract class DefaultDataset(ds: Array[Int], gts: Array[Int]) extends DatasetBase[INDArray] {
-
-  protected val dataShape = ds
-  protected val gtShape = gts
-
   protected var datas: Array[Array[Double]] = _
-  protected var groundTruths: Array[Array[Double]] = _
+  protected var expects: Array[Double] = _
 
   {
     val loaded = load()
-    dataSize = loaded._1
-    datas = loaded._2
-    groundTruths = loaded._3
+    datas = loaded._1
+    expects = loaded._2
+  }
+  protected val permuteIdx = (0 until datas.length).toBuffer
 
-    initShuffle()
+  val dataSize = datas.length
+
+  protected def load(): (Array[Array[Double]], Array[Double])
+
+  protected def construct(idices: Seq[Int]): Batch[D]
+
+  var numBatch = 0
+
+  def batches(batchSize: Int): Iterator[Batch[D]] = {
+    Collections.shuffle(permuteIdx)
+
+    if (batchSize <= 0)
+      throw new IllegalArgumentException("Batch Size should be non-negative")
+    val batches = (0 until dataSize by batchSize)
+    numBatch = batches.length
+
+    batches.toIterator.map(i => {
+      val idices = permuteIdx.slice(i, i + batchSize)
+      construct(idices)
+    })
+  }
+}
+
+abstract class DefaultDataset extends DatasetBase[INDArray] {
+
+  protected def construct(idices: Seq[Int]): Batch[INDArray] = {
+    new Batch[INDArray](idices.length, Nd4j.create(idices.map(datas(_)).toArray),
+      Nd4j.create(idices.map(expects(_)).toArray))
+  }
+}
+
+abstract class VarLenDatasetBase[D] extends Dataset[D] {
+
+  protected def load(): (Array[Array[Double]], Array[Double])
+
+  protected var datas: Array[Array[Double]] = _
+  protected var expects: Array[Double] = _
+  protected var groupByLength: Array[Array[Int]] = _
+
+  {
+    val loaded = load()
+    datas = loaded._1
+    expects = loaded._2
+    groupByLength = loaded._1.zipWithIndex.map(d => (d._1.length, d._2)).groupBy(_._1)
+      .values.map(_.map(_._2)).toArray
   }
 
-  protected def load(): (Int, Array[Array[Double]], Array[Array[Double]])
+  val dataSize = datas.length
 
-  protected def construct(indices: Buffer[Int]): Batch[INDArray] = {
-    val bSize = indices.length
-    val data = Nd4j.create(indices.flatMap {
-      datas(_)
-    }.toArray, bSize +: ds)
-    val gt = Nd4j.create(indices.flatMap {
-      groundTruths(_)
-    }.toArray, bSize +: gts)
-    new Batch[INDArray](indices.length, data, gt)
+  protected val permuteIdx = (0 until groupByLength.length).toBuffer
+
+  protected def construct(idices: Seq[Int]): Batch[D]
+
+  var numBatch = 0
+
+  def batches(batchSize: Int): Iterator[Batch[D]] = {
+    Collections.shuffle(permuteIdx)
+
+    if (batchSize <= 0)
+      throw new IllegalArgumentException("Batch Size should be non-negative")
+
+    numBatch = groupByLength.map(group => (0 until group.length by batchSize).length).sum
+
+    permuteIdx.map(idx => {
+      val group = groupByLength(idx)
+      (0 until group.length by batchSize).map(iidx => {
+        construct(group.slice(iidx, iidx + batchSize))
+      })
+    }).flatten.toIterator
+  }
+}
+
+abstract class DefaultVarLenDataset extends VarLenDatasetBase[INDArray] {
+
+  protected def construct(idices: Seq[Int]): Batch[INDArray] = {
+    new Batch[INDArray](idices.length, Nd4j.create(idices.map(datas(_)).toArray),
+      Nd4j.create(idices.map(expects(_)).toArray))
   }
 }

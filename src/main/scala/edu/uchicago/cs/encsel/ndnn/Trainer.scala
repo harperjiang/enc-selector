@@ -85,7 +85,6 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
         logger.info("[Epoch %d]".format(i))
         val startTime = System.currentTimeMillis()
 
-        trainset.newEpoch()
         val graph = getGraph
         trainset.batches(trainBatchSize).foreach { batch =>
           {

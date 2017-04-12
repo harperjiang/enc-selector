@@ -35,9 +35,9 @@ object MinstDataset {
   val LABEL_MAGIC = 2049
 }
 
-class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset(Array(28 * 28), Array(1)) {
+class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset {
 
-  def load(): (Int, Array[Array[Double]], Array[Array[Double]]) = {
+  def load(): (Array[Array[Double]], Array[Double]) = {
     val datais = new DataInputStream(new FileInputStream(trainFile))
     val labelis = new DataInputStream(new FileInputStream(testFile))
     // Magic number
@@ -59,19 +59,19 @@ class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) ext
       throw new IllegalArgumentException("Incorrect row/col cnt")
 
     val datas = new Array[Array[Double]](dataSize)
-    val labels = new Array[Array[Double]](dataSize)
+    val labels = new Array[Double](dataSize)
 
     for (i <- 0 until dataSize) {
       val databuffer = new Array[Double](rowcnt * colcnt)
       for (j <- databuffer.indices)
         databuffer(j) = datais.readUnsignedByte() / 255.toDouble
       datas(i) = databuffer
-      labels(i) = Array(labelis.readUnsignedByte().toDouble)
+      labels(i) = labelis.readUnsignedByte().toDouble
     }
 
     datais.close()
     labelis.close()
 
-    (dataSize, datas, labels)
+    (datas, labels)
   }
 }
