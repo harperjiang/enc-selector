@@ -12,7 +12,7 @@ class LSTMDatasetTest {
     val file = "src/test/resource/rnn/lstm_sample_ds"
     val ds = new LSTMDataset(file)
 
-    assertEquals(8, ds.size)
+    assertEquals(8, ds.dataSize)
 
     val batches = ds.batches(3).toArray
     assertEquals(3, batches.length)

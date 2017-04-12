@@ -14,41 +14,22 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 import java.util.Arrays
 
-class DummyDataset extends DefaultDataset(Array(4, 3), Array(2, 2)) {
+class DummyDataset extends DefaultDataset {
   def permuteIdx4Test = permuteIdx
 
-  def load(): (Int, Array[Array[Double]], Array[Array[Double]]) = {
+  def load(): (Array[Array[Double]], Array[Double]) = {
     val data = new Array[Array[Double]](100)
-    val gt = new Array[Array[Double]](100)
+    val gt = new Array[Double](100)
 
     for (i <- 0 until 100) {
       data(i) = (0 to 11).map(_ => i.toDouble).toArray
-      gt(i) = (0 to 3).map(_ => i.toDouble).toArray
+      gt(i) = 0
     }
-    (100, data, gt)
+    (data, gt)
   }
 }
 
 class DatasetTest {
-
-  @Test
-  def testNewEpoch: Unit = {
-    val ds = new DummyDataset
-    val permuteCopy = new Array[Int](100)
-    System.arraycopy(ds.permuteIdx4Test.toArray, 0, permuteCopy, 0, 100)
-    ds.newEpoch()
-    val permuteCopy2 = new Array[Int](100)
-    System.arraycopy(ds.permuteIdx4Test.toArray, 0, permuteCopy2, 0, 100)
-
-    assertEquals(100, permuteCopy.toSet.size)
-    assertEquals(0, permuteCopy.min)
-    assertEquals(99, permuteCopy.max)
-    assertEquals(100, permuteCopy2.toSet.size)
-    assertEquals(0, permuteCopy2.min)
-    assertEquals(99, permuteCopy2.max)
-
-    assertFalse(permuteCopy.sameElements(permuteCopy2))
-  }
 
   @Test
   def testBatches: Unit = {
@@ -85,7 +66,6 @@ class DatasetTest {
     assertEquals(99, distinct.max, 0.01)
 
     distinct.clear()
-    ds.newEpoch()
 
     array = ds.batches(31).toArray
     assertEquals(4, array.length)
