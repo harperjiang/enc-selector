@@ -63,7 +63,7 @@ object GroupLog extends App {
   }
 
   def process(uri: URI): Unit = {
-    Source.fromFile(uri, "utf-8").getLines().foreach(line => {
+    Source.fromFile(uri).getLines().foreach(line => {
       // Escape double double quote
       val formatted = line.replaceAll("(?<!:\\s?\\s?\\s?)\"\"","\\\\\"\"")
       try {
