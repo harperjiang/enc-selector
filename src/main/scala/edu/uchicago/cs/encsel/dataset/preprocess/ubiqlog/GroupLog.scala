@@ -65,7 +65,7 @@ object GroupLog extends App {
   def process(uri: URI): Unit = {
     Source.fromFile(uri, "utf-8").getLines().foreach(line => {
       // Escape double double quote
-      val formatted = line.replaceAll("\"\"","\\\\\"\"")
+      val formatted = line.replaceAll("(?<!:\\s+)\"\"","\\\\\"\"")
       try {
         val json = jsonParser.parse(formatted).getAsJsonObject
         val entrySet = json.entrySet()
