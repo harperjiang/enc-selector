@@ -31,16 +31,54 @@ import com.google.gson.{Gson, JsonParser}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
 /**
   * The UbiqLog (see README.txt in dataset folder for detail) contains
   * several different types of logs. Separate them and store in different files
   */
+
+// This formatter will merge incorrected separated lines and remove escape characters
+class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
+
+  protected val buffer: mutable.Buffer[String] = new ArrayBuffer[String]
+
+  protected val look4DQ = """(?<![{,:]\s?\s?\s?)\"(?!\s?\s?\s?[,:}])"""
+
+
+  def escape(input: String): String = {
+    val nobs = input.replaceAll("\\\\", "\\\\\\\\")
+    // Quick look for unescaped double quotes, any double quotes
+    // not followed by ":" or "," will be escaped
+    val nodq = nobs.replaceAll(look4DQ, "\\\\\"")
+    nodq
+  }
+
+  def hasNext: Boolean = {
+    while (lines.hasNext && (buffer.isEmpty || !buffer.last.endsWith("}"))) {
+      buffer += lines.next()
+    }
+    if (!lines.hasNext && (buffer.isEmpty || buffer.last.endsWith("}"))) {
+      return false
+    }
+    return true
+  }
+
+  def next(): String = {
+    if (buffer.isEmpty)
+      throw new IllegalStateException
+    val result = buffer.map(escape(_)).mkString("\\n")
+    buffer.clear()
+    result
+  }
+}
+
 object GroupLog extends App {
   val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
   //val root = "/home/harper/test"
 
+  val supportedEncodings = Array("utf-8", "iso-8859-1")
   val jsonParser = new JsonParser()
   val output = new mutable.HashMap[String, PrintWriter]
 
@@ -49,38 +87,45 @@ object GroupLog extends App {
   output.values.foreach(_.close)
 
 
-  def scan(folder: URI, proc: URI => Unit): Unit = {
+  def scan(folder: URI, proc: (URI, Int) => Unit): Unit = {
     Files.list(Paths.get(folder)).iterator().foreach(path => {
       if (path.toFile.isDirectory) {
         scan(path.toUri, proc)
       } else {
         val fname = path.getFileName.toString
         if (fname.startsWith("log") && fname.endsWith("txt")) {
-          proc(path.toUri)
+          proc(path.toUri, 0)
         }
       }
     })
   }
 
-  def process(uri: URI): Unit = {
-    Source.fromFile(uri).getLines().foreach(line => {
-      // Escape double double quote
-      val formatted = line.replaceAll("(?<!:\\s?\\s?\\s?)\"\"","\\\\\"\"")
-      try {
-        val json = jsonParser.parse(formatted).getAsJsonObject
-        val entrySet = json.entrySet()
-        entrySet.foreach(e => {
-          val key = e.getKey
-          val value = e.getValue
-          output.getOrElseUpdate(key, new PrintWriter(root + "/" + key + ".json"))
-            .println(value.toString)
+  def process(uri: URI, encoding: Int): Unit = {
+    try {
+      new JsonFormatter(Source.fromFile(uri, supportedEncodings(encoding)).getLines())
+        .foreach(line => {
+          try {
+            val json = jsonParser.parse(line).getAsJsonObject
+            val entrySet = json.entrySet()
+            entrySet.foreach(e => {
+              val key = e.getKey
+              val value = e.getValue
+              output.getOrElseUpdate(key, new PrintWriter(root + "/" + key + ".json"))
+                .println(value.toString)
+            })
+          } catch {
+            case e: Exception => {
+              println(line)
+            }
+          }
         })
-      } catch {
-        case e: Exception => {
-          println(line)
-          println(formatted)
-        }
+    }
+    catch {
+      // Switch to next encoding
+      case e: java.nio.charset.MalformedInputException => {
+        process(uri, encoding + 1)
       }
-    })
+    }
   }
 }
+
