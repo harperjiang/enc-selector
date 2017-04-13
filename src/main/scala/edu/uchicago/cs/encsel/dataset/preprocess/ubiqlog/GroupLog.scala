@@ -27,7 +27,7 @@ import java.io.{File, PrintWriter}
 import java.net.URI
 import java.nio.file.{Files, Paths}
 
-import com.google.gson.JsonParser
+import com.google.gson.{Gson, JsonParser}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -38,9 +38,10 @@ import scala.io.Source
   * several different types of logs. Separate them and store in different files
   */
 object GroupLog extends App {
-  val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
+  //val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
+  val root = "/home/harper/test"
 
-  val jsonParser = new JsonParser
+  val jsonParser = new JsonParser()
   val output = new mutable.HashMap[String, PrintWriter]
 
   scan(new File(root).toURI, process)
@@ -48,14 +49,14 @@ object GroupLog extends App {
   output.values.foreach(_.close)
 
 
-  def scan(folder: URI, process: URI => Unit): Unit = {
+  def scan(folder: URI, proc: URI => Unit): Unit = {
     Files.list(Paths.get(folder)).iterator().foreach(path => {
       if (path.toFile.isDirectory) {
-        scan(path.toUri, process)
+        scan(path.toUri, proc)
       } else {
-        val fname = path.getFileName
+        val fname = path.getFileName.toString
         if (fname.startsWith("log") && fname.endsWith("txt")) {
-          process(path.toUri)
+          proc(path.toUri)
         }
       }
     })
@@ -63,14 +64,23 @@ object GroupLog extends App {
 
   def process(uri: URI): Unit = {
     Source.fromFile(uri, "utf-8").getLines().foreach(line => {
-      val json = jsonParser.parse(line).getAsJsonObject
-      val entrySet = json.entrySet()
-      entrySet.foreach(e => {
-        val key = e.getKey
-        val value = e.getValue
-        output.getOrElseUpdate(key, new PrintWriter(root + "/" + key + ".json"))
-          .println(value.toString)
-      })
+      // Escape double double quote
+      val formatted = line.replaceAll("\"\"","\\\\\"\"")
+      try {
+        val json = jsonParser.parse(formatted).getAsJsonObject
+        val entrySet = json.entrySet()
+        entrySet.foreach(e => {
+          val key = e.getKey
+          val value = e.getValue
+          output.getOrElseUpdate(key, new PrintWriter(root + "/" + key + ".json"))
+            .println(value.toString)
+        })
+      } catch {
+        case e: Exception => {
+          println(line)
+          println(formatted)
+        }
+      }
     })
   }
 }
