@@ -30,7 +30,14 @@ import edu.uchicago.cs.encsel.ndnn._
 import scala.collection.mutable.{ArrayBuffer, Buffer, HashMap}
 import scala.io.Source
 
-class LSTMDataset(file: URI, extdict: LSTMDataset) extends VarLenDatasetBase[Array[Array[Int]]] {
+object LSTMDataset {
+  val PAD = '@'
+}
+
+class LSTMDataset(file: URI, extdict: LSTMDataset) extends DatasetBase[Array[Array[Int]]] {
+
+  private var dict: HashMap[Char, Int] = _
+  private var inverseDict: Buffer[Char] = _
 
   def this(file: String)(implicit extdict: LSTMDataset = null) {
     this(new File(file).toURI, extdict)
@@ -40,17 +47,14 @@ class LSTMDataset(file: URI, extdict: LSTMDataset) extends VarLenDatasetBase[Arr
     this(file, null)
   }
 
-  private val dict = new HashMap[Char, Int]
-  private val inverseDict = new ArrayBuffer[Char]
-
-  private val PAD = '@'
-
   override protected def load(): (Array[Array[Double]], Array[Double]) = {
+    dict = new HashMap[Char, Int]
+    inverseDict = new ArrayBuffer[Char]
     val strlines = Source.fromFile(file).getLines().map(line =>
       "{%s}".format(line.trim.toLowerCase)).toBuffer
     if (extdict == null) {
-      dict += ((PAD, 0))
-      inverseDict += PAD
+      dict += ((LSTMDataset.PAD, 0))
+      inverseDict += LSTMDataset.PAD
       strlines.foreach(line =>
         line.toCharArray.foreach { c =>
           dict.getOrElseUpdate(c, {
@@ -73,7 +77,7 @@ class LSTMDataset(file: URI, extdict: LSTMDataset) extends VarLenDatasetBase[Arr
   protected def construct(idices: Seq[Int]): Batch[Array[Array[Int]]] = {
     val data = idices.map(datas(_).map(_.toInt))
     val maxlength = data.map(_.length).max
-    val padded = data.map(_.padTo(maxlength, dict.getOrElse(PAD, -1)))
+    val padded = data.map(_.padTo(maxlength, dict.getOrElse(LSTMDataset.PAD, -1)))
     val transposed = (0 until maxlength).map(i => padded.map(_ (i)).toArray).toArray
 
     new Batch[Array[Array[Int]]](idices.length, transposed.dropRight(1), transposed.drop(1))

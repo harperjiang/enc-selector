@@ -20,15 +20,6 @@ class LSTMDatasetTest {
     assertEquals(3, batches(1).size)
     assertEquals(2, batches(2).size)
     assertEquals(24, ds.numChars)
-    assertEquals(24, batches(0).data.length)
-    assertEquals(13, batches(1).data.length)
-    assertEquals(10, batches(2).data.length)
 
-    val firstwords = "{it is a good day to die"
-    val translated = ds.translate(firstwords)
-
-    val real = batches(0).data.map(_(0))
-
-    translated.indices.foreach(i => assertEquals(translated(i), real(i)))
   }
 }

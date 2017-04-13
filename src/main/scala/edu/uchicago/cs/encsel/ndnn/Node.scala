@@ -22,6 +22,7 @@
  */
 package edu.uchicago.cs.encsel.ndnn
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
@@ -39,10 +40,15 @@ import org.nd4j.linalg.api.ops.impl.transforms.LeakyReLUDerivative
 
 trait NodeEnv {
   protected val nodeBuffer = new ArrayBuffer[Node]
-  def attach(n: Node) = { nodeBuffer += n }
+
+  def attach(n: Node) = {
+    nodeBuffer += n
+  }
 
   def forward: Unit =
-    nodeBuffer.foreach { _.forward }
+    nodeBuffer.foreach {
+      _.forward
+    }
 
   def backward: Unit =
     nodeBuffer.reverseIterator.foreach(_.backward)
@@ -87,9 +93,11 @@ abstract class Node(is: Node*) {
       }
     }
   }
+
   def backward: Unit = updateGrad
 
   def compute: Unit
+
   def updateGrad: Unit
 
   def getValue = value
@@ -108,6 +116,7 @@ class Input(n: String) extends Node {
   protected var rawValue: Any = _
 
   def get[T] = this.rawValue.asInstanceOf[T]
+
   def set(value: Any) = {
     this.rawValue = value
     if (value.isInstanceOf[INDArray])
@@ -121,6 +130,7 @@ class Input(n: String) extends Node {
   }
 
   def compute: Unit = Unit
+
   def updateGrad: Unit = Unit
 }
 
@@ -252,25 +262,26 @@ class Concat(left: Node, right: Node, idx: Int = 1) extends Node(left, right) {
 
 class Collect(nodes: Node*) extends Node(nodes: _*) {
   def compute: Unit = {
+    /*
     val valueList = nodes.map(n => {
       n.value.get((NDArrayIndex.newAxis() +: NDArrayIndex.allFor(n.value)): _*)
     })
-    this.value = Nd4j.concat(0, valueList.toArray: _*)
+    this.value = Nd4j.concat(0, valueList.toArray: _*)*/
+    this.value = Nd4j.create(nodes.map(_.value).toList, nodes.length +: nodes(0).value.shape())
   }
 
   def updateGrad = {
     val total = this.grad.shape.length - 1
-    nodes.zipWithIndex.foreach { n =>
-      {
-        n._1.grad = this.grad.get(Index.point(total + 1, 0, n._2): _*)
-      }
+    nodes.zipWithIndex.foreach { n => {
+      n._1.grad = this.grad.get(Index.point(total + 1, 0, n._2): _*)
+    }
     }
   }
 }
 
 /**
- * [B,1] [C,N] => [B,N]
- */
+  * [B,1] [C,N] => [B,N]
+  */
 class Embed(idx: Node, map: Node) extends Node(idx, map) {
 
   var fwdmap: INDArray = _
