@@ -23,7 +23,7 @@ class DummyDataset extends DefaultDataset {
 
     for (i <- 0 until 100) {
       data(i) = (0 to 11).map(_ => i.toDouble).toArray
-      gt(i) = 0
+      gt(i) = i
     }
     (data, gt)
   }
@@ -44,22 +44,17 @@ class DatasetTest {
     assertEquals(19, array(3).size)
 
     val distinct = new HashSet[Double]()
-    array.foreach { batch =>
-      {
-        (0 until batch.size).foreach {
-          i =>
-            {
-              val fromdata = batch.data.getDouble(i, 0, 0)
-              distinct += fromdata
-              for (j <- 0 to 3; k <- 0 to 2) {
-                assertEquals(fromdata, batch.data.getDouble(i, j, k), 0.01)
-              }
-              for (j <- 0 to 1; k <- 0 to 1) {
-                assertEquals(fromdata, batch.groundTruth.getDouble(i, j, k), 0.01)
-              }
-            }
+    array.foreach { batch => {
+      (0 until batch.size).foreach {
+        i => {
+          val fromdata = batch.data.getDouble(i, 0)
+          distinct += fromdata
+          for (k <- 0 to 11) {
+            assertEquals(batch.groundTruth.getDouble(i), batch.data.getDouble(i, k), 0.01)
+          }
         }
       }
+    }
     }
     assertEquals(100, distinct.size)
     assertEquals(0, distinct.min, 0.01)
@@ -75,22 +70,19 @@ class DatasetTest {
     assertEquals(31, array(2).size)
     assertEquals(7, array(3).size)
 
-    array.foreach { batch =>
-      {
-        (0 until batch.size).foreach {
-          i =>
-            {
-              val fromdata = batch.data.getDouble(i, 0, 0)
-              distinct += fromdata
-              for (j <- 0 to 3; k <- 0 to 2) {
-                assertEquals(fromdata, batch.data.getDouble(i, j, k), 0.01)
-              }
-              for (j <- 0 to 1; k <- 0 to 1) {
-                assertEquals(fromdata, batch.groundTruth.getDouble(i, j, k), 0.01)
-              }
-            }
+    array.foreach { batch => {
+      (0 until batch.size).foreach {
+        i => {
+          val fromdata = batch.data.getDouble(i, 0)
+          distinct += fromdata
+          assertEquals(fromdata, batch.groundTruth.getDouble(i), 0.01)
+          for (j <- 0 to 11) {
+            assertEquals(fromdata, batch.data.getDouble(i, j), 0.01)
+          }
+
         }
       }
+    }
     }
     assertEquals(100, distinct.size)
     assertEquals(0, distinct.min, 0.01)
