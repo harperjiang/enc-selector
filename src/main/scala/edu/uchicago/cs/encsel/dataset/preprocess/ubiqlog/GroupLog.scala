@@ -115,6 +115,7 @@ object GroupLog extends App {
             })
           } catch {
             case e: Exception => {
+              println(e)
               println(line)
             }
           }
@@ -123,6 +124,7 @@ object GroupLog extends App {
     catch {
       // Switch to next encoding
       case e: java.nio.charset.MalformedInputException => {
+        println("Encoding error on " + uri.toString)
         process(uri, encoding + 1)
       }
     }
