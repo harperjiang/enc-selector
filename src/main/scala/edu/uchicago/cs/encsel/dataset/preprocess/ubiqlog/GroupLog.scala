@@ -38,8 +38,8 @@ import scala.io.Source
   * several different types of logs. Separate them and store in different files
   */
 object GroupLog extends App {
-  //val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
-  val root = "/home/harper/test"
+  val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
+  //val root = "/home/harper/test"
 
   val jsonParser = new JsonParser()
   val output = new mutable.HashMap[String, PrintWriter]
