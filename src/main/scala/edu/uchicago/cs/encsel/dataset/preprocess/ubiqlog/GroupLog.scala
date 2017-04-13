@@ -45,6 +45,9 @@ object GroupLog extends App {
 
   scan(new File(root).toURI, process)
 
+  output.values.foreach(_.close)
+
+
   def scan(folder: URI, process: URI => Unit): Unit = {
     Files.list(Paths.get(folder)).iterator().foreach(path => {
       if (path.toFile.isDirectory) {

@@ -36,18 +36,10 @@ import scala.io.Source
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.encsel.util.FileUtils
 
-class Schema {
-
-  var hasHeader = false
-
-  var columns: Array[(DataType, String)] = _
-
-  def this(columns: Array[(DataType, String)], hasheader: Boolean = true) {
-    this()
-    this.columns = columns
-    this.hasHeader = hasheader
+class Schema(var columns: Array[(DataType, String)], var hasHeader: Boolean = true) {
+  def this() = {
+    this(Array.empty[(DataType, String)])
   }
-
 }
 
 object Schema {
@@ -56,9 +48,15 @@ object Schema {
     var cols = new ArrayBuffer[(DataType, String)]()
     Source.fromFile(file).getLines().foreach {
       _ match {
-        case hasheaderp(_*) => { hasheader = true }
-        case noheaderp(_*) => { hasheader = false }
-        case pattern(a, b) => { cols += ((dataType(a), b)) }
+        case hasheaderp(_*) => {
+          hasheader = true
+        }
+        case noheaderp(_*) => {
+          hasheader = false
+        }
+        case pattern(a, b) => {
+          cols += ((dataType(a), b))
+        }
         case _ => {}
       }
     }

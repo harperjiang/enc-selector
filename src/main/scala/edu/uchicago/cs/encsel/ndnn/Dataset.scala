@@ -28,6 +28,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 trait Dataset[D] {
 
@@ -44,28 +45,28 @@ abstract class DatasetBase[D] extends Dataset[D] {
 
   protected var datas: Array[Array[Double]] = _
   protected var expects: Array[Double] = _
+  protected var permuteIdx: mutable.Buffer[Int] = _
+  var numBatch = 0
 
   {
     val loaded = load()
     datas = loaded._1
     expects = loaded._2
+    permuteIdx = (0 until datas.length).toBuffer
   }
-  protected val permuteIdx = (0 until datas.length).toBuffer
 
-  val dataSize = datas.length
+  def dataSize = datas.length
 
   protected def load(): (Array[Array[Double]], Array[Double])
 
   protected def construct(idices: Seq[Int]): Batch[D]
-
-  var numBatch = 0
 
   def batches(batchSize: Int): Iterator[Batch[D]] = {
     Collections.shuffle(permuteIdx)
 
     if (batchSize <= 0)
       throw new IllegalArgumentException("Batch Size should be non-negative")
-    val batches = (0 until dataSize by batchSize)
+    val batches = (0 until datas.length by batchSize)
     numBatch = batches.length
 
     batches.toIterator.map(i => {
@@ -85,11 +86,12 @@ abstract class DefaultDataset extends DatasetBase[INDArray] {
 
 abstract class VarLenDatasetBase[D] extends Dataset[D] {
 
-  protected def load(): (Array[Array[Double]], Array[Double])
-
   protected var datas: Array[Array[Double]] = _
   protected var expects: Array[Double] = _
   protected var groupByLength: Array[Array[Int]] = _
+  protected var permuteIdx: mutable.Buffer[Int] = _
+
+  var numBatch = 0
 
   {
     val loaded = load()
@@ -97,15 +99,14 @@ abstract class VarLenDatasetBase[D] extends Dataset[D] {
     expects = loaded._2
     groupByLength = loaded._1.zipWithIndex.map(d => (d._1.length, d._2)).groupBy(_._1)
       .values.map(_.map(_._2)).toArray
+    permuteIdx = (0 until groupByLength.length).toBuffer
   }
 
-  val dataSize = datas.length
+  def dataSize = datas.length
 
-  protected val permuteIdx = (0 until groupByLength.length).toBuffer
+  protected def load(): (Array[Array[Double]], Array[Double])
 
   protected def construct(idices: Seq[Int]): Batch[D]
-
-  var numBatch = 0
 
   def batches(batchSize: Int): Iterator[Batch[D]] = {
     Collections.shuffle(permuteIdx)
