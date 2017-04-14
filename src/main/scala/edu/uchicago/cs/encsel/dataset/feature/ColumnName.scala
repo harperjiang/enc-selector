@@ -31,6 +31,8 @@ import edu.uchicago.cs.encsel.dataset.column.Column
  */
 object ColumnName extends FeatureExtractor {
 
+  def featureType: String = "ColumnName"
+
   def extract(input: Column): Iterable[Feature] = {
     throw new UnsupportedOperationException("Not implemented")
   }

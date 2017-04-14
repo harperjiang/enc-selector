@@ -27,21 +27,22 @@ import edu.uchicago.cs.encsel.dataset.column.Column
 import scala.io.Source
 
 object Sparsity extends FeatureExtractor {
-  
+
+  def featureType = "Sparsity"
+
   def extract(input: Column): Iterable[Feature] = {
     var counter = 0
     var emptyCount = 0
     Source.fromFile(input.colFile).getLines().foreach {
-      line =>
-        {
-          counter += 1
-          if (line.trim().isEmpty) {
-            emptyCount += 1
-          }
+      line => {
+        counter += 1
+        if (line.trim().isEmpty) {
+          emptyCount += 1
         }
+      }
     }
-    Iterable(new Feature("Sparsity", "count", counter),
-      new Feature("Sparsity", "empty_count", emptyCount),
-      new Feature("Sparsity", "valid_ratio", (counter.toDouble - emptyCount) / counter))
+    Iterable(new Feature(featureType, "count", counter),
+      new Feature(featureType, "empty_count", emptyCount),
+      new Feature(featureType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
   }
 }

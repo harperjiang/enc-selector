@@ -30,7 +30,9 @@ import edu.uchicago.cs.encsel.util.DataUtils
 import org.apache.commons.lang.StringUtils
 
 object Length extends FeatureExtractor {
-  
+
+  def featureType = "Length"
+
   def extract(input: Column): Iterable[Feature] = {
     val length = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty).map(_.length().toDouble).toTraversable
@@ -39,9 +41,9 @@ object Length extends FeatureExtractor {
     val statforlen = DataUtils.stat(length)
 
     Iterable(
-      new Feature("Length", "max", length.max),
-      new Feature("Length", "min", length.min),
-      new Feature("Length", "mean", statforlen._1),
-      new Feature("Length", "variance", statforlen._2))
+      new Feature(featureType, "max", length.max),
+      new Feature(featureType, "min", length.min),
+      new Feature(featureType, "mean", statforlen._1),
+      new Feature(featureType, "variance", statforlen._2))
   }
 }

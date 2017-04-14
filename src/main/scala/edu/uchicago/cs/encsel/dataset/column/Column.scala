@@ -44,6 +44,12 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   }
 
   def findFeature(t: String, name: String): Feature = {
-    Try{ features.filter { f => f.featureType.equals(t) && f.name.equals(name) }.head}.getOrElse(null)
+    Try {
+      features.filter { f => f.featureType.equals(t) && f.name.equals(name) }.head
+    }.getOrElse(null)
+  }
+
+  def hasFeature(t: String): Boolean = {
+    features.filter(f => f.featureType.equals(t)).nonEmpty
   }
 }

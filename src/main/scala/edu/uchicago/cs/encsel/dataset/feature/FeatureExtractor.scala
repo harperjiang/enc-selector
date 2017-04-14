@@ -27,5 +27,7 @@ import java.net.URI
 import edu.uchicago.cs.encsel.dataset.column.Column
 
 trait FeatureExtractor {
+  def featureType: String
+
   def extract(input: Column): Iterable[Feature]
 }
