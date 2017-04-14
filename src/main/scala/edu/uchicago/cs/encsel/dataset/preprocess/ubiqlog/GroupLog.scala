@@ -45,7 +45,7 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
 
   protected val buffer: mutable.Buffer[String] = new ArrayBuffer[String]
 
-  protected val look4DQ = """(?<!({|\"\s?\s?\s?[,:])\s?\s?\s?)\"(?!\s?\s?\s?[,:}])"""
+  protected val look4DQ = """(?<!(\{|\"\s?\s?\s?[,:])\s?\s?\s?)\"(?!\s?\s?\s?[,:}])"""
 
   protected val jsonParser = new JsonParser
 
@@ -62,7 +62,12 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
     while (!part.isEmpty && !Try {
       jsonParser.parse(part); true
     }.getOrElse(false)) {
-      part = part.substring(part.indexOf('{'))
+      part = part.substring(1)
+      val next = part.indexOf('{')
+      next match {
+        case -1 => part = ""
+        case _ => part = part.substring(next)
+      }
     }
     part.isEmpty match {
       case true => input
@@ -90,8 +95,8 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
 }
 
 object GroupLog extends App {
-  val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
-  //val root = "/home/harper/test"
+  //val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
+  val root = "/home/harper/test"
 
   val supportedEncodings = Array("utf-8", "iso-8859-1")
   val jsonParser = new JsonParser()
