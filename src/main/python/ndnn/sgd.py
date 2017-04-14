@@ -1,21 +1,24 @@
 import numpy as np
 
-etaDefault = 0.001
+etaDefault = 0.5
 etaDecay = 1
 
 gradClip = -1
 
+epsilon = np.float64(1e-8)
+
 momentumKey = "momentum"
 mAlpha = 0.9
 
+adagradKey = "adagrad"
+
 rmspropKey = "rmsprop"
 rmspropBeta = 0.9
-rmsEpsilon = 1e-8
 
 adammeanKey = "adammean"
 adamvarKey = "adamvar"
 adamAlpha = 0.9
-adamBeta = 0.9
+adamBeta = 0.999
 
 
 class UpdatePolicy(object):
@@ -48,30 +51,48 @@ class SGD(UpdatePolicy):
 
 
 class Momentum(UpdatePolicy):
-    def __init__(self, e=etaDefault, d=etaDecay, a=mAlpha, gc=gradClip):
+    def __init__(self, eta=etaDefault, decay=etaDecay, alpha=mAlpha, gc=gradClip):
         super().__init__()
-        self.eta = e
-        self.decay = d
-        self.alpha = a
+        self.eta = eta
+        self.decay = decay
+        self.alpha = alpha
         self.grad_clip = gc
 
     def inner_update(self, param):
         if momentumKey in param.env:
             momentum = param.env[momentumKey]
         else:
-            momentum = param.grad
+            momentum = np.float64(0)
 
-        momentum = momentum * self.alpha + param.grad * (1 - self.alpha)
+        momentum = momentum * self.alpha + param.grad
         param.value -= momentum * self.eta
         param.env[momentumKey] = momentum
 
 
-class RMSProp(UpdatePolicy):
-    def __init__(self, e=etaDefault, d=etaDecay, b=rmspropBeta, gc=gradClip):
+class AdaGrad(UpdatePolicy):
+    def __init__(self, e=etaDefault, d=etaDecay, gc=gradClip):
         super().__init__()
         self.eta = e
         self.decay = d
-        self.beta = b
+        self.grad_clip = gc
+
+    def inner_update(self, param):
+        if adagradKey in param.env:
+            adagrad = param.env[adagradKey]
+        else:
+            adagrad = np.float64(0)
+
+        adagrad += param.grad * param.grad
+        param.value -= self.eta * self.grad / np.sqrt(adagrad + epsilon)
+        param.env[adagradKey] = adagrad
+
+
+class RMSProp(UpdatePolicy):
+    def __init__(self, eta=etaDefault, decay=etaDecay, beta=rmspropBeta, gc=gradClip):
+        super().__init__()
+        self.eta = eta
+        self.decay = decay
+        self.beta = beta
         self.grad_clip = gc
 
     def inner_update(self, param):
@@ -79,35 +100,35 @@ class RMSProp(UpdatePolicy):
         if rmspropKey in param.env:
             oldrms = param.env[rmspropKey]
         else:
-            oldrms = gradsqr
+            oldrms = np.float64(0)
         rms = oldrms * self.beta + gradsqr * (1 - self.beta)
-        param.value -= param.grad * self.eta / (np.sqrt(rms) + rmsEpsilon)
+        param.value -= param.grad * self.eta / np.sqrt(rms + epsilon)
         param.env[rmspropKey] = rms
 
 
 class Adam(UpdatePolicy):
-    def __init__(self, e=etaDefault, d=etaDecay, a=adamAlpha, b=adamBeta, gc=gradClip):
+    def __init__(self, eta=etaDefault, decay=etaDecay, alpha=adamAlpha, beta=adamBeta, gc=gradClip):
         super().__init__()
-        self.eta = e
-        self.decay = d
-        self.alpha = a
-        self.beta = b
+        self.eta = eta
+        self.decay = decay
+        self.alpha = alpha
+        self.beta = beta
         self.grad_clip = gc
 
     def inner_update(self, param):
         if adammeanKey in param.env:
             oldmomen = param.env[adammeanKey]
         else:
-            oldmomen = param.grad
+            oldmomen = 0
         momentum = oldmomen * self.alpha + param.grad * (1 - self.alpha)
 
         gradsqr = np.power(param.grad, 2)
         if adamvarKey in param.env:
             oldrms = param.env[adamvarKey]
         else:
-            oldrms = gradsqr
+            oldrms = 0
         rms = oldrms * self.beta + gradsqr * (1 - self.beta)
-        param.value -= momentum * self.eta / (np.sqrt(rms) + rmsEpsilon)
+        param.value -= momentum * self.eta / np.sqrt(rms + epsilon)
 
         param.env[adammeanKey] = momentum
         param.env[adamvarKey] = rms
