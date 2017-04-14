@@ -26,7 +26,7 @@ import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.factory.Nd4j
 
 object UpdatePolicy {
-  val etaDefault = 0.05
+  val etaDefault = 0.5
   val etaDecay = 1
 
   val gradClip = -1
@@ -92,8 +92,8 @@ class Momentum(e: Double, d: Double, m: Double, gc: Double) extends UpdatePolicy
 
   def innerUpdate(p: Param) = {
     val grad = p.grad
-    val oldmomen = p.context.getOrElse(UpdatePolicy.momentumKey, grad)
-    val momentum = oldmomen.mul(mu).add(grad.mul(1 - mu))
+    val oldmomen = p.context.getOrElse(UpdatePolicy.momentumKey, Nd4j.zerosLike(p.grad))
+    val momentum = oldmomen.mul(mu).add(grad)
     p.value.subi(momentum.mul(eta))
     p.context.put(UpdatePolicy.momentumKey, momentum)
   }
@@ -110,9 +110,9 @@ class RMSProp(e: Double, d: Double, b: Double, gc: Double) extends UpdatePolicyB
   def innerUpdate(p: Param) = {
     val grad = p.grad
     val gradsqr = Transforms.pow(grad, 2)
-    val oldrms = p.context.getOrElse(UpdatePolicy.rmspropKey, gradsqr)
+    val oldrms = p.context.getOrElse(UpdatePolicy.rmspropKey, Nd4j.zerosLike(p.grad))
     val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
-    p.value.subi(grad.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
+    p.value.subi(grad.mul(eta).div(Transforms.sqrt(rms.add(UpdatePolicy.rmsEpsilon))))
     p.context.put(UpdatePolicy.rmspropKey, rms)
   }
 
@@ -129,12 +129,12 @@ class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends Updat
   def innerUpdate(p: Param) = {
     val grad = p.grad
     val gradsqr = Transforms.pow(grad, 2)
-    val oldmomen = p.context.getOrElse(UpdatePolicy.adammeanKey, grad)
+    val oldmomen = p.context.getOrElse(UpdatePolicy.adammeanKey, Nd4j.zerosLike(grad))
     val momentum = oldmomen.mul(alpha).add(grad.mul(1 - alpha))
 
-    val oldrms = p.context.getOrElse(UpdatePolicy.adamvarKey, gradsqr)
+    val oldrms = p.context.getOrElse(UpdatePolicy.adamvarKey, Nd4j.zerosLike(grad))
     val rms = oldrms.mul(beta).add(gradsqr.mul(1 - beta))
-    p.value.subi(momentum.mul(eta).div(Transforms.sqrt(rms).add(UpdatePolicy.rmsEpsilon)))
+    p.value.subi(momentum.mul(eta).div(Transforms.sqrt(rms.add(UpdatePolicy.rmsEpsilon))))
 
     p.context.put(UpdatePolicy.adammeanKey, momentum)
     p.context.put(UpdatePolicy.adamvarKey, rms)
