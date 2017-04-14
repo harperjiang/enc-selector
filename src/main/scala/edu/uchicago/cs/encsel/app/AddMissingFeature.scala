@@ -24,45 +24,33 @@
 package edu.uchicago.cs.encsel.app
 
 import scala.Iterable
-
-import edu.uchicago.cs.encsel.dataset.feature.Sparsity
+import edu.uchicago.cs.encsel.dataset.feature._
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 
 import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.dataset.feature.Length
-import edu.uchicago.cs.encsel.dataset.feature.Entropy
 import scala.collection.mutable.ArrayBuffer
 import edu.uchicago.cs.encsel.dataset.column.Column
 import org.slf4j.LoggerFactory
-import edu.uchicago.cs.encsel.dataset.feature.Distinct
+import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
 
-object RunFeature extends App {
+object AddMissingFeature extends App {
 
   val logger = LoggerFactory.getLogger(getClass)
-  val features = Iterable(Distinct)
 
-  val persist = Persistence.get
+  val persist = new JPAPersistence
 
-  val cols = persist.load()
-
-  var buffer = new ArrayBuffer[Column](100)
-
-  cols.foreach {
-    col =>
-      {
-        features.foreach { f =>
-          {
-            var extracted = f.extract(col)
-            col.features ++= extracted
-            logger.debug("%d features extracted for col %s:%s".format(extracted.size, col.origin, col.colName))
-          }
-        }
-        buffer += col
-        if (buffer.length >= 100) {
-          persist.save(buffer)
-          buffer.clear()
-        }
+  val em = JPAPersistence.emf.createEntityManager()
+  em.getTransaction.begin()
+  val query = em.createNativeQuery("SELECT c.* FROM col_data c WHERE c.origin_uri like '%uci_repo%'",
+    classOf[ColumnWrapper])
+  query.getResultList.foreach(colnotype => {
+    val column = colnotype.asInstanceOf[Column]
+    Features.extractors.foreach(fe => {
+      if (!column.hasFeature(fe.featureType)) {
+        column.features ++= fe.extract(column)
       }
-  }
-  persist.save(buffer)
+    })
+  })
+
+  em.getTransaction.commit()
 }

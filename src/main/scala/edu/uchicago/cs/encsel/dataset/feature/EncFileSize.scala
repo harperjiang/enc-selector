@@ -35,13 +35,15 @@ import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 
 object EncFileSize extends FeatureExtractor {
 
+  def featureType = "EncFileSize"
+
   def extract(col: Column): Iterable[Feature] = {
     col.dataType match {
       case DataType.STRING => {
         StringEncoding.values().map { e =>
           {
             val f = ParquetWriterHelper.singleColumnString(col.colFile, e)
-            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
+            new Feature(featureType, "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -49,7 +51,7 @@ object EncFileSize extends FeatureExtractor {
         IntEncoding.values().map { e =>
           {
             val f = ParquetWriterHelper.singleColumnLong(col.colFile, e)
-            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
+            new Feature(featureType, "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -57,7 +59,7 @@ object EncFileSize extends FeatureExtractor {
         IntEncoding.values().map { e =>
           {
             val f = ParquetWriterHelper.singleColumnInt(col.colFile, e)
-            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
+            new Feature(featureType, "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -65,7 +67,7 @@ object EncFileSize extends FeatureExtractor {
         FloatEncoding.values().map { e =>
           {
             val f = ParquetWriterHelper.singleColumnFloat(col.colFile, e)
-            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
+            new Feature(featureType, "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }
@@ -73,7 +75,7 @@ object EncFileSize extends FeatureExtractor {
         FloatEncoding.values().map { e =>
           {
             val f = ParquetWriterHelper.singleColumnDouble(col.colFile, e)
-            new Feature("EncFileSize", "%s_file_size".format(e.name()), new File(f).length)
+            new Feature(featureType, "%s_file_size".format(e.name()), new File(f).length)
           }
         }
       }

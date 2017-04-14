@@ -27,8 +27,10 @@ import scala.io.Source
 import java.io.File
 
 object Distinct extends FeatureExtractor {
+  def featureType = "Distinct"
+
   def extract(col: Column): Iterable[Feature] = {
     val size = Source.fromFile(new File(col.colFile)).getLines().toSet.size
-    Array(new Feature("Distinct", "Distinct", size))
+    Array(new Feature(featureType, "Distinct", size))
   }
 }

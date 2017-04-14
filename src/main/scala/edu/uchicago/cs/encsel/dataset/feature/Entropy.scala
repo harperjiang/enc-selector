@@ -33,6 +33,8 @@ object Entropy extends FeatureExtractor {
 
   var logger = LoggerFactory.getLogger(getClass)
 
+  def featureType = "Entropy"
+
   def extract(input: Column): Iterable[Feature] = {
     val allcalc = new EntropyCalc()
     val linecalc = new EntropyCalc()
@@ -40,16 +42,17 @@ object Entropy extends FeatureExtractor {
     val lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty)
       .map(line => {
-        allcalc.add(line); entropy(line, linecalc)
+        allcalc.add(line);
+        entropy(line, linecalc)
       }).toTraversable
     if (0 == lineEntropy.size)
       return Iterable[Feature]()
     val stat = DataUtils.stat(lineEntropy)
-    Iterable(new Feature("Entropy", "line_max", lineEntropy.max),
-      new Feature("Entropy", "line_min", lineEntropy.min),
-      new Feature("Entropy", "line_mean", stat._1),
-      new Feature("Entropy", "line_var", stat._2),
-      new Feature("Entropy", "total", allcalc.done()))
+    Iterable(new Feature(featureType, "line_max", lineEntropy.max),
+      new Feature(featureType, "line_min", lineEntropy.min),
+      new Feature(featureType, "line_mean", stat._1),
+      new Feature(featureType, "line_var", stat._2),
+      new Feature(featureType, "total", allcalc.done()))
   }
 
   def entropy(data: String, linecalc: EntropyCalc): Double = {
@@ -64,7 +67,9 @@ class EntropyCalc {
   var counter = scala.collection.mutable.HashMap[Char, Double]()
 
   def add(data: String): Unit = {
-    data.toCharArray.foreach(c => { counter += ((c, counter.getOrElse(c, 0d) + 1)) })
+    data.toCharArray.foreach(c => {
+      counter += ((c, counter.getOrElse(c, 0d) + 1))
+    })
   }
 
   def reset(): Unit = {
@@ -74,6 +79,8 @@ class EntropyCalc {
   def done(): Double = {
     val sum = counter.values.sum
     counter.map(entry => {
-      val p = (entry._2 / sum); -p * Math.log(p) }).sum
+      val p = (entry._2 / sum);
+      -p * Math.log(p)
+    }).sum
   }
 }

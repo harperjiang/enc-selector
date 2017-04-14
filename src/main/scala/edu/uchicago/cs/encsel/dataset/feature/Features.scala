@@ -38,6 +38,7 @@ object Features {
   install(Sparsity)
   install(Entropy)
   install(Length)
+  install(Distinct)
 
   def install(fe: FeatureExtractor) = {
     extractors += fe
