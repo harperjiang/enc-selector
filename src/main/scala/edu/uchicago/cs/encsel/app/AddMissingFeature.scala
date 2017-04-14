@@ -41,7 +41,7 @@ object AddMissingFeature extends App {
 
   val em = JPAPersistence.emf.createEntityManager()
   em.getTransaction.begin()
-  val query = em.createNativeQuery("SELECT c.* FROM col_data c WHERE c.origin_uri like '%uci_repo%'",
+  val query = em.createNativeQuery("SELECT c.* FROM col_data c",
     classOf[ColumnWrapper])
   query.getResultList.foreach(colnotype => {
     val column = colnotype.asInstanceOf[Column]
