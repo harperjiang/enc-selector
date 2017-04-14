@@ -31,8 +31,26 @@ object Distinct extends FeatureExtractor {
 
   def extract(col: Column): Iterable[Feature] = {
     val sum = Source.fromFile(new File(col.colFile)).getLines().count(_ => true)
-    val size = Source.fromFile(new File(col.colFile)).getLines().toSet.size
-    Array(new Feature(featureType, "count", size),
+    val size = DistinctCounter.count(Source.fromFile(new File(col.colFile)).getLines(), sum)
+    Array(new Feature(featureType, "count", size.toDouble),
       new Feature(featureType, "ratio", size.toDouble / sum))
+  }
+}
+
+object DistinctCounter {
+
+  val primes = Array(198494447, 198494449, 198494477, 198494497, 198494503, 198494507, 198494509, 198494537,
+    982447957, 982448011, 982448017, 982448023, 982448069, 982448081, 982448083, 982448099,
+    573262177, 573262181, 573262187, 573262213, 573262229, 573262241, 573262247, 573262267,
+    982448263, 982448267, 982448279, 982448321, 982448347, 982448393, 982448413, 982448429,
+    817507381, 817507391, 817507393, 817507447, 817507451, 817507463, 817507501, 817507517)
+
+  def count(input: Iterator[String], size: Int): Integer = {
+    val bitmap = Math.ceil(size.toDouble / 8).toInt
+    val bitmapset = input.map(line => {
+      val hash = line.hashCode
+      primes.map(hash % _).mkString(",").hashCode % bitmap
+    }).toSet
+    -bitmap * Math.log(1 - bitmapset.size.toDouble / bitmap).toInt
   }
 }
