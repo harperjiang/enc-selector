@@ -96,7 +96,7 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
 
 object GroupLog extends App {
   //val root = "/local/hajiang/dataset/uci_repo/UbiqLog4UCI"
-  val root = "/home/harper/test"
+  val root = "/Users/harper/ttt"
 
   val supportedEncodings = Array("utf-8", "iso-8859-1")
   val jsonParser = new JsonParser()
