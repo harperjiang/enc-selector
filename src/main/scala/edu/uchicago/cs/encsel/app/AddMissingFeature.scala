@@ -39,13 +39,15 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
+  val missed = Array(Distinct)
+
   val em = JPAPersistence.emf.createEntityManager()
   em.getTransaction.begin()
   val query = em.createNativeQuery("SELECT c.* FROM col_data c",
     classOf[ColumnWrapper])
   query.getResultList.foreach(colnotype => {
     val column = colnotype.asInstanceOf[Column]
-    Features.extractors.foreach(fe => {
+    missed.foreach(fe => {
       if (!column.hasFeature(fe.featureType)) {
         column.features ++= fe.extract(column)
       }
