@@ -32,7 +32,7 @@ object Distinct extends FeatureExtractor {
   def extract(col: Column): Iterable[Feature] = {
     val sum = Source.fromFile(new File(col.colFile)).getLines().count(_ => true)
     val size = Source.fromFile(new File(col.colFile)).getLines().toSet.size
-    Array(new Feature(featureType, "distinct", size),
-      new Feature(featureType, "distinct_ratio", size.toDouble / sum))
+    Array(new Feature(featureType, "count", size),
+      new Feature(featureType, "ratio", size.toDouble / sum))
   }
 }
