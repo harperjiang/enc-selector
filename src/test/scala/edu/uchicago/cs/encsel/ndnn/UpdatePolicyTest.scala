@@ -50,13 +50,13 @@ class UpdatePolicyTest {
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(3)
     momentum.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.18, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(3.64, param.value.getDouble(i, j, k), 0.001)
     }
 
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(7)
     momentum.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(3.662, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(1.376, param.value.getDouble(i, j, k), 0.001)
     }
   }
 
@@ -72,19 +72,19 @@ class UpdatePolicyTest {
 
     rms.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.8, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(4.3675, param.value.getDouble(i, j, k), 0.001)
     }
 
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(3)
     rms.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.517, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(3.8330, param.value.getDouble(i, j, k), 0.001)
     }
 
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(7)
     rms.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.049, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(3.2630, param.value.getDouble(i, j, k), 0.001)
     }
   }
 
@@ -100,19 +100,19 @@ class UpdatePolicyTest {
 
     adam.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.8, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(4.9553, param.value.getDouble(i, j, k), 0.001)
     }
 
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(3)
     adam.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.612, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(4.8938,param.value.getDouble(i, j, k), 0.001)
     }
 
     param.grad = Nd4j.createUninitialized(Array(4, 3, 2)).assign(7)
     adam.update(param)
     for (i <- 0 until 4; j <- 0 until 3; k <- 0 until 2) {
-      assertEquals(4.473, param.value.getDouble(i, j, k), 0.001)
+      assertEquals(4.8278, param.value.getDouble(i, j, k), 0.001)
     }
   }
 }
