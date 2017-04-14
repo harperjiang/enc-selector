@@ -27,12 +27,13 @@ import java.io.{File, PrintWriter}
 import java.net.URI
 import java.nio.file.{Files, Paths}
 
-import com.google.gson.{Gson, JsonParser}
+import com.google.gson.JsonParser
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
+import scala.util.Try
 
 /**
   * The UbiqLog (see README.txt in dataset folder for detail) contains
@@ -44,8 +45,9 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
 
   protected val buffer: mutable.Buffer[String] = new ArrayBuffer[String]
 
-  protected val look4DQ = """(?<![{,:]\s?\s?\s?)\"(?!\s?\s?\s?[,:}])"""
+  protected val look4DQ = """(?<!({|\"\s?\s?\s?[,:])\s?\s?\s?)\"(?!\s?\s?\s?[,:}])"""
 
+  protected val jsonParser = new JsonParser
 
   def escape(input: String): String = {
     val nobs = input.replaceAll("\\\\", "\\\\\\\\")
@@ -53,6 +55,19 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
     // not followed by ":" or "," will be escaped
     val nodq = nobs.replaceAll(look4DQ, "\\\\\"")
     nodq
+  }
+
+  def partJson(input: String): String = {
+    var part = input
+    while (!part.isEmpty && !Try {
+      jsonParser.parse(part); true
+    }.getOrElse(false)) {
+      part = part.substring(part.indexOf('{'))
+    }
+    part.isEmpty match {
+      case true => input
+      case false => part
+    }
   }
 
   def hasNext: Boolean = {
@@ -70,7 +85,7 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
       throw new IllegalStateException
     val result = buffer.map(escape(_)).mkString("\\n")
     buffer.clear()
-    result
+    partJson(result)
   }
 }
 
