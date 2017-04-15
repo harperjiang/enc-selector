@@ -39,18 +39,16 @@ object Distinct extends FeatureExtractor {
 
 object DistinctCounter {
 
-  val primes = Array(198494447, 198494449, 198494477, 198494497, 198494503, 198494507, 198494509, 198494537,
-    982447957, 982448011, 982448017, 982448023, 982448069, 982448081, 982448083, 982448099,
-    573262177, 573262181, 573262187, 573262213, 573262229, 573262241, 573262247, 573262267,
-    982448263, 982448267, 982448279, 982448321, 982448347, 982448393, 982448413, 982448429,
-    817507381, 817507391, 817507393, 817507447, 817507451, 817507463, 817507501, 817507517)
-
-  def count(input: Iterator[String], size: Int): Integer = {
-    val bitmap = Math.ceil(size.toDouble / 8).toInt
-    val bitmapset = input.map(line => {
-      val hash = line.hashCode
-      primes.map(hash % _).mkString(",").hashCode % bitmap
-    }).toSet
-    -bitmap * Math.log(1 - bitmapset.size.toDouble / bitmap).toInt
+  def count(input: Iterator[String], size: Int): Int = {
+    val bitmapSize = Math.ceil(size.toDouble / 64).toInt
+    val bitsize = bitmapSize * 64
+    val bitmap = new Array[Long](bitmapSize)
+    input.foreach(line => {
+      val hash = Math.abs(line.hashCode) % bitsize
+      bitmap(hash / 64) |= 1 << (hash % 64)
+    })
+    val occupy = bitmap.map(java.lang.Long.bitCount(_)).sum.toDouble
+    val empty = 1d - occupy/bitsize
+    (-bitsize * Math.log(empty)).toInt
   }
 }
