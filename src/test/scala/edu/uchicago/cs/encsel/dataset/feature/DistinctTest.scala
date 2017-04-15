@@ -16,7 +16,7 @@ class DistinctTest {
   def testExtract: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI
-
+    //col.colFile = new File("/home/harper/Downloads/QUEUED_TIMESTAMP_06669881738871581783.tmp").toURI
     val features = Distinct.extract(col).toArray
 
     assertEquals(2, features.length)
