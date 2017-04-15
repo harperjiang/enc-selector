@@ -23,8 +23,10 @@
 package edu.uchicago.cs.encsel.dataset.feature
 
 import edu.uchicago.cs.encsel.dataset.column.Column
+
 import scala.io.Source
 import java.io.File
+import java.util
 
 object Distinct extends FeatureExtractor {
   def featureType = "Distinct"
@@ -40,15 +42,17 @@ object Distinct extends FeatureExtractor {
 object DistinctCounter {
 
   def count(input: Iterator[String], size: Int): Int = {
-    val bitmapSize = Math.ceil(size.toDouble / 64).toInt
+    val bitmapSize = 4 * Math.ceil(size.toDouble / 64).toInt
     val bitsize = bitmapSize * 64
     val bitmap = new Array[Long](bitmapSize)
+    util.Arrays.fill(bitmap, 0l)
+
     input.foreach(line => {
       val hash = Math.abs(line.hashCode) % bitsize
-      bitmap(hash / 64) |= 1 << (hash % 64)
+      bitmap(hash / 64) |= (1L << (hash % 64))
     })
     val occupy = bitmap.map(java.lang.Long.bitCount(_)).sum.toDouble
-    val empty = 1d - occupy/bitsize
+    val empty = 1d - occupy / bitsize
     (-bitsize * Math.log(empty)).toInt
   }
 }
