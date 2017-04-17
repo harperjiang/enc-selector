@@ -39,7 +39,7 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Array(EncFileSize)
+  val missed = Features.extractors
 
   val em = JPAPersistence.emf.createEntityManager()
   val query = em.createNativeQuery("SELECT c.* FROM col_data c",
