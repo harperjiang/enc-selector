@@ -44,8 +44,8 @@ import edu.uchicago.cs.encsel.util.FileUtils
 import java.util.concurrent.TimeUnit
 
 object CollectData extends App {
-  val f = new File(args(0))
-  //  var f = new File("/home/harper/dataset")
+  // val f = new File(args(0))
+  var f = new File("/home/harper/dataset/dc_dp")
   new DataCollector().scan(f.toURI)
 }
 
