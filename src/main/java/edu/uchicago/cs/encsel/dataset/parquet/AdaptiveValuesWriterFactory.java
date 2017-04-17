@@ -252,6 +252,8 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 		public FloatEncoding floatEncoding = FloatEncoding.PLAIN;
 
 		public int intBound() {
+			if(intBitLength == 0)
+				return 0;
 			return 1 << (intBitLength - 1);
 		}
 
