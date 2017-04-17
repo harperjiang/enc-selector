@@ -258,6 +258,8 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 		}
 
 		public long longBound() {
+			if(longBitLength == 0)
+				return 0;
 			return 1L << (longBitLength - 1);
 		}
 	}
