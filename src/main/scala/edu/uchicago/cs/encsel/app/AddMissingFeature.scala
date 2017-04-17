@@ -39,20 +39,29 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Array(Distinct)
+  val missed = Array(EncFileSize)
 
   val em = JPAPersistence.emf.createEntityManager()
-  em.getTransaction.begin()
   val query = em.createNativeQuery("SELECT c.* FROM col_data c",
     classOf[ColumnWrapper])
   query.getResultList.foreach(colnotype => {
     val column = colnotype.asInstanceOf[Column]
     missed.foreach(fe => {
-      if (!column.hasFeature(fe.featureType)) {
-        column.features ++= fe.extract(column)
+      em.getTransaction.begin()
+      try {
+        missed.foreach(fe => {
+          if (!column.hasFeature(fe.featureType)) {
+            column.features ++= fe.extract(column)
+          }
+        })
+        em.merge(colnotype)
+        em.getTransaction.commit()
+      } catch {
+        case e: Exception => {
+          logger.warn("Exception for column %s:%s".format(column.origin.toString, column.colName), e)
+          em.getTransaction.rollback()
+        }
       }
     })
   })
-
-  em.getTransaction.commit()
 }
