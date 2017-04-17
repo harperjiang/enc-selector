@@ -20,7 +20,6 @@ class SchemaGuesserTest {
     assertEquals(DataType.BOOLEAN, guess.testType("Yes", DataType.BOOLEAN))
     assertEquals(DataType.BOOLEAN, guess.testType("nO", DataType.BOOLEAN))
 
-    assertEquals(DataType.INTEGER, guess.testType("22", DataType.INTEGER))
     assertEquals(DataType.INTEGER, guess.testType("22,322", DataType.INTEGER))
     assertEquals(DataType.LONG, guess.testType("311,131,322,322", DataType.INTEGER))
     assertEquals(DataType.DOUBLE, guess.testType("22.54", DataType.INTEGER))
@@ -45,6 +44,7 @@ class SchemaGuesserTest {
     assertEquals(DataType.STRING, guess.testType("Goews", DataType.STRING))
     assertEquals(DataType.STRING, guess.testType("32", DataType.STRING))
     assertEquals(DataType.STRING, guess.testType("32.323", DataType.STRING))
+    assertEquals(DataType.STRING, guess.testType("E5230", DataType.DOUBLE))
   }
 
   @Test

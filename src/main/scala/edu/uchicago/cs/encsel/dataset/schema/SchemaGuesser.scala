@@ -127,6 +127,7 @@ class SchemaGuesser {
         input match {
           case floatRegex(_*) =>
             Try {
+              val num = numberParser.parse(input)
               DataType.DOUBLE
             }.getOrElse(DataType.STRING)
           case _ => DataType.STRING
