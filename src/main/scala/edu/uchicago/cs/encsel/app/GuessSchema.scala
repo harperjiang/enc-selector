@@ -72,6 +72,7 @@ object GuessSchema extends App {
       } catch {
         case e: Exception => {
           // Just skip it
+          logger.warn("Error while generating schema for %s".format(file.toUri.toString), e)
         }
       }
     }
