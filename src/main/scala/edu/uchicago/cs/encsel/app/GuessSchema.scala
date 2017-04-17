@@ -51,22 +51,31 @@ object GuessSchema extends App {
       logger.debug("Scanning %s".format(file.toUri.toString))
     if (!FileUtils.isDone(file.toUri, "gsdone") &&
       !FileUtils.isDone(file.toUri, "done")) {
-      val schema = guesser.guessSchema(file.toUri)
-      if (null != schema) {
+      try {
+        val schema = guesser.guessSchema(file.toUri)
+
+
+        if (null != schema) {
+          if (logger.isDebugEnabled())
+            logger.debug("Generating schema for %s".format(file.toUri.toString))
+          val schemaLocation = FileUtils.replaceExtension(file.toUri, "schemagen")
+          Schema.toParquetFile(schema, schemaLocation)
+          if (logger.isDebugEnabled())
+            logger.debug("Schema for %s written to %s".format(file.toUri.toString, schemaLocation))
+          FileUtils.markDone(file.toUri, "gsdone")
+        } else {
+          if (logger.isDebugEnabled())
+            logger.debug("No schema generated for %s".format(file.toUri.toString))
+        }
         if (logger.isDebugEnabled())
-          logger.debug("Generating schema for %s".format(file.toUri.toString))
-        val schemaLocation = FileUtils.replaceExtension(file.toUri, "schemagen")
-        Schema.toParquetFile(schema, schemaLocation)
-        if (logger.isDebugEnabled())
-          logger.debug("Schema for %s written to %s".format(file.toUri.toString, schemaLocation))
-        FileUtils.markDone(file.toUri, "gsdone")
-      } else {
-        if (logger.isDebugEnabled())
-          logger.debug("No schema generated for %s".format(file.toUri.toString))
+          logger.debug("Scanned %s".format(file.toUri.toString))
+      } catch {
+        case e: Exception => {
+          // Just skip it
+        }
       }
-      if (logger.isDebugEnabled())
-        logger.debug("Scanned %s".format(file.toUri.toString))
-    } else {
+    }
+    else {
       if (logger.isDebugEnabled())
         logger.debug("Mark found, skipping %s".format(file.toUri.toString))
     }
