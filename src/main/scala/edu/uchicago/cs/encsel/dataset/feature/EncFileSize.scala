@@ -25,12 +25,8 @@ package edu.uchicago.cs.encsel.dataset.feature
 import java.io.File
 
 import scala.Iterable
-
 import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.encsel.model.FloatEncoding
-import edu.uchicago.cs.encsel.model.IntEncoding
-import edu.uchicago.cs.encsel.model.StringEncoding
+import edu.uchicago.cs.encsel.model._
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 
 object EncFileSize extends FeatureExtractor {
@@ -48,7 +44,7 @@ object EncFileSize extends FeatureExtractor {
         }
       }
       case DataType.LONG => {
-        IntEncoding.values().map { e =>
+        LongEncoding.values().map { e =>
           {
             val f = ParquetWriterHelper.singleColumnLong(col.colFile, e)
             new Feature(featureType, "%s_file_size".format(e.name()), new File(f).length)

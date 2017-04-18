@@ -25,6 +25,7 @@ package edu.uchicago.cs.encsel.dataset.parquet;
 import static org.apache.parquet.column.Encoding.PLAIN;
 import static org.apache.parquet.column.Encoding.RLE_DICTIONARY;
 
+import edu.uchicago.cs.encsel.model.LongEncoding;
 import org.apache.parquet.column.ColumnDescriptor;
 import org.apache.parquet.column.Encoding;
 import org.apache.parquet.column.ParquetProperties;
@@ -153,13 +154,14 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 
 	private ValuesWriter getInt64ValuesWriter(ColumnDescriptor path) {
 		EncodingSetting es = encodingSetting.get();
-		switch (es.intEncoding) {
-		case RLE:
+		switch (es.longEncoding) {
+		/*case RLE:
 			if (es.longBitLength > 32)
 				throw new IllegalArgumentException("RLE for long does not support over 32 bit length");
 			return new RunLengthBitPackingHybridValuesWriter(es.longBitLength, parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
-		case BP:
+					*/
+		/*case BP:
 			if (es.longBitLength <= 8) {
 				return new BitPackingValuesWriter((int) es.longBound(), parquetProperties.getInitialSlabSize(),
 						parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
@@ -167,7 +169,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 				return new ByteBitPackingValuesWriter((int) es.longBound(), Packer.BIG_ENDIAN);
 			} else {
 				throw new IllegalArgumentException("BP for long does not support over 32 bit length");
-			}
+			}*/
 		case DELTABP:
 			return new DeltaBinaryPackingValuesWriterForLong(parquetProperties.getInitialSlabSize(),
 					parquetProperties.getPageSizeThreshold(), parquetProperties.getAllocator());
@@ -246,6 +248,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 
 	public static class EncodingSetting {
 		public IntEncoding intEncoding = IntEncoding.PLAIN;
+		public LongEncoding longEncoding = LongEncoding.PLAIN;
 		public int intBitLength = 0;
 		public int longBitLength = 0;
 		public StringEncoding stringEncoding = StringEncoding.PLAIN;
