@@ -31,6 +31,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.uchicago.cs.encsel.model.LongEncoding;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.schema.MessageType;
@@ -159,7 +160,7 @@ public class ParquetWriterHelper {
 		return output.toURI();
 	}
 
-	public static URI singleColumnLong(URI input, IntEncoding encoding) throws IOException {
+	public static URI singleColumnLong(URI input, LongEncoding encoding) throws IOException {
 		File output = genOutput(input, encoding.name());
 		if (output.exists())
 			output.delete();
@@ -169,11 +170,11 @@ public class ParquetWriterHelper {
 				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT64, "value"));
 
 		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
-		es.intEncoding = encoding;
+		es.longEncoding = encoding;
 		es.longBitLength = scanLongBitLength(input);
 
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				encoding == IntEncoding.DICT);
+				encoding == LongEncoding.DICT);
 
 		String line;
 		List<String> holder = new ArrayList<String>();
