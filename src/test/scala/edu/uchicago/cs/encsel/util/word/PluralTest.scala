@@ -18,35 +18,23 @@
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
-package edu.uchicago.cs.encsel.app
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+package edu.uchicago.cs.encsel.util.word
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+import org.junit.Assert._
+import org.junit.Test
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
 
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
+class PluralTest {
 
-  wordset.foreach(writer.println)
+  @Test
+  def testPlural: Unit = {
 
-  writer.close()
+    assertEquals("code", Plural.removePlural("codes"))
+    assertEquals("tree", Plural.removePlural("trees"))
+    assertEquals("cake", Plural.removePlural("cakes"))
+    assertEquals("pie", Plural.removePlural("pies"))
+
+  }
 }

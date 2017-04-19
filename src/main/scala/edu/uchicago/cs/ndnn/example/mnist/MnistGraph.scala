@@ -20,33 +20,26 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn.example.mnist
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.ndnn._
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+class MnistGraph extends Graph(Xavier, new SGD(0.5, 1), new SoftMaxLogLoss) {
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
+  val pixelInput = input("pixel")
 
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
+  {
+    val w1 = param("w1", Array(28 * 28, 128))
+    val b1 = param("b1", Array(1, 128))(Zero)
+    val w2 = param("w2", Array(128, 10))
+    val b2 = param("b2", Array(1, 10))(Zero)
 
-  wordset.foreach(writer.println)
-
-  writer.close()
+    val wx = new DotMul(pixelInput, w1)
+    val addb = new Add(wx, b1)
+    val relu = new Sigmoid(addb)
+    val layer2 = new DotMul(relu, w2)
+    val addb2 = new Add(layer2, b2)
+    val softmax = new SoftMax(addb2)
+    output(softmax)
+  }
 }

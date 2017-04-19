@@ -20,33 +20,19 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.api.ops.impl.transforms.RectifedLinear
+import org.nd4j.linalg.factory.Nd4j
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+/**
+ * The operations in this class supports in-place assignment with a given destination
+ */
+object Operations {
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
-
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
-
-  wordset.foreach(writer.println)
-
-  writer.close()
+  def softmax(in: INDArray): INDArray = {
+    Nd4j.getExecutioner.execAndReturn(
+      new org.nd4j.linalg.api.ops.impl.transforms.SoftMax(in))
+  }
 }

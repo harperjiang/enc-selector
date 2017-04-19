@@ -20,33 +20,38 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+
+package edu.uchicago.cs.encsel.classify
 
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.model.DataType
+import edu.uchicago.cs.ndnn.DefaultDataset
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+object EncselDataset {
+  val featureMap = Map(
+    (DataType.STRING -> Seq(("", "")))
+    , (DataType.INTEGER -> Seq(("", "")))
+  )
+}
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
+/**
+  * Encoding Selector Dataset. Load Column Data from Database with the given data type
+  */
+class EncselDataset(val dataType: DataType) extends DefaultDataset {
 
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
 
-  wordset.foreach(writer.println)
+  override def load(): (Array[Array[Double]], Array[Double]) = {
 
-  writer.close()
+
+    val pair = Persistence.get.load().map(
+      column => {
+        val mapping = EncselDataset.featureMap.getOrElse(dataType, Seq.empty[(String, String)])
+        mapping.foreach(m => {
+          val feature = column.findFeature(m._1, m._2)
+        })
+      }
+    )
+
+    null
+  }
 }

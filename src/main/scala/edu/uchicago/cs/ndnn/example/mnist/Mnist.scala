@@ -20,33 +20,21 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn.example.mnist
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.ndnn.Dataset
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+object Mnist extends App {
+  val folder = "/home/harper"
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
+  val trainDataFile = folder + "/dataset/mnist/train-images.idx3-ubyte"
+  val trainLabelFile = folder + "/dataset/mnist/train-labels.idx1-ubyte"
+  val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
+  val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
 
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
+  val trainset = new MnistDataset(trainDataFile, trainLabelFile)
+  val testset = new MnistDataset(testDataFile, testLabelFile)
 
-  wordset.foreach(writer.println)
-
-  writer.close()
+  val trainer = new MnistTrainer(trainset, testset)
+  trainer.train(30)
 }
