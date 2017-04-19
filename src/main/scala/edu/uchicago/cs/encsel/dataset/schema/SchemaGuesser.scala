@@ -50,9 +50,10 @@ class SchemaGuesser {
 
     records.foreach { record => {
       for (i <- 0 until columns.length) {
-        if (record.length <= i)
-          println(record.toString)
-        var value = record(i)
+        var value = (i < record.length) match {
+          case true => record(i)
+          case false => ""
+        }
         if (value != null && value.trim().length() != 0) {
           value = value.trim()
 
