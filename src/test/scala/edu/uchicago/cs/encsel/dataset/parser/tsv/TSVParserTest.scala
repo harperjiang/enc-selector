@@ -12,9 +12,9 @@ class TSVParserTest {
   def testParseLine: Unit = {
     val parser = new TSVParser
     parser.schema = new Schema()
-    val result = parser.parseLine("a\t\tb\tttt\tdae_ma\tafsew")
+    val result = parser.parseLine("a\t\tb\tttt\t\tdae_ma\tafsew\t\t")
 
-    assertEquals(6, result.length())
+    assertEquals(9, result.length())
   }
 
   @Test
