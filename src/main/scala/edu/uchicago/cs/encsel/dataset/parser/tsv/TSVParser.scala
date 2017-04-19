@@ -22,9 +22,18 @@
  */
 package edu.uchicago.cs.encsel.dataset.parser.tsv
 
-import edu.uchicago.cs.encsel.dataset.parser.{DefaultRecord, Parser, Record}
+import java.io.{BufferedInputStream, InputStream, InputStreamReader, Reader}
 
-class TSVParser extends Parser {
+import edu.uchicago.cs.encsel.dataset.parser.{DefaultRecord, Parser, Record}
+import edu.uchicago.cs.encsel.dataset.schema.Schema
+
+import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
+
+/**
+  * TSVParser supports double quote escaped records
+  */
+class SimpleTSVParser extends Parser {
 
   override def parseLine(line: String): Record = {
     line.trim.isEmpty match {
@@ -36,5 +45,78 @@ class TSVParser extends Parser {
 
   protected override def guessHeader(line: String): Unit = {
     guessedHeader = line.split("\t")
+  }
+}
+
+class TSVParser extends Parser {
+
+  override def parse(input: InputStream, schema: Schema): Iterator[Record] = {
+    this.schema = schema
+
+    val bufferedinput = new BufferedInputStream(input)
+    // Guess Encoding
+    val encoding = guessEncoding(bufferedinput)
+
+    val lines = Source.fromInputStream(bufferedinput, encoding).getLines()
+
+    if (null == schema) {
+      // Guess header, need to retrieve a line
+      val line = lines.next()
+      guessHeader(line)
+    } else if (schema.hasHeader) {
+      // For simplicity, here we assume the header line is a single line
+      lines.next()
+    }
+    val reader = new InputStreamReader(bufferedinput, encoding)
+    parseRecords(reader)
+  }
+
+  def parseRecords(reader: Reader): Iterator[Record] =
+    new Iterator[Record] {
+
+      var nextRecord: Option[Record] = readNextRecord(reader)
+
+      override def hasNext: Boolean = nextRecord.isDefined
+
+      override def next(): Record = {
+        nextRecord.isDefined match {
+          case true => {
+            val toReturn = nextRecord.get
+            nextRecord = readNextRecord(reader)
+            toReturn
+          }
+          case false => throw new IllegalStateException
+        }
+      }
+    }
+
+  def readNextRecord(reader: Reader): Option[Record] = {
+    var buffer = new ArrayBuffer[String]()
+    var stop = false
+    var state = 0
+    while (!stop) {
+      reader.read() match {
+        case -1 => {
+          // No more data, end record
+          stop = true
+        }
+        case '\n' => {
+
+        }
+        case '\r' => {
+
+        }
+        case '\"' => {
+
+        }
+        case '\t' => {
+
+        }
+      }
+    }
+    buffer.length match {
+      case 0 => None
+      case _ => Some(new DefaultRecord(buffer.toArray))
+    }
   }
 }
