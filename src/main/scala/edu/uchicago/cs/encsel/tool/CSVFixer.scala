@@ -23,10 +23,10 @@
 
 package edu.uchicago.cs.encsel.tool
 
-import java.io.{File, StringReader}
+import java.io.{File, FileInputStream, InputStream, StringReader}
 import java.net.URI
 
-import org.apache.commons.csv.CSVFormat
+import org.apache.commons.csv.{CSVFormat, CSVRecord}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -39,7 +39,24 @@ import scala.io.Source
 
 
 object FixCSV extends App {
-  new CSVFixer(13).fix(new File("/home/harper/dataset/temp/prop_mgt_vio_after2015.csv").toURI).foreach(println)
+  new CSVFixer(args(1).toInt).fix(new File(args(0)).toURI).foreach(println)
+}
+
+/**
+  * Filter data
+  *
+  * @param inner
+  */
+class FilterStream(val inner: InputStream) extends java.io.InputStream {
+  override def read(): Int = {
+    var char = inner.read()
+    while (char > 127) {
+      char = inner.read()
+    }
+    char
+  }
+
+  override def available(): Int = inner.available()
 }
 
 class CSVFixer(val expectColumn: Int) {
@@ -47,10 +64,11 @@ class CSVFixer(val expectColumn: Int) {
   val buffer = new ArrayBuffer[String]
 
   def fix(file: URI): Iterator[String] = {
-    Source.fromFile(file).getLines().map(line => {
+    Source.fromInputStream(new FilterStream(new FileInputStream(new File(file))), "utf-8")
+      .getLines().map(line => {
       buffer += line
       if (buffer.last.endsWith("\"")) {
-        val fixed = new CSVLineFixer(expectColumn).fixLine(buffer.mkString("\n"))
+        val fixed = new CSVLineFixer(expectColumn).fixLine(buffer.mkString(" "))
         buffer.clear
         fixed
       } else {
@@ -61,10 +79,17 @@ class CSVFixer(val expectColumn: Int) {
 }
 
 class CSVLineFixer(expectCol: Int) {
+
+  val format: (CSVRecord) => String = {
+    record => {
+      (0 until expectCol).map(i => "\"%s\"".format(record.get(i))).mkString(",")
+    }
+  }
+
   val plain: (String) => String = { input =>
     try {
       val records = CSVFormat.EXCEL.parse(new StringReader(input)).getRecords
-      records(0).toString
+      format(records(0))
     } catch {
       case e: Exception => {
         ""
@@ -74,7 +99,6 @@ class CSVLineFixer(expectCol: Int) {
 
   val escape: (String) => String = { input =>
     // It's hard to use regex, so just directly loop
-
     val buffer = new StringBuffer
 
     input.zipWithIndex.foreach(p => {
@@ -100,20 +124,20 @@ class CSVLineFixer(expectCol: Int) {
 
     // Find match of double quotes, and escape those missed
     val mark = new mutable.HashSet[Int]
+    var state = 0
     buffer.toString.zipWithIndex.foreach(p => {
       val char = p._1
       val index = p._2
-      var state = 0
       if (char == '\"') {
         state match {
           case 0 => {
-            if (index == 0 || prev(buffer, index - 1) == ',') {
+            if (index == 0 || prev(buffer, index) == ',') {
               state = 1
               mark += index
             }
           }
           case 1 => {
-            if (index == buffer.length - 1 || next(buffer, index + 1) == ',') {
+            if (index == buffer.length - 1 || next(buffer, index) == ',') {
               state = 0
               mark += index
             }
@@ -127,16 +151,14 @@ class CSVLineFixer(expectCol: Int) {
     buffer.toString.zipWithIndex.foreach(p => {
       val char = p._1
       val index = p._2
-      if (mark.contains(index)) {
-        newbuffer.append("\"\"")
-      } else {
-        newbuffer.append(char)
-      }
+      newbuffer.append(char)
+      if (char == '\"' && !mark.contains(index))
+        newbuffer.append("\"")
     })
 
     try {
       val records = CSVFormat.EXCEL.parse(new StringReader(newbuffer.toString)).getRecords
-      records(0).toString
+      format(records(0))
     } catch {
       case e: Exception => {
         ""
@@ -145,12 +167,17 @@ class CSVLineFixer(expectCol: Int) {
   }
 
   def prev(buffer: StringBuffer, idx: Int): Char = {
-    buffer.charAt(idx - 1)
+    var pnt = idx - 1
+    while (buffer.charAt(pnt) == ' ')
+      pnt -= 1
+    buffer.charAt(pnt)
   }
 
   def next(buffer: StringBuffer, idx: Int): Char = {
-
-    buffer.charAt(idx + 1)
+    var pnt = idx + 1
+    while (buffer.charAt(pnt) == ' ')
+      pnt += 1
+    buffer.charAt(pnt)
   }
 
 
