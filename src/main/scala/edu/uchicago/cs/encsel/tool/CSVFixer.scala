@@ -23,7 +23,7 @@
 
 package edu.uchicago.cs.encsel.tool
 
-import java.io.{File, FileInputStream, InputStream, StringReader}
+import java.io._
 import java.net.URI
 
 import org.apache.commons.csv.{CSVFormat, CSVRecord}
@@ -39,7 +39,16 @@ import scala.io.Source
 
 
 object FixCSV extends App {
-  new CSVFixer(args(1).toInt).fix(new File(args(0)).toURI).foreach(println)
+  val output = new PrintWriter(new FileOutputStream(args(0) + ".fixed"))
+  val bad = new PrintWriter(new FileOutputStream(args(0) + ".bad"))
+  new CSVFixer(args(1).toInt).fix(new File(args(0)).toURI).foreach(p => {
+    p._2 match {
+      case true => output.println(p._1)
+      case false => bad.println(p._1)
+    }
+  })
+  output.close
+  bad.close
 }
 
 /**
@@ -63,102 +72,104 @@ class CSVFixer(val expectColumn: Int) {
 
   val buffer = new ArrayBuffer[String]
 
-  def fix(file: URI): Iterator[String] = {
+  def fix(file: URI): Iterator[(String, Boolean)] = {
     Source.fromInputStream(new FilterStream(new FileInputStream(new File(file))), "utf-8")
       .getLines().map(line => {
       buffer += line
       if (buffer.last.endsWith("\"")) {
-        val fixed = new CSVLineFixer(expectColumn).fixLine(buffer.mkString(" "))
+        val tofix = buffer.mkString(" ")
+        val fixed = new CSVLineFixer(expectColumn).fixLine(tofix)
         buffer.clear
-        fixed
+        fixed.isEmpty match {
+          case true => (tofix, false)
+          case false => (fixed, true)
+        }
       } else {
-        ""
+        ("", true)
       }
-    }).filter(!_.isEmpty)
+    }).filter(p => !p._2 || !p._1.isEmpty)
   }
 }
 
 class CSVLineFixer(expectCol: Int) {
 
-  val format: (CSVRecord) => String = {
-    record => {
-      (0 until expectCol).map(i => "\"%s\"".format(record.get(i))).mkString(",")
-    }
-  }
-
   val plain: (String) => String = { input =>
     try {
-      val records = CSVFormat.EXCEL.parse(new StringReader(input)).getRecords
-      format(records(0))
+      CSVFormat.EXCEL.parse(new StringReader(input)).getRecords
+      input
     } catch {
       case e: Exception => {
         ""
       }
     }
   }
+
+  val consecDoubleQuote = """"+""".r
 
   val escape: (String) => String = { input =>
     // It's hard to use regex, so just directly loop
     val buffer = new StringBuffer
 
-    input.zipWithIndex.foreach(p => {
-      val char = p._1
-      val index = p._2
-
-      if (char == '\"') {
-        // Not head or bottom
-        if (index != 0 && index != input.length - 1) {
-          if (input(index - 1) != ',' && input(index + 1) != ','
-            && input(index - 1) != '\"' && input(index + 1) != '\"') {
-            buffer.append("\"\"")
-          } else {
-            buffer.append(char)
-          }
-        } else {
-          buffer.append(char)
-        }
-      } else {
-        buffer.append(char)
-      }
-    })
-
     // Find match of double quotes, and escape those missed
     val mark = new mutable.HashSet[Int]
     var state = 0
-    buffer.toString.zipWithIndex.foreach(p => {
+    input.zipWithIndex.foreach(p => {
       val char = p._1
       val index = p._2
-      if (char == '\"') {
-        state match {
-          case 0 => {
-            if (index == 0 || prev(buffer, index) == ',') {
-              state = 1
-              mark += index
+      char match {
+        case '\"' => {
+          state match {
+            case 0 => {
+              if (index == 0 || prev(input, index) == ',') {
+                state = 1
+                mark += index
+              }
             }
-          }
-          case 1 => {
-            if (index == buffer.length - 1 || next(buffer, index) == ',') {
-              state = 0
-              mark += index
+            case 1 => {
+              if (index == input.length - 1 || next(input, index) == ',') {
+                state = 0
+                mark += index
+              }
             }
+            case 2 => Unit
           }
         }
+        case '<' => {
+          state = 2
+        }
+        case '>' => {
+          state = 1
+        }
+        case _ => Unit
+      }
+    })
+
+    consecDoubleQuote.findAllMatchIn(input).foreach(mch => {
+      val range = (mch.start until mch.end)
+
+      val unmarked = range.filter(i => !mark.contains(i))
+
+      // Escape a odd block
+      if (unmarked.size % 2 != 0) {
+        mark ++= unmarked.drop(1)
+      } else {
+        mark ++= unmarked
       }
     })
 
     // Escape those not marked
-    val newbuffer = new StringBuffer()
-    buffer.toString.zipWithIndex.foreach(p => {
+    input.zipWithIndex.foreach(p => {
       val char = p._1
       val index = p._2
-      newbuffer.append(char)
+      buffer.append(char)
       if (char == '\"' && !mark.contains(index))
-        newbuffer.append("\"")
+        buffer.append("\"")
     })
 
     try {
-      val records = CSVFormat.EXCEL.parse(new StringReader(newbuffer.toString)).getRecords
-      format(records(0))
+      val escaped = buffer.toString
+      CSVFormat.EXCEL.parse(new StringReader(escaped)).getRecords
+      escaped
     } catch {
       case e: Exception => {
         ""
@@ -166,16 +177,16 @@ class CSVLineFixer(expectCol: Int) {
     }
   }
 
-  def prev(buffer: StringBuffer, idx: Int): Char = {
+  def prev(buffer: String, idx: Int): Char = {
     var pnt = idx - 1
-    while (buffer.charAt(pnt) == ' ')
+    while (buffer(pnt) == ' ')
       pnt -= 1
     buffer.charAt(pnt)
   }
 
-  def next(buffer: StringBuffer, idx: Int): Char = {
+  def next(buffer: String, idx: Int): Char = {
     var pnt = idx + 1
-    while (buffer.charAt(pnt) == ' ')
+    while (buffer(pnt) == ' ')
       pnt += 1
     buffer.charAt(pnt)
   }
