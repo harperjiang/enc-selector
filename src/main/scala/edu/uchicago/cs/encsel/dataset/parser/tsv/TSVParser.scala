@@ -29,7 +29,8 @@ class TSVParser extends Parser {
   override def parseLine(line: String): Record = {
     line.trim.isEmpty match {
       case true => Record.EMPTY
-      case false => new DefaultRecord(line.trim.split("\t+"))
+        // Single tab,
+      case false => new DefaultRecord(line.trim.split("\t"))
     }
   }
 
