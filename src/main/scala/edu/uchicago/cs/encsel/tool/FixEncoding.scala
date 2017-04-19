@@ -22,7 +22,7 @@
 
 package edu.uchicago.cs.encsel.tool
 
-import java.io.FileInputStream
+import java.io.{FileInputStream, FileOutputStream}
 
 import org.apache.commons.io.IOUtils
 
@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils
   */
 object FixEncoding extends App {
 
-  IOUtils.copy(new FilterStream(new FileInputStream(args(0))), System.out)
-
+  val output = new FileOutputStream(args(0) + ".fixed")
+  IOUtils.copy(new FilterStream(new FileInputStream(args(0))), output)
+  output.close
 }
