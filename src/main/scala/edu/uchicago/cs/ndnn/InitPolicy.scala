@@ -20,33 +20,30 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.api.rng.distribution.impl.UniformDistribution
+import org.nd4j.linalg.api.rng.distribution.impl.NormalDistribution
+import org.nd4j.linalg.factory.Nd4j
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+trait InitPolicy {
+  def init(shape: Array[Int]): INDArray
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
+  def init(shape: Int*): INDArray = init(shape.toArray)
+}
 
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
+object Xavier extends InitPolicy {
+  def init(shape: Array[Int]): INDArray = {
+    val n = shape.dropRight(1).product
+    val sd = Math.sqrt(3d / n)
+    new UniformDistribution(-sd,sd).sample(shape)
+//    new NormalDistribution(0, sd).sample(shape)
+  }
+}
 
-  wordset.foreach(writer.println)
-
-  writer.close()
+object Zero extends InitPolicy {
+  def init(shape: Array[Int]): INDArray = {
+    Nd4j.createUninitialized(shape).assign(0)
+  }
 }

@@ -23,14 +23,9 @@
 
 package edu.uchicago.cs.encsel.app
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
-import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
-import edu.uchicago.cs.encsel.ndnn.rnn.LSTMDataset
-import edu.uchicago.cs.encsel.ndnn.rnn.LSTMGraph
+import edu.uchicago.cs.ndnn.SGD
+import edu.uchicago.cs.ndnn.rnn.{LSTMDataset, LSTMGraph, LSTMPredictGraph, LSTMTrainer}
 import org.nd4j.linalg.factory.Nd4j
-import edu.uchicago.cs.encsel.ndnn.rnn.LSTMPredictGraph
-import edu.uchicago.cs.encsel.ndnn.rnn.LSTMTrainer
-import edu.uchicago.cs.encsel.ndnn.SGD
 
 object ContentPredict extends App {
 

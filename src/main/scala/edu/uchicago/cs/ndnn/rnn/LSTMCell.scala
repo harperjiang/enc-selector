@@ -20,33 +20,22 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn.rnn
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.ndnn._
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+object LSTMCell {
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
+  def build(wf: Param, bf: Param, wi: Param, bi: Param, wc: Param, bc: Param,
+            wo: Param, bo: Param, in: Node, h: Node, c: Node): (Node, Node) = {
+    val concat = new Concat(in, h)
+    val fgate = new Sigmoid(new Add(new DotMul(concat, wf), bf))
+    val igate = new Sigmoid(new Add(new DotMul(concat, wi), bi))
+    val cgate = new Mul(new Tanh(new Add(new DotMul(concat, wc), bc)), igate)
+    val ogate = new Sigmoid(new Add(new DotMul(concat, wo), bo))
 
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
-
-  wordset.foreach(writer.println)
-
-  writer.close()
+    val co = new Add(new Mul(c, fgate), cgate)
+    val ho = new Mul(new Tanh(co), ogate)
+    (co, ho)
+  }
 }

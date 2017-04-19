@@ -20,33 +20,13 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn
 
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import org.nd4j.linalg.api.ndarray.INDArray
+import org.nd4j.linalg.factory.Nd4j
 
-import scala.collection.mutable.HashSet
-import java.io.PrintWriter
-import java.io.FileOutputStream
+object NdConversions {
 
-import edu.uchicago.cs.encsel.util.word.WordSplit
-import org.slf4j.LoggerFactory
-
-object GatherColumnWord extends App {
-  val cols = Persistence.get.load()
-  var wordset = new HashSet[String]()
-  val logger = LoggerFactory.getLogger(getClass)
-  cols.foreach(col => {
-    try {
-      val split = new WordSplit()
-      val words = split.split(col.colName)
-      wordset ++= words._1
-    } catch {
-      case _: Exception => { logger.warn("Exception on word:%s".format(col.colName)) }
-    }
-  })
-  val writer = new PrintWriter(new FileOutputStream("words"))
-
-  wordset.foreach(writer.println)
-
-  writer.close()
+  implicit def arrayToNdArray(array: Array[Double]): INDArray = Nd4j.create(array)
+  implicit def arrayToNdArray2(array: Array[Array[Double]]): INDArray = Nd4j.create(array)
 }
