@@ -22,18 +22,15 @@
  */
 package edu.uchicago.cs.encsel.dataset.parser.tsv
 
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import edu.uchicago.cs.encsel.dataset.parser.Parser
-import edu.uchicago.cs.encsel.dataset.parser.Record
-import edu.uchicago.cs.encsel.dataset.parser.Parser
-import edu.uchicago.cs.encsel.dataset.parser.Record
-import edu.uchicago.cs.encsel.dataset.parser.DefaultRecord
+import edu.uchicago.cs.encsel.dataset.parser.{DefaultRecord, Parser, Record}
 
 class TSVParser extends Parser {
 
   override def parseLine(line: String): Record = {
-    new DefaultRecord(line.split("\t"))
+    line.trim.isEmpty match {
+      case true => Record.EMPTY
+      case false => new DefaultRecord(line.trim.split("\t+"))
+    }
   }
 
   protected override def guessHeader(line: String): Unit = {

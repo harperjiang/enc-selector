@@ -22,18 +22,14 @@
  */
 package edu.uchicago.cs.encsel.dataset.parser
 
+import java.io.{File, FileInputStream, InputStream}
 import java.net.URI
 
-import scala.io.Source
-
+import edu.uchicago.cs.encsel.dataset.schema.Schema
+import org.apache.commons.lang.StringUtils
 import org.slf4j.LoggerFactory
 
-import edu.uchicago.cs.encsel.dataset.schema.Schema
-import scala.collection.Iterator.JoinIterator
-import org.apache.commons.lang.StringUtils
-import java.io.InputStream
-import java.io.FileInputStream
-import java.io.File
+import scala.io.Source
 
 trait Parser {
 
@@ -55,12 +51,16 @@ trait Parser {
       if (headerInline) {
         // Put the line back
         val lb = Array(line).toIterator ++ (lines)
-        return lb.map { parseLineIgnoreError }
+        return lb.map {
+          parseLineIgnoreError
+        }
       }
     } else {
       blankRecord = new BlankRecord(schema.columns.length)
     }
-    lines.map { parseLineIgnoreError }
+    lines.map {
+      parseLineIgnoreError
+    }.filter(_.length() != 0)
   }
 
   def parse(inputFile: URI, schema: Schema): Iterator[Record] = parse(new FileInputStream(new File(inputFile)), schema)
@@ -80,6 +80,7 @@ trait Parser {
   }
 
   protected def guessHeader(line: String): Unit = {}
+
   protected var guessedHeader: Array[String] = _
 
   def guessHeaderName: Array[String] = guessedHeader

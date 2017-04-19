@@ -23,14 +23,13 @@
 package edu.uchicago.cs.encsel.dataset.schema
 
 import java.net.URI
-import edu.uchicago.cs.encsel.dataset.parser.Record
+import java.text.NumberFormat
+
 import edu.uchicago.cs.encsel.dataset.parser.ParserFactory
-import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.model.DataType
+import org.slf4j.LoggerFactory
 
 import scala.util.Try
-import org.slf4j.LoggerFactory
-import java.text.NumberFormat
 
 class SchemaGuesser {
 
@@ -51,7 +50,7 @@ class SchemaGuesser {
 
     records.foreach { record => {
       for (i <- 0 until columns.length) {
-        if(record.length<=i)
+        if (record.length <= i)
           println(record.toString)
         var value = record(i)
         if (value != null && value.trim().length() != 0) {
