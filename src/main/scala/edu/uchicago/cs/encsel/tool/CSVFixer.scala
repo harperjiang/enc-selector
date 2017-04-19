@@ -59,7 +59,7 @@ object FixCSV extends App {
 class FilterStream(val inner: InputStream) extends java.io.InputStream {
   override def read(): Int = {
     var char = inner.read()
-    while (char > 127) {
+    while (char > 127 || char == 0) {
       char = inner.read()
     }
     char

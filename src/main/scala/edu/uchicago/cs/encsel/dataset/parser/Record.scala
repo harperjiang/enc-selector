@@ -32,8 +32,7 @@ trait Record {
   def iterator(): Iterator[String]
 }
 
-class DefaultRecord(ct: Array[String]) extends Record {
-  val content = ct
+class DefaultRecord(val content: Array[String]) extends Record {
 
   def apply(idx: Int): String = {
     content(idx)
@@ -55,12 +54,20 @@ class DefaultRecord(ct: Array[String]) extends Record {
 class BlankRecord(size: Int) extends Record {
   val blankIterator = new Iterator[String] {
     var counter = 0
+
     def hasNext = counter < BlankRecord.this.size
-    def next = { counter += 1; "" }
+
+    def next = {
+      counter += 1; ""
+    }
   }
+
   def apply(idx: Int): String = ""
+
   def length(): Int = size
+
   override def toString(): String = ""
+
   def iterator(): Iterator[String] = blankIterator
 }
 
