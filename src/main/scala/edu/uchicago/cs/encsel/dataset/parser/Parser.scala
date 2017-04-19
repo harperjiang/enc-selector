@@ -22,7 +22,7 @@
  */
 package edu.uchicago.cs.encsel.dataset.parser
 
-import java.io.{File, FileInputStream, InputStream}
+import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
 import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.schema.Schema
@@ -41,7 +41,12 @@ trait Parser {
   def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
 
-    val lines = Source.fromInputStream(input).getLines()
+
+    val bufferedinput = new BufferedInputStream(input)
+    // Guess Encoding
+    val encoding = guessEncoding(bufferedinput)
+
+    val lines = Source.fromInputStream(bufferedinput, encoding).getLines()
 
     if (null == schema) {
       // Guess header, need to retrieve a line
@@ -76,6 +81,20 @@ trait Parser {
         logger.warn("Exception while parsing line:" + line, e)
         Record.EMPTY
       }
+    }
+  }
+
+  protected def guessEncoding(bi: InputStream): String = {
+    val buffer = new Array[Byte](1000)
+    bi.mark(buffer.length)
+    bi.read(buffer)
+    bi.reset
+    // A lot of zero? utf-16
+    val charCount = buffer.groupBy(_.toInt).map(f => (f._1, f._2.length))
+    if (charCount.getOrElse(0, 0) > 0.3 * buffer.length) {
+      "utf-16"
+    } else {
+      "utf-8"
     }
   }
 

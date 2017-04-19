@@ -48,21 +48,25 @@ class SchemaGuesser {
     val columns = guessedHeader.map(_.replaceAll("[^\\d\\w_]+", "_"))
       .map((DataType.BOOLEAN, _))
 
-    records.foreach { record => {
-      for (i <- 0 until columns.length) {
-        var value = (i < record.length) match {
-          case true => record(i)
-          case false => ""
-        }
-        if (value != null && value.trim().length() != 0) {
-          value = value.trim()
+    var malformatCount = 0
+    records.foreach(record => {
+      if (record.length == columns.length) {
+        for (i <- 0 until columns.length) {
+          var value = record(i)
+          if (value != null && value.trim().length() != 0) {
+            value = value.trim()
 
-          val expected = testType(value, columns(i)._1)
-          if (expected != columns(i)._1)
-            columns(i) = (expected, columns(i)._2)
+            val expected = testType(value, columns(i)._1)
+            if (expected != columns(i)._1)
+              columns(i) = (expected, columns(i)._2)
+          }
         }
+      } else {
+        malformatCount += 1
       }
-    }
+    })
+    if (malformatCount > 0) {
+      logger.warn("Malformatted record counts %d in %s".format(malformatCount, file.toString))
     }
     new Schema(columns, true)
   }

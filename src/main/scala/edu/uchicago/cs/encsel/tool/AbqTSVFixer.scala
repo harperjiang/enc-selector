@@ -14,24 +14,37 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License.
+ * under the License,
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
+ *
  */
 
 package edu.uchicago.cs.encsel.tool
 
-import java.io.{FileInputStream, FileOutputStream}
-
-import org.apache.commons.io.IOUtils
+import scala.collection.mutable
+import scala.io.Source
 
 /**
-  * Some files have an encoding problem. Fix them
+  * Created by harper on 4/19/17.
   */
-object FixEncoding extends App {
+object AbqTSVFixer extends App {
 
-  val output = new FileOutputStream(args(0) + ".fixed")
-  IOUtils.copy(new FilterStream(new FileInputStream(args(0))), output)
-  output.close
+  val sets = new mutable.HashMap[Int, Int]
+  Source.fromFile("/home/harper/dataset/temp/vem.tsv", "utf-16").getLines().foreach(
+    line => {
+      val parts = line.split("\t", -1)
+      sets += ((parts.length, sets.getOrElse(parts.length, 0) + 1))
+      if(parts.length == 113) {
+        println(line)
+      }
+      if(parts.length == 15) {
+        println(line)
+      }
+    }
+  )
+
+  println(sets)
+
 }
