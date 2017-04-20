@@ -22,48 +22,41 @@
  */
 package edu.uchicago.cs.encsel.app
 
+import java.io.{File, FileWriter, PrintWriter}
 import java.net.URI
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
-import scala.io.Source
-import java.io.File
-import scala.collection.mutable.HashSet
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
+
 import edu.uchicago.cs.encsel.Config
 import edu.uchicago.cs.encsel.dataset.column.Column
+import edu.uchicago.cs.encsel.dataset.parquet.{ParquetWriterBuilder, ParquetWriterHelper}
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.dataset.persist.jpa.ColumnWrapper
-import scala.util.Try
-import java.io.FileWriter
-import java.io.BufferedWriter
-import java.io.Writer
-import org.apache.commons.io.output.NullWriter
-import java.io.PrintWriter
-import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.model.DataType
-import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
-import org.apache.parquet.hadoop.ParquetWriter
-import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterBuilder
-import org.apache.parquet.schema.Type.Repetition
-import org.apache.parquet.schema.MessageType
-import java.util.ArrayList
-import org.apache.parquet.schema.PrimitiveType
 import org.apache.hadoop.fs.Path
+import org.apache.parquet.hadoop.ParquetWriter
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
+import org.apache.parquet.schema.Type.Repetition
+import org.apache.parquet.schema.{MessageType, PrimitiveType}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.HashSet
+import scala.io.Source
+import scala.util.Try
 
 object CompareDictAndBoolean extends App {
 
   val threshold = 20
 
   val cols = Persistence.get.load()
-  cols.filter { col => { col.colName.toLowerCase().contains("category") && col.dataType == DataType.STRING && col.findFeature("Sparsity", "valid_ratio").value == 1 } }
-    .foreach(col => {
-      val distvals = distinct(col.colFile)
-      if (distvals.size < threshold) {
-        genColumn(distvals, col)
-        genColumn2(distvals, col)
-      }
-    })
+  cols.filter(col => {
+    col.colName.toLowerCase().contains("category") && col.dataType == DataType.STRING && col.findFeature("Sparsity", "valid_ratio").get.value == 1
+  }).foreach(col => {
+    val distvals = distinct(col.colFile)
+    if (distvals.size < threshold) {
+      genColumn(distvals, col)
+      genColumn2(distvals, col)
+    }
+  })
 
   def distinct(colFile: URI): Set[String] = {
     var values = new HashSet[String]()
@@ -92,7 +85,7 @@ object CompareDictAndBoolean extends App {
     writers.foreach(_._2.close)
 
     val sumLength = files.toList.map(f => new File(ParquetWriterHelper.singleColumnBoolean(f._2.toURI)).length()).sum
-    val dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
+    val dictLength = column.findFeature("EncFileSize", "DICT_file_size").get.value
     println(distval.size, sumLength, dictLength, sumLength / dictLength)
   }
 
@@ -114,7 +107,7 @@ object CompareDictAndBoolean extends App {
     writer.close()
 
     val sumLength = output.toFile.length
-    val dictLength = column.findFeature("EncFileSize", "DICT_file_size").value
+    val dictLength = column.findFeature("EncFileSize", "DICT_file_size").get.value
     println(distval.size, sumLength, dictLength, sumLength / dictLength)
   }
 
