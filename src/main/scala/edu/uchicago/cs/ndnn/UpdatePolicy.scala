@@ -22,8 +22,8 @@
  */
 package edu.uchicago.cs.ndnn
 
-import org.nd4j.linalg.ops.transforms.Transforms
 import org.nd4j.linalg.factory.Nd4j
+import org.nd4j.linalg.ops.transforms.Transforms
 
 object UpdatePolicy {
   val etaDefault = 0.5
@@ -39,12 +39,17 @@ object UpdatePolicy {
   val adammeanKey = "adammean"
   val adamvarKey = "adamvar"
 
+  val adamAlpha = 0.9
+  val adamBeta = 0.999
+
+
   val dsdmaskKey = "dsdmask"
   val dsdthreshold = 0.001
 }
 
 trait UpdatePolicy {
   def update(p: Param): Unit
+
   def weightDecay(): Unit
 }
 
@@ -74,7 +79,9 @@ abstract class UpdatePolicyBase(e: Double, d: Double, gc: Double) extends Update
 class SGD(e: Double, d: Double, gc: Double) extends UpdatePolicyBase(e, d, gc) {
 
   def this() = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, UpdatePolicy.gradClip)
+
   def this(e: Double) = this(e, UpdatePolicy.etaDecay, UpdatePolicy.gradClip)
+
   def this(e: Double, d: Double) = this(e, d, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
@@ -88,6 +95,7 @@ class Momentum(e: Double, d: Double, m: Double, gc: Double) extends UpdatePolicy
   private val mu = m
 
   def this(e: Double, m: Double) = this(e, UpdatePolicy.etaDecay, m, UpdatePolicy.gradClip)
+
   def this(m: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, m, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
@@ -105,6 +113,7 @@ class RMSProp(e: Double, d: Double, b: Double, gc: Double) extends UpdatePolicyB
   private val beta = b
 
   def this(e: Double, b: Double) = this(e, UpdatePolicy.etaDecay, b, UpdatePolicy.gradClip)
+
   def this(b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, b, UpdatePolicy.gradClip)
 
   def innerUpdate(p: Param) = {
@@ -124,7 +133,10 @@ class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends Updat
   private val beta = b
 
   def this(e: Double, a: Double, b: Double) = this(e, UpdatePolicy.etaDecay, a, b, UpdatePolicy.gradClip)
+
   def this(a: Double, b: Double) = this(UpdatePolicy.etaDefault, UpdatePolicy.etaDecay, a, b, UpdatePolicy.gradClip)
+
+  def this() = this(UpdatePolicy.adamAlpha, UpdatePolicy.adamBeta)
 
   def innerUpdate(p: Param) = {
     val grad = p.grad
@@ -142,7 +154,7 @@ class Adam(e: Double, d: Double, a: Double, b: Double, gc: Double) extends Updat
 }
 
 class DenseSparseDense(child: UpdatePolicy, period1: Int, period2: Int,
-    threshold: Double = UpdatePolicy.dsdthreshold) extends UpdatePolicy {
+                       threshold: Double = UpdatePolicy.dsdthreshold) extends UpdatePolicy {
 
   private var epochCounter = 0
 

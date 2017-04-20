@@ -23,9 +23,17 @@
 
 package edu.uchicago.cs.encsel.classify
 
+import edu.uchicago.cs.ndnn.{Adam, Graph, SoftMaxLogLoss, Xavier}
+import org.nd4j.linalg.api.ndarray.INDArray
+
 /**
   * Created by harper on 4/18/17.
   */
 class NeuralNetClassifier {
 
+}
+
+class SimpleNNGraph extends Graph[INDArray](Xavier,new Adam(),new SoftMaxLogLoss) {
+
+  def
 }
