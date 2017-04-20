@@ -24,12 +24,11 @@ package edu.uchicago.cs.encsel.dataset.column
 
 import java.net.URI
 
-import scala.collection.JavaConversions._
-
 import edu.uchicago.cs.encsel.dataset.feature.Feature
 import edu.uchicago.cs.encsel.model.DataType
+
+import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
-import scala.util.Try
 
 class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var origin: URI = o
@@ -43,10 +42,12 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
     this(null, -1, null, null)
   }
 
-  def findFeature(t: String, name: String): Feature = {
-    Try {
-      features.filter { f => f.featureType.equals(t) && f.name.equals(name) }.head
-    }.getOrElse(null)
+  def findFeature(t: String, name: String): Option[Feature] = {
+    features.find(f => f.featureType.equals(t) && f.name.equals(name))
+  }
+
+  def findFeatures(t: String): Iterable[Feature] = {
+    features.filter(_.featureType.equals(t))
   }
 
   def hasFeature(t: String): Boolean = {

@@ -23,19 +23,18 @@
 
 package edu.uchicago.cs.encsel.app.carbon
 
-import java.io.{ File, FileInputStream }
-import java.net.URI
-import java.nio.file.{ Files, Path, Paths }
+import java.io.{File, FileInputStream}
+import java.nio.file.{Files, Path, Paths}
 
 import edu.uchicago.cs.encsel.dataset.parser.csv.CommonsCSVParser
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
 import edu.uchicago.cs.encsel.dataset.schema.Schema
 import edu.uchicago.cs.encsel.model.DataType
 
 import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
-import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
-import scala.io.Source
 import scala.collection.mutable.HashMap
+import scala.io.Source
 
 object CompareWithCarbon extends App {
 
@@ -52,23 +51,24 @@ object CompareWithCarbon extends App {
     val persist = Persistence.get.asInstanceOf[JPAPersistence]
 
     records.foreach {
-      rec =>
-        {
-          val id = rec(0)
-          val col = persist.find(id.toInt)
-          val tabledir = carbondir.resolve("tab_" + id)
-          val tablesize = folderSize(tabledir)
-          val plainsize = col.findFeature("EncFileSize", "PLAIN_file_size").value.toInt
-          val dictsize = col.findFeature("EncFileSize", "DICT_file_size").value.toInt
-          val distinct = col.findFeature("Distinct", "Distinct").value.toInt
+      rec => {
+        val id = rec(0)
+        val col = persist.find(id.toInt)
+        val tabledir = carbondir.resolve("tab_" + id)
+        val tablesize = folderSize(tabledir)
+        val plainsize = col.findFeature("EncFileSize", "PLAIN_file_size").get.value.toInt
+        val dictsize = col.findFeature("EncFileSize", "DICT_file_size").get.value.toInt
+        val distinct = col.findFeature("Distinct", "Distinct").get.value.toInt
 
-          println("%s,%d,%d,%d,%d".format(id, plainsize, dictsize, tablesize, distinct))
-        }
+        println("%s,%d,%d,%d,%d".format(id, plainsize, dictsize, tablesize, distinct))
+      }
     }
   }
 
   def folderSize(folder: Path): Long = {
-    Files.walk(folder).iterator().filter { !Files.isDirectory(_) }.map(p => new File(p.toUri).length()).sum
+    Files.walk(folder).iterator().filter {
+      !Files.isDirectory(_)
+    }.map(p => new File(p.toUri).length()).sum
   }
 
   def genReport = {
