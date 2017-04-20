@@ -24,13 +24,11 @@ package edu.uchicago.cs.encsel.dataset.parser.tsv
 
 import java.io.{BufferedInputStream, InputStream, InputStreamReader, Reader}
 
+import edu.uchicago.cs.encsel.dataset.parser.tsv.State._
 import edu.uchicago.cs.encsel.dataset.parser.{DefaultRecord, Parser, Record}
 import edu.uchicago.cs.encsel.dataset.schema.Schema
 
 import scala.collection.mutable.ArrayBuffer
-import scala.io.Source
-
-import State._
 
 /**
   * SimpleTSVParser is a line based parser and doesn't recognize double quote escape
@@ -119,7 +117,8 @@ class TSVParser extends Parser {
         nextInt.toChar match {
           case '\n' => {
             state match {
-              case INIT => {
+              case INIT | ESCAPE => {
+                state = INIT
                 stop = true
               }
               case STRING => {
@@ -132,7 +131,7 @@ class TSVParser extends Parser {
           }
           case '\r' => {
             state match {
-              case INIT => {
+              case INIT | ESCAPE => {
                 state = CRED
                 stop = true
               }
@@ -150,17 +149,20 @@ class TSVParser extends Parser {
                 state = STRING
               }
               case STRING => {
-                state = INIT
+                state = ESCAPE
+              }
+              case ESCAPE => {
+                fieldBuffer.append('\"')
+                state = STRING
               }
             }
           }
           case '\t' => {
             state match {
-              case INIT | CRED => {
+              case INIT | CRED | ESCAPE => {
                 buffer.append(fieldBuffer.toString)
                 fieldBuffer.setLength(0)
-                if (state == CRED)
-                  state = INIT
+                state = INIT
               }
               case STRING => {
                 fieldBuffer.append('\t')
@@ -171,6 +173,9 @@ class TSVParser extends Parser {
             fieldBuffer.append(c)
             if (state == CRED)
               state = INIT
+            if (state == ESCAPE) {
+              throw new IllegalStateException("Not a valid escape character: %s".format(c.toString))
+            }
           }
         }
       }
@@ -190,4 +195,5 @@ private object State {
   val INIT = 0
   val STRING = 1
   val CRED = 2
+  val ESCAPE = 3
 }
