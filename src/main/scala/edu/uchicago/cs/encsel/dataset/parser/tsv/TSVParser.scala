@@ -30,8 +30,10 @@ import edu.uchicago.cs.encsel.dataset.schema.Schema
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
+import State._
+
 /**
-  * TSVParser supports double quote escaped records
+  * SimpleTSVParser is a line based parser and doesn't recognize double quote escape
   */
 class SimpleTSVParser extends Parser {
 
@@ -48,7 +50,12 @@ class SimpleTSVParser extends Parser {
   }
 }
 
+/**
+  * TSVParser supports double quotes escapes
+  */
 class TSVParser extends Parser {
+
+  var reader: Reader = _
 
   override def parse(input: InputStream, schema: Schema): Iterator[Record] = {
     this.schema = schema
@@ -57,24 +64,28 @@ class TSVParser extends Parser {
     // Guess Encoding
     val encoding = guessEncoding(bufferedinput)
 
-    val lines = Source.fromInputStream(bufferedinput, encoding).getLines()
-
-    if (null == schema) {
-      // Guess header, need to retrieve a line
-      val line = lines.next()
-      guessHeader(line)
-    } else if (schema.hasHeader) {
-      // For simplicity, here we assume the header line is a single line
-      lines.next()
+    reader = new InputStreamReader(bufferedinput, encoding)
+    if (schema == null || schema.hasHeader) {
+      // Need to read out the first line
+      var firstrec = readNextRecord()
+      firstrec.isDefined match {
+        case true => {
+          if (schema == null) {
+            guessedHeader = firstrec.get.iterator().toArray
+          }
+        }
+        case false => {
+          throw new IllegalArgumentException("No header found in file")
+        }
+      }
     }
-    val reader = new InputStreamReader(bufferedinput, encoding)
-    parseRecords(reader)
+    parseRecords()
   }
 
-  def parseRecords(reader: Reader): Iterator[Record] =
+  protected def parseRecords(): Iterator[Record] =
     new Iterator[Record] {
 
-      var nextRecord: Option[Record] = readNextRecord(reader)
+      var nextRecord: Option[Record] = readNextRecord()
 
       override def hasNext: Boolean = nextRecord.isDefined
 
@@ -82,7 +93,7 @@ class TSVParser extends Parser {
         nextRecord.isDefined match {
           case true => {
             val toReturn = nextRecord.get
-            nextRecord = readNextRecord(reader)
+            nextRecord = readNextRecord()
             toReturn
           }
           case false => throw new IllegalStateException
@@ -90,33 +101,93 @@ class TSVParser extends Parser {
       }
     }
 
-  def readNextRecord(reader: Reader): Option[Record] = {
-    var buffer = new ArrayBuffer[String]()
+  var state = INIT
+
+  // This method doesn't support escaping double quote or so for now
+  // as I didn't find specification on how to escape it.
+  protected def readNextRecord(): Option[Record] = {
+    val buffer = new ArrayBuffer[String]()
+    val fieldBuffer = new StringBuffer()
     var stop = false
-    var state = 0
+    var eof = false
     while (!stop) {
-      reader.read() match {
-        case -1 => {
-          // No more data, end record
-          stop = true
-        }
-        case '\n' => {
-
-        }
-        case '\r' => {
-
-        }
-        case '\"' => {
-
-        }
-        case '\t' => {
-
+      val nextInt = reader.read
+      if (nextInt == -1) {
+        stop = true
+        eof = true
+      } else {
+        nextInt.toChar match {
+          case '\n' => {
+            state match {
+              case INIT => {
+                stop = true
+              }
+              case STRING => {
+                fieldBuffer.append('\n')
+              }
+              case CRED => {
+                state = INIT
+              }
+            }
+          }
+          case '\r' => {
+            state match {
+              case INIT => {
+                state = CRED
+                stop = true
+              }
+              case STRING => {
+                fieldBuffer.append('\r')
+              }
+              case CRED => {
+                stop = true
+              }
+            }
+          }
+          case '\"' => {
+            state match {
+              case INIT | CRED => {
+                state = STRING
+              }
+              case STRING => {
+                state = INIT
+              }
+            }
+          }
+          case '\t' => {
+            state match {
+              case INIT | CRED => {
+                buffer.append(fieldBuffer.toString)
+                fieldBuffer.setLength(0)
+                if (state == CRED)
+                  state = INIT
+              }
+              case STRING => {
+                fieldBuffer.append('\t')
+              }
+            }
+          }
+          case c => {
+            fieldBuffer.append(c)
+            if (state == CRED)
+              state = INIT
+          }
         }
       }
+    }
+    if (!(eof && fieldBuffer.length() == 0)) {
+      buffer += fieldBuffer.toString
+      fieldBuffer.setLength(0)
     }
     buffer.length match {
       case 0 => None
       case _ => Some(new DefaultRecord(buffer.toArray))
     }
   }
+}
+
+private object State {
+  val INIT = 0
+  val STRING = 1
+  val CRED = 2
 }

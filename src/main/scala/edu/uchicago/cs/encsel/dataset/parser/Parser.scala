@@ -87,10 +87,10 @@ trait Parser {
   protected def guessEncoding(bi: InputStream): String = {
     val buffer = new Array[Byte](1000)
     bi.mark(buffer.length)
-    bi.read(buffer)
+    val readed = bi.read(buffer)
     bi.reset
     // A lot of zero? utf-16
-    val charCount = buffer.groupBy(_.toInt).map(f => (f._1, f._2.length))
+    val charCount = buffer.slice(0, readed).groupBy(_.toInt).map(f => (f._1, f._2.length))
     if (charCount.getOrElse(0, 0) > 0.3 * buffer.length) {
       "utf-16"
     } else {
