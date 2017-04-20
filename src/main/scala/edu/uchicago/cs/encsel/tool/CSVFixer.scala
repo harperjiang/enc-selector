@@ -26,7 +26,7 @@ package edu.uchicago.cs.encsel.tool
 import java.io._
 import java.net.URI
 
-import org.apache.commons.csv.{CSVFormat, CSVRecord}
+import org.apache.commons.csv.CSVFormat
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -41,7 +41,15 @@ import scala.io.Source
 object FixCSV extends App {
   val output = new PrintWriter(new FileOutputStream(args(0) + ".fixed"))
   val bad = new PrintWriter(new FileOutputStream(args(0) + ".bad"))
-  new CSVFixer(args(1).toInt).fix(new File(args(0)).toURI).foreach(p => {
+  val fixcol = args.length match {
+    case le if le <= 2 => -1
+    case _ => args(2).toInt
+  }
+  val endWithDq = args.length match {
+    case le if le <= 3 => true
+    case _ => "true".equals(args(3))
+  }
+  new CSVFixer(args(1).toInt, fixcol, endWithDq).fix(new File(args(0)).toURI).foreach(p => {
     p._2 match {
       case true => output.println(p._1)
       case false => bad.println(p._1)
@@ -68,35 +76,56 @@ class FilterStream(val inner: InputStream) extends java.io.InputStream {
   override def available(): Int = inner.available()
 }
 
-class CSVFixer(val expectColumn: Int) {
+class CSVFixer(val expectColumn: Int, fixColumn: Int, endWithDq: Boolean) {
 
   val buffer = new ArrayBuffer[String]
 
   def fix(file: URI): Iterator[(String, Boolean)] = {
     Source.fromInputStream(new FilterStream(new FileInputStream(new File(file))), "utf-8")
       .getLines().map(line => {
-      buffer += line
-      if (buffer.last.endsWith("\"")) {
-        val tofix = buffer.mkString(" ")
-        val fixed = new CSVLineFixer(expectColumn).fixLine(tofix)
-        buffer.clear
-        fixed.isEmpty match {
-          case true => (tofix, false)
-          case false => (fixed, true)
+      try {
+        buffer += line
+        if (endWithDq) {
+          if (buffer.last.endsWith("\"")) {
+            val tofix = buffer.mkString(" ")
+            val fixed = new CSVLineFixer(expectColumn, fixColumn).fixLine(tofix)
+            buffer.clear
+            fixed.isEmpty match {
+              case true => (tofix, false)
+              case false => (fixed, true)
+            }
+          } else {
+            ("", true)
+          }
+        } else {
+          val fixed = new CSVLineFixer(expectColumn, fixColumn).fixLine(line)
+          buffer.clear
+          fixed.isEmpty match {
+            case true => (line, false)
+            case false => (fixed, true)
+          }
         }
-      } else {
-        ("", true)
+      } catch {
+        case e: Exception => {
+          System.err.println(line)
+          throw e
+        }
       }
     }).filter(p => !p._2 || !p._1.isEmpty)
   }
+
 }
 
-class CSVLineFixer(expectCol: Int) {
+class CSVLineFixer(expectCol: Int, fixCol: Int) {
 
   val plain: (String) => String = { input =>
     try {
-      CSVFormat.EXCEL.parse(new StringReader(input)).getRecords
-      input
+      val records = CSVFormat.EXCEL.parse(new StringReader(input)).getRecords
+      val record = records(0)
+      (record.size == expectCol) match {
+        case true => input
+        case false => ""
+      }
     } catch {
       case e: Exception => {
         ""
@@ -111,38 +140,49 @@ class CSVLineFixer(expectCol: Int) {
     val buffer = new StringBuffer
 
     // Find match of double quotes, and escape those missed
-    val mark = new mutable.HashSet[Int]
-    var state = 0
+    val seqmark = new ArrayBuffer[Int]
+    val state = new mutable.Stack[Int]
+    state.push(0)
     input.zipWithIndex.foreach(p => {
       val char = p._1
       val index = p._2
       char match {
         case '\"' => {
-          state match {
+          state.head match {
             case 0 => {
               if (index == 0 || prev(input, index) == ',') {
-                state = 1
-                mark += index
+                state.pop
+                state.push(1)
+                seqmark += index
+              }
+              if (next(input, index) == ',') {
+                // Previous mark is wrong, remove it
+                if (!seqmark.isEmpty)
+                  seqmark.remove(seqmark.length - 1)
+                seqmark += index
               }
             }
             case 1 => {
               if (index == input.length - 1 || next(input, index) == ',') {
-                state = 0
-                mark += index
+                state.pop
+                state.push(0)
+                seqmark += index
               }
             }
             case 2 => Unit
           }
         }
         case '<' => {
-          state = 2
+          state.push(2)
         }
         case '>' => {
-          state = 1
+          state.pop
         }
         case _ => Unit
       }
     })
+    val mark = new mutable.HashSet[Int]
+    mark ++= seqmark
 
     consecDoubleQuote.findAllMatchIn(input).foreach(mch => {
       val range = (mch.start until mch.end)
@@ -168,8 +208,48 @@ class CSVLineFixer(expectCol: Int) {
 
     try {
       val escaped = buffer.toString
-      CSVFormat.EXCEL.parse(new StringReader(escaped)).getRecords
-      escaped
+      val records = CSVFormat.EXCEL.parse(new StringReader(escaped)).getRecords
+      val record = records(0)
+      (record.size == expectCol) match {
+        case true => escaped
+        case false => ""
+      }
+    } catch {
+      case e: Exception => {
+        ""
+      }
+    }
+  }
+
+  val col_merge: (String) => String = { input =>
+    try {
+      val records = CSVFormat.EXCEL.parse(new StringReader(input)).getRecords
+      val record = records(0)
+      (record.size == expectCol) match {
+        case true => input
+        case false => {
+          fixCol match {
+            case -1 => ""
+            case _ => {
+              // Merge additional columns to [length - fixCol - 1]
+              val toMerge = (expectCol - fixCol - 1 to record.size - fixCol - 1)
+              val merged = "\"%s\"".format(toMerge.map(i => escapeString(record.get(i))).mkString(","))
+
+              var combined = (0 until expectCol - fixCol - 1).map(i => escapeField(record.get(i))) :+ merged
+              combined ++= (record.size - fixCol until record.size).map(i => escapeField(record.get(i)))
+
+              val allMerged = combined.mkString(",")
+
+              val records2 = CSVFormat.EXCEL.parse(new StringReader(allMerged)).getRecords
+              val record2 = records2(0)
+              (record2.size == expectCol) match {
+                case true => allMerged
+                case false => ""
+              }
+            }
+          }
+        }
+      }
     } catch {
       case e: Exception => {
         ""
@@ -191,8 +271,18 @@ class CSVLineFixer(expectCol: Int) {
     buffer.charAt(pnt)
   }
 
+  def escapeField(input: String): String = {
+    input.contains(",") match {
+      case true => "\"%s\"".format(escapeString(input))
+      case false => input
+    }
+  }
 
-  val methods = Seq(plain, escape)
+  def escapeString(input: String): String = {
+    input.replaceAll("\"", "\"\"")
+  }
+
+  val methods = Seq(plain, escape, col_merge)
 
   def fixLine(input: String): String = {
     var pointer = 0

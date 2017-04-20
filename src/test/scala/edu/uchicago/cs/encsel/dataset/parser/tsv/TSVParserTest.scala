@@ -110,6 +110,34 @@ class TSVParserTest {
   }
 
   @Test
+  def testEscape:Unit = {
+    val input = "A\tB\tC\tD\r001\t\"324\"\"jj\"\t\t\r\n002\tw\tq\t003"
+    val parser = new TSVParser
+
+    val records = parser.parse(new ByteArrayInputStream(input.getBytes("utf-8")), null).toArray
+
+    assertEquals(2, records.size)
+    assertEquals(4, records(0).length())
+    assertEquals(4, records(1).length)
+    val headers = parser.guessHeaderName
+    assertEquals(4, headers.length)
+    assertEquals("A", headers(0))
+    assertEquals("B", headers(1))
+    assertEquals("C", headers(2))
+    assertEquals("D", headers(3))
+
+    assertEquals("001", records(0)(0))
+    assertEquals("324\"jj", records(0)(1))
+    assertEquals("", records(0)(2))
+    assertEquals("", records(0)(3))
+
+    assertEquals("002", records(1)(0))
+    assertEquals("w", records(1)(1))
+    assertEquals("q", records(1)(2))
+    assertEquals("003", records(1)(3))
+  }
+
+  @Test
   def testGuessHeader: Unit = {
     val parser = new TSVParser
     val records = parser.parse(new File("src/test/resource/test_tsv_parser.tsv").toURI, null).toArray
