@@ -35,5 +35,4 @@ class NeuralNetClassifier {
 
 class SimpleNNGraph extends Graph[INDArray](Xavier,new Adam(),new SoftMaxLogLoss) {
 
-  def
 }
