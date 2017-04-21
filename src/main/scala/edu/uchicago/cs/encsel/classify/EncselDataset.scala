@@ -23,14 +23,10 @@
 
 package edu.uchicago.cs.encsel.classify
 
-import java.util.Collections
-
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.ndnn.{Dataset, DefaultDataset}
-import org.nd4j.linalg.api.ndarray.INDArray
+import edu.uchicago.cs.ndnn.DefaultDataset
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -60,7 +56,7 @@ object EncselDataset {
   */
 class EncselDataset(val dataType: DataType) extends DefaultDataset {
 
-  protected var _numClass = 0
+  protected var _numClass: Int = _
 
   override def load(): (Array[Array[Double]], Array[Double]) = {
 
@@ -69,22 +65,21 @@ class EncselDataset(val dataType: DataType) extends DefaultDataset {
     val features = new ArrayBuffer[Array[Double]]
     val labels = new ArrayBuffer[Double]
 
-    val pairs = Persistence.get.load().map(
-      column => {
-        val mapping = EncselDataset.featureMap.getOrElse(dataType, Array.empty[(String, String)])
-        val feature = mapping.map(m => {
-          column.findFeature(m._1, m._2) match {
-            case None => 0
-            case Some(e) => e.value
-          }
-        })
-        val minName = column.findFeatures("EncFileSize").minBy(_.value).name
-        val label = typeMap.getOrElseUpdate(minName, typeMap.size)
+    val mapping = EncselDataset.featureMap.getOrElse(dataType, Array.empty[(String, String)])
 
-        features += feature
-        labels += label
-      }
-    )
+    Persistence.get.lookup(dataType).foreach(column => {
+      val feature = mapping.map(m => {
+        column.findFeature(m._1, m._2) match {
+          case None => 0
+          case Some(e) => e.value
+        }
+      })
+      val minName = column.findFeatures("EncFileSize").minBy(_.value).name
+      val label = typeMap.getOrElseUpdate(minName, typeMap.size)
+
+      features += feature
+      labels += label
+    })
     _numClass = typeMap.size
     (features.toArray, labels.toArray)
   }

@@ -31,13 +31,18 @@ import org.nd4j.linalg.api.ndarray.INDArray
   * Use Neural Network to choose encoding
   */
 object NeuralNetClassifierForInt extends App {
-  val fullds = new EncselDataset(DataType.INTEGER).
-  val datasets = fullds.split(Seq(0.7, 0.3))
+  val fullds = new EncselDataset(DataType.INTEGER)
+  val datasets = fullds.split(Seq(0.9, 0.1))
   val trainds = datasets(0)
   val testds = datasets(1)
 
   val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
   val trainer = new SimpleTrainer[INDArray, Dataset[INDArray], EncSelNNGraph](trainds, testds, graph) {
+
+    {
+      paramStore = new FileStore("enc_nn_int_model")
+    }
+
     override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
       graph.x.set(batch.data)
       graph.expect(batch.groundTruth)
@@ -46,28 +51,14 @@ object NeuralNetClassifierForInt extends App {
   trainer.train(50)
 }
 
-object EncSelNNGraph {
-  val hiddenDim = 100
-}
+object DataAnalysis extends App {
 
-class EncSelNNGraph(numFeature: Int, numClass: Int)
-  extends Graph(Xavier, new Adam(), new SoftMaxLogLoss) {
-
-  val x = input("x")
-
-  {
-    val w = param("w", Array(numFeature, EncSelNNGraph.hiddenDim))
-    val b = param("b", Array(EncSelNNGraph.hiddenDim))
-    val map = param("map", Array(EncSelNNGraph.hiddenDim, numClass))
-    val mapb = param("mapb", Array(numClass))
-
-    val wx = new DotMul(x, w)
-    val wxab = new Add(wx, b)
-    val sigmoid = new Sigmoid(wxab)
-    val mapped = new DotMul(sigmoid, map)
-    val offset = new Add(mapped, mapb)
-    val softmax = new SoftMax(offset)
-
-    output(softmax)
+  val fullds = new EncselDataset(DataType.INTEGER) {
+    def analysis: Map[Int, Int] = {
+      this.expects.groupBy(_.toInt).map(f => (f._1, f._2.length))
+    }
   }
+
+  val result = fullds.analysis
+  println(result)
 }

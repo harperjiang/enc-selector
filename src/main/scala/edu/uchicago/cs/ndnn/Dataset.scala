@@ -81,7 +81,7 @@ abstract class DefaultDataset extends DatasetBase[INDArray] {
 
   protected def construct(idices: Seq[Int]): Batch[INDArray] = {
     new Batch[INDArray](idices.length, Nd4j.create(idices.map(datas(_)).toArray),
-      Nd4j.create(idices.map(expects(_)).toArray))
+      Nd4j.create(idices.map(expects(_)).toArray).reshape(idices.length, -1))
   }
 
   def split(ratio: Seq[Double]): Seq[Dataset[INDArray]] = {

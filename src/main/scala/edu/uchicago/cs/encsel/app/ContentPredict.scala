@@ -41,7 +41,7 @@ object ContentPredict extends App {
 
   val trainer = new LSTMTrainer(trainset, testset, traingraph) {
     override def evaluate(testBatchSize: Int) = {
-      super.evaluate(testBatchSize)
+      val loss = super.evaluate(testBatchSize)
       predict.load(traingraph.dump())
       val prefix = 1
       predict.build(20, prefix)
@@ -51,6 +51,7 @@ object ContentPredict extends App {
       predict.c0.set(sz)
       predict.test
       println(predict.predicts.map(p => getTrainSet.translate(p.getValue.getDouble(0, 0))).mkString(""))
+      loss
     }
   }
 

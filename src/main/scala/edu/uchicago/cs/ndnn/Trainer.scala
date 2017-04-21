@@ -39,17 +39,20 @@ trait Evaluator {
 
 class MeanLossEvaluator extends Evaluator {
   var batchCounter = 0
+  var itemCounter = 0
   var lossSum = 0d
   var accSum = 0
 
   def init: Unit = {
     batchCounter = 0
+    itemCounter = 0
     lossSum = 0
     accSum = 0
   }
 
   def record[D](batch: Batch[D], loss: Double, acc: Int) = {
     batchCounter += 1
+    itemCounter += batch.size
     lossSum += loss
     accSum += acc
   }
@@ -57,7 +60,7 @@ class MeanLossEvaluator extends Evaluator {
   def loss: Double = lossSum / batchCounter
 
   def summary: String =
-    """Average loss %f, average accuracy %f""".format(lossSum / batchCounter, accSum.toDouble / batchCounter)
+    """Average loss %f, average accuracy %f""".format(lossSum / batchCounter, accSum.toDouble / itemCounter)
 }
 
 trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
@@ -89,6 +92,8 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
 
     // Initial test and loss
     var bestLoss = evaluate(testBatchSize)
+
+    logger.info("Initial Test Result: %s".format(getEvaluator.summary))
 
     var i = 0
     var stop = false
@@ -123,8 +128,10 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
       stop = earlyStop
 
       val stopTime = System.currentTimeMillis()
+
       logger.info("Training time %f mins".format((stopTime - startTime) / 60000d))
       logger.info("Training Loss %f, test loss %f".format(trainLoss, testLoss))
+      logger.info("Test Result: %s".format(getEvaluator.summary))
 
       i += 1
     }
@@ -144,7 +151,6 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
         evaluator.record(batch, loss, acc)
       }
     }
-    logger.info("Test Result: %s".format(evaluator.summary))
     evaluator.loss
   }
 }

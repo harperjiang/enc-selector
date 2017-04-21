@@ -72,5 +72,4 @@ class LSTMTrainer(ts: LSTMDataset, tsts: LSTMDataset, g: LSTMGraph)
     // Expect
     g.expect(batch.groundTruth)
   }
-
 }

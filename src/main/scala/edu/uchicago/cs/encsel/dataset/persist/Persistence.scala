@@ -24,17 +24,23 @@ package edu.uchicago.cs.encsel.dataset.persist
 
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
+import edu.uchicago.cs.encsel.model.DataType
 
 /**
- * Interface for persisting columns and features
- */
+  * Interface for persisting columns and features
+  */
 trait Persistence {
   def save(datalist: Traversable[Column])
+
   def load(): Iterator[Column]
+
+  def lookup(dataType: DataType): Iterator[Column]
+
   def clean()
 }
 
 object Persistence {
   private val impl = new JPAPersistence
+
   def get: Persistence = impl
 }
