@@ -23,14 +23,27 @@
 
 package edu.uchicago.cs.encsel.classify
 
+import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.ndnn._
 import org.nd4j.linalg.api.ndarray.INDArray
 
 /**
   * Use Neural Network to choose encoding
   */
-class NeuralNetClassifier {
+object NeuralNetClassifierForInt extends App {
+  val fullds = new EncselDataset(DataType.INTEGER).
+  val datasets = fullds.split(Seq(0.7, 0.3))
+  val trainds = datasets(0)
+  val testds = datasets(1)
 
+  val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
+  val trainer = new SimpleTrainer[INDArray, Dataset[INDArray], EncSelNNGraph](trainds, testds, graph) {
+    override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
+      graph.x.set(batch.data)
+      graph.expect(batch.groundTruth)
+    }
+  }
+  trainer.train(50)
 }
 
 object EncSelNNGraph {
@@ -57,5 +70,4 @@ class EncSelNNGraph(numFeature: Int, numClass: Int)
 
     output(softmax)
   }
-
 }
