@@ -14,14 +14,13 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.tool
+package edu.uchicago.cs.encsel.app
 
 import java.io._
 import java.net.URI

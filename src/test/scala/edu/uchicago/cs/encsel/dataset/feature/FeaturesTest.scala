@@ -40,3 +40,21 @@ class FeaturesTest {
 
   }
 }
+
+class FeatureTest {
+  @Test
+  def testEqualHash: Unit = {
+
+    val fa = new Feature
+    val fb = new Feature
+
+    fa.featureType = "ABC"
+    fa.name = "ttt"
+
+    fb.featureType = "ABC"
+    fb.name = "ttt"
+
+    assertTrue(fa.equals(fb))
+    assertEquals(fa.hashCode(), fb.hashCode())
+  }
+}

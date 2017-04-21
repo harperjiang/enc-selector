@@ -32,8 +32,6 @@ import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.uchicago.cs.encsel.dataset.parquet.HardcodedValuesWriterFactory;
-import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper;
 import edu.uchicago.cs.encsel.model.IntEncoding;
 import edu.uchicago.cs.encsel.model.StringEncoding;
 
@@ -69,8 +67,6 @@ public class ParquetWriterHelperTest {
 	@Test
 	public void testWriteInt() throws IOException {
 		String file = "src/test/resource/test_col_int.data";
-
-		HardcodedValuesWriterFactory.INSTANCE.setIntBitLength(14);
 
 		ParquetWriterHelper.singleColumnInt(new File(file).toURI(), IntEncoding.DICT);
 		ParquetWriterHelper.singleColumnInt(new File(file).toURI(), IntEncoding.BP);
