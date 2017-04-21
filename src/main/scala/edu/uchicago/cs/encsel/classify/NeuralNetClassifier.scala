@@ -23,16 +23,39 @@
 
 package edu.uchicago.cs.encsel.classify
 
-import edu.uchicago.cs.ndnn.{Adam, Graph, SoftMaxLogLoss, Xavier}
+import edu.uchicago.cs.ndnn._
 import org.nd4j.linalg.api.ndarray.INDArray
 
 /**
-  * Created by harper on 4/18/17.
+  * Use Neural Network to choose encoding
   */
 class NeuralNetClassifier {
 
 }
 
-class SimpleNNGraph extends Graph[INDArray](Xavier,new Adam(),new SoftMaxLogLoss) {
+object EncSelNNGraph {
+  val hiddenDim = 100
+}
+
+class EncSelNNGraph(numFeature: Int, numClass: Int)
+  extends Graph(Xavier, new Adam(), new SoftMaxLogLoss) {
+
+  val x = input("x")
+
+  {
+    val w = param("w", Array(numFeature, EncSelNNGraph.hiddenDim))
+    val b = param("b", Array(EncSelNNGraph.hiddenDim))
+    val map = param("map", Array(EncSelNNGraph.hiddenDim, numClass))
+    val mapb = param("mapb", Array(numClass))
+
+    val wx = new DotMul(x, w)
+    val wxab = new Add(wx, b)
+    val sigmoid = new Sigmoid(wxab)
+    val mapped = new DotMul(sigmoid, map)
+    val offset = new Add(mapped, mapb)
+    val softmax = new SoftMax(offset)
+
+    output(softmax)
+  }
 
 }

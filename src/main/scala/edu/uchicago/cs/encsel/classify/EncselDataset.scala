@@ -86,41 +86,6 @@ class EncselDataset(val dataType: DataType) extends DefaultDataset {
 
     (features.toArray, labels.toArray)
   }
-
-  def split(ratio: Seq[Double]): Seq[Dataset[INDArray]] = {
-
-    val length = this.datas.length
-    val permutation = (0 until length).toBuffer
-    Collections.shuffle(permutation)
-
-    val slice = ratio.map(d => Math.floor(d * length).toInt).toBuffer
-    val addup = length - slice.sum
-
-    slice(slice.length - 1) += addup
-
-    var pointer = 0
-
-    slice.map(cnt => {
-      val result = fetchSub(permutation, pointer, pointer + cnt)
-      pointer += cnt
-      result
-    })
-  }
-
-  protected def fetchSub(permutation: Seq[Int], from: Int, to: Int): Dataset[INDArray] = {
-    val data = new ArrayBuffer[Array[Double]]
-    val label = new ArrayBuffer[Double]
-    (from until to).foreach(idx => {
-      data += this.datas(permutation(idx))
-      label += this.expects(permutation(idx))
-    })
-    new EncselSplitDataset(data.toArray, label.toArray)
-  }
 }
 
-class EncselSplitDataset(val features: Array[Array[Double]],
-                         val expect: Array[Double])
-  extends DefaultDataset {
 
-  override def load(): (Array[Array[Double]], Array[Double]) = (features, expect)
-}

@@ -29,6 +29,7 @@ import org.nd4j.linalg.factory.Nd4j
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 trait Dataset[D] {
 
@@ -82,7 +83,45 @@ abstract class DefaultDataset extends DatasetBase[INDArray] {
     new Batch[INDArray](idices.length, Nd4j.create(idices.map(datas(_)).toArray),
       Nd4j.create(idices.map(expects(_)).toArray))
   }
+
+  def split(ratio: Seq[Double]): Seq[Dataset[INDArray]] = {
+
+    val length = this.datas.length
+    val permutation = (0 until length).toBuffer
+    Collections.shuffle(permutation)
+
+    val slice = ratio.map(d => Math.floor(d * length).toInt).toBuffer
+    val addup = length - slice.sum
+
+    slice(slice.length - 1) += addup
+
+    var pointer = 0
+
+    slice.map(cnt => {
+      val result = fetchSub(permutation, pointer, pointer + cnt)
+      pointer += cnt
+      result
+    })
+  }
+
+  protected def fetchSub(permutation: Seq[Int], from: Int, to: Int): Dataset[INDArray] = {
+    val data = new ArrayBuffer[Array[Double]]
+    val label = new ArrayBuffer[Double]
+    (from until to).foreach(idx => {
+      data += this.datas(permutation(idx))
+      label += this.expects(permutation(idx))
+    })
+    new PreparedDataset(data.toArray, label.toArray)
+  }
 }
+
+class PreparedDataset(val features: Array[Array[Double]],
+                      val expect: Array[Double])
+  extends DefaultDataset {
+
+  override def load(): (Array[Array[Double]], Array[Double]) = (features, expect)
+}
+
 
 abstract class VarLenDatasetBase[D] extends Dataset[D] {
 

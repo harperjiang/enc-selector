@@ -1,18 +1,9 @@
 package edu.uchicago.cs.ndnn
 
-import java.util.ArrayList
-import java.util.Collections
 
-import scala.collection.JavaConversions.asScalaBuffer
-import scala.collection.JavaConversions.seqAsJavaList
 import scala.collection.mutable.HashSet
-
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Test
-import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.factory.Nd4j
-import java.util.Arrays
 
 class DummyDataset extends DefaultDataset {
   def permuteIdx4Test = permuteIdx
@@ -88,4 +79,27 @@ class DatasetTest {
     assertEquals(0, distinct.min, 0.01)
     assertEquals(99, distinct.max, 0.01)
   }
+
+  @Test
+  def testSplit: Unit = {
+
+    val data = (0 until 10000).map(i => Array.fill(100)(i.toDouble)).toArray
+    val label = (0 until 10000).map(_.toDouble).toArray
+
+    val dataset = new SplitDatasetForTest(data, label)
+
+    val splitds = dataset.split(Seq(0.7, 0.15, 0.1))
+
+    assertEquals(7000, splitds(0).dataSize)
+    assertEquals(1500, splitds(1).dataSize)
+    assertEquals(1500, splitds(2).dataSize)
+  }
 }
+
+class SplitDatasetForTest(value: Array[Array[Double]], label: Array[Double])
+  extends DefaultDataset {
+  override def load(): (Array[Array[Double]], Array[Double]) = {
+    (value, label)
+  }
+}
+
