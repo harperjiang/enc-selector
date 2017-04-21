@@ -60,6 +60,8 @@ object EncselDataset {
   */
 class EncselDataset(val dataType: DataType) extends DefaultDataset {
 
+  protected var _numClass = 0
+
   override def load(): (Array[Array[Double]], Array[Double]) = {
 
     val typeMap = new mutable.HashMap[String, Int]
@@ -83,9 +85,13 @@ class EncselDataset(val dataType: DataType) extends DefaultDataset {
         labels += label
       }
     )
-
+    _numClass = typeMap.size
     (features.toArray, labels.toArray)
   }
+
+  def numFeature = EncselDataset.featureMap.getOrElse(dataType, Array.empty).length
+
+  def numClass = _numClass
 }
 
 
