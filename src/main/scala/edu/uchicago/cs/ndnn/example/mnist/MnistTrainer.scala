@@ -30,5 +30,6 @@ class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
 
   protected override def setupGraph(graph: MnistGraph, batch: Batch[INDArray]): Unit = {
     graph.pixelInput.set(batch.data)
+    graph.expect(batch.groundTruth)
   }
 }

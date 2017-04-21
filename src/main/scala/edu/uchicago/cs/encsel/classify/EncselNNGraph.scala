@@ -20,30 +20,36 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.ndnn
 
-import org.nd4j.linalg.api.ndarray.INDArray
-import org.nd4j.linalg.api.rng.distribution.impl.UniformDistribution
-import org.nd4j.linalg.api.rng.distribution.impl.NormalDistribution
-import org.nd4j.linalg.factory.Nd4j
+package edu.uchicago.cs.encsel.classify
 
-trait InitPolicy {
-  def init(shape: Array[Int]): INDArray
+import edu.uchicago.cs.ndnn._
 
-  def init(shape: Int*): INDArray = init(shape.toArray)
+/**
+  * Created by harper on 4/21/17.
+  */
+object EncSelNNGraph {
+  val hiddenDim = 200
 }
 
-object Xavier extends InitPolicy {
-  def init(shape: Array[Int]): INDArray = {
-    val n = shape.dropRight(1).product
-    val sd = Math.sqrt(3d / n)
-    new UniformDistribution(-sd,sd).sample(shape)
-//    new NormalDistribution(0, sd).sample(shape)
-  }
-}
+class EncSelNNGraph(numFeature: Int, numClass: Int)
+  extends Graph(Xavier, new Adam(0.05,0.9,0.999), new SoftMaxLogLoss) {
 
-object Zero extends InitPolicy {
-  def init(shape: Array[Int]): INDArray = {
-    Nd4j.zeros(shape:_*)
+  val x = input("x")
+
+  {
+    val w = param("w", Array(numFeature, EncSelNNGraph.hiddenDim))
+    val b = param("b", Array(EncSelNNGraph.hiddenDim))(Zero)
+    val map = param("map", Array(EncSelNNGraph.hiddenDim, numClass))
+    val mapb = param("mapb", Array(numClass))(Zero)
+
+    val wx = new DotMul(x, w)
+    val wxab = new Add(wx, b)
+    val sigmoid = new Tanh(wxab)
+    val mapped = new DotMul(sigmoid, map)
+    val offset = new Add(mapped, mapb)
+    val softmax = new SoftMax(offset)
+
+    output(softmax)
   }
 }

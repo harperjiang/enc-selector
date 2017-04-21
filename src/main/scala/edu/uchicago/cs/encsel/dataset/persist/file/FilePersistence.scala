@@ -22,24 +22,17 @@
  */
 package edu.uchicago.cs.encsel.dataset.persist.file
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.io._
 
-import scala.Iterable
-import scala.collection.mutable.ArrayBuffer
-
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
-import java.io.FileNotFoundException
+import edu.uchicago.cs.encsel.model.DataType
+
 import scala.collection.mutable.HashSet
 
 /**
- * A thread safe implementation of <code>Persistence</code> backed by file storage
- */
+  * A thread safe implementation of <code>Persistence</code> backed by file storage
+  */
 class FilePersistence extends Persistence {
 
   val storage = new File("storage.dat")
@@ -80,5 +73,9 @@ class FilePersistence extends Persistence {
         }
       }
     }
+  }
+
+  def lookup(dataType: DataType): Iterator[Column] = {
+    load.filter(_.dataType == dataType)
   }
 }

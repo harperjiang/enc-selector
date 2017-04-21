@@ -23,11 +23,12 @@
 
 package edu.uchicago.cs.encsel.dataset.persist.jpa
 
-import scala.collection.JavaConversions.asScalaBuffer
-
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.model.DataType
 import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConversions.asScalaBuffer
 
 class JPAPersistence extends Persistence {
   val logger = LoggerFactory.getLogger(getClass)
@@ -36,13 +37,12 @@ class JPAPersistence extends Persistence {
     val em = JPAPersistence.emf.createEntityManager()
     em.getTransaction.begin()
     try {
-      datalist.map(ColumnWrapper.fromColumn).foreach { data =>
-        {
-          data.id match {
-            case 0 => em.persist(data)
-            case _ => em.merge(data)
-          }
+      datalist.map(ColumnWrapper.fromColumn).foreach { data => {
+        data.id match {
+          case 0 => em.persist(data)
+          case _ => em.merge(data)
         }
+      }
       }
       em.getTransaction.commit()
     } catch {
@@ -82,8 +82,18 @@ class JPAPersistence extends Persistence {
 
   def find(id: Int): Column = {
     val em = JPAPersistence.emf.createEntityManager()
-    em.createQuery("SELECT c FROM Column c where c.id = :id",
+    val res = em.createQuery("SELECT c FROM Column c where c.id = :id",
       classOf[ColumnWrapper]).setParameter("id", id).getSingleResult
+    em.close
+    res
+  }
+
+  def lookup(dataType: DataType): Iterator[Column] = {
+    val em = JPAPersistence.emf.createEntityManager
+    val result = em.createQuery("SELECT c FROM Column c where c.dataType = :dt", classOf[ColumnWrapper])
+      .setParameter("dt", dataType).getResultList.map(_.asInstanceOf[Column]).toIterator
+    em.close
+    result
   }
 }
 
