@@ -9,7 +9,7 @@ mysqldump -u encsel -pencsel encsel > backup_`date +%Y%m%d`.sql
 find . -name backup_*.sql -mtime +7 -delete
 
 # Upload to GIT
-git add -A
+git add -A .
 git commit -m "Daily DB Backup"
 git push origin master
 

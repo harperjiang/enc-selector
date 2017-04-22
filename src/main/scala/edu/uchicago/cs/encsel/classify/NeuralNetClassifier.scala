@@ -21,8 +21,9 @@
  *
  */
 
-package edu.uchicago.cs.encsel.classify
+package edu.uchicago.cs.encsel.classify.nn
 
+import edu.uchicago.cs.encsel.classify.{EncSelNNGraph, EncselDataset}
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.ndnn._
 import org.nd4j.linalg.api.ndarray.INDArray
@@ -30,7 +31,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 /**
   * Use Neural Network to choose encoding
   */
-object NeuralNetClassifierForInt extends App {
+object ClassifierForInt extends App {
   val fullds = new EncselDataset(DataType.INTEGER)
   val datasets = fullds.split(Seq(0.9, 0.1))
   val trainds = datasets(0)
@@ -41,6 +42,27 @@ object NeuralNetClassifierForInt extends App {
 
     {
       paramStore = new FileStore("enc_nn_int_model")
+    }
+
+    override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
+      graph.x.set(batch.data)
+      graph.expect(batch.groundTruth)
+    }
+  }
+  trainer.train(50)
+}
+
+object ClassifierForString extends App {
+  val fullds = new EncselDataset(DataType.STRING)
+  val datasets = fullds.split(Seq(0.9, 0.1))
+  val trainds = datasets(0)
+  val testds = datasets(1)
+
+  val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
+  val trainer = new SimpleTrainer[INDArray, Dataset[INDArray], EncSelNNGraph](trainds, testds, graph) {
+
+    {
+      paramStore = new FileStore("enc_nn_string_model")
     }
 
     override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
