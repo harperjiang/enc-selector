@@ -54,26 +54,31 @@ class CSVColumnReader2 extends ColumnReader {
     var parseFormat = CSVFormat.EXCEL
     if (schema.hasHeader)
       parseFormat = parseFormat.withFirstRecordAsHeader()
+    else {
+      parseFormat.withHeader(schema.columns.map(_._2): _*)
+    }
     val parser = parseFormat.parse(new FileReader(new File(source)))
+
 
     val iterator = parser.iterator()
     //    if (schema.hasHeader) {
     //      iterator.next()
     //    }
-    iterator.foreach { record =>
-      {
-        fireReadRecord(source)
-        if (!validate(record, schema)) {
-          logger.warn("Malformated record at " + record.getRecordNumber + " found, skipping:" + record.toString)
-          fireFailRecord(source)
-        } else {
-          record.iterator().zipWithIndex.foreach(rec => {
-            colWithWriter(rec._2)._2.println(rec._1)
-          })
-        }
+    iterator.foreach { record => {
+      fireReadRecord(source)
+      if (!validate(record, schema)) {
+        logger.warn("Malformated record at " + record.getRecordNumber + " found, skipping:" + record.toString)
+        fireFailRecord(source)
+      } else {
+        record.iterator().zipWithIndex.foreach(rec => {
+          colWithWriter(rec._2)._2.println(rec._1)
+        })
       }
     }
-    colWithWriter.foreach(t => { t._2.close() })
+    }
+    colWithWriter.foreach(t => {
+      t._2.close()
+    })
     fireDone(source)
     colWithWriter.map(_._1)
   }
