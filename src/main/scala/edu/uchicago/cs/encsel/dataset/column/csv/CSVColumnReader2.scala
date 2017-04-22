@@ -55,7 +55,7 @@ class CSVColumnReader2 extends ColumnReader {
     if (schema.hasHeader)
       parseFormat = parseFormat.withFirstRecordAsHeader()
     else {
-      parseFormat.withHeader(schema.columns.map(_._2): _*)
+      parseFormat = parseFormat.withHeader(schema.columns.map(_._2): _*)
     }
     val parser = parseFormat.parse(new FileReader(new File(source)))
 
