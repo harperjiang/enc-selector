@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Backup Database
-cd /home/hajiang/enc-selector/sql
+cd `dirname $0`
+cd ../sql
 mysqldump -u encsel -pencsel encsel > backup_`date +%Y%m%d`.sql
 
 # Delete files older than 7 days
