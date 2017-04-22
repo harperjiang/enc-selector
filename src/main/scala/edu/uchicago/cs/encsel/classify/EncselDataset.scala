@@ -23,6 +23,7 @@
 
 package edu.uchicago.cs.encsel.classify
 
+import edu.uchicago.cs.encsel.dataset.feature.EncFileSize
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.ndnn.DefaultDataset
@@ -74,11 +75,14 @@ class EncselDataset(val dataType: DataType) extends DefaultDataset {
           case Some(e) => e.value
         }
       })
-      val minName = column.findFeatures("EncFileSize").minBy(_.value).name
-      val label = typeMap.getOrElseUpdate(minName, typeMap.size)
+      val encoded = column.findFeatures(EncFileSize.featureType)
+      if (encoded.nonEmpty) {
+        val minName = encoded.minBy(_.value).name
+        val label = typeMap.getOrElseUpdate(minName, typeMap.size)
 
-      features += feature
-      labels += label
+        features += feature
+        labels += label
+      }
     })
     _numClass = typeMap.size
     (features.toArray, labels.toArray)
