@@ -96,11 +96,11 @@ class CommonSeq {
               firstLine = false
             } else {
               positions = positions.map(pos => {
-                pos.zip(nonOverlap).map(pair => {
+                pos.zip(nonOverlap).flatMap(pair => {
                   val oldpos = pair._1
                   val newseps = pair._2
                   newseps.map(newsep => (oldpos._1 + newsep._1, newsep._3))
-                }).flatten
+                })
               })
               positions += nonOverlap.flatten.map(item => (item._2, item._3))
             }
@@ -139,8 +139,8 @@ class CommonSeq {
       }
     }
     // Collecting results
-    for (i <- 0 until a.length;
-         j <- 0 until b.length) {
+    for (i <- a.indices;
+         j <- b.indices) {
       if (data(i)(j) >= sequence_length) {
         candidates += ((i - data(i)(j) + 1, j - data(i)(j) + 1, data(i)(j)))
       }
@@ -152,8 +152,8 @@ class CommonSeq {
     val not_overlap = new ArrayBuffer[(Int, Int, Int)]
     // From long to short
     candidates.sortBy(x => (-x._3, x._1, x._2)).foreach(c => {
-      val afree = pha.slice(c._1, c._1 + c._3).toSet.filter(_ >= c._3).isEmpty
-      val bfree = phb.slice(c._2, c._2 + c._3).toSet.filter(_ >= c._3).isEmpty
+      val afree = !pha.slice(c._1, c._1 + c._3).toSet.exists(_ >= c._3)
+      val bfree = !phb.slice(c._2, c._2 + c._3).toSet.exists(_ >= c._3)
       if (afree && bfree) {
         not_overlap += c
         (c._1 until c._1 + c._3).foreach(pha(_) = c._3)

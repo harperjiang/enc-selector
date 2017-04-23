@@ -46,7 +46,7 @@ class SuccinctRule extends RewriteRule {
   protected def update(up: Pattern): Pattern = {
     up match {
       case seq: PSeq => {
-        happen
+        happen()
         val removeEmpty = seq.content.filter(_ != PEmpty)
         removeEmpty.length match {
           case 0 => PEmpty
@@ -56,7 +56,7 @@ class SuccinctRule extends RewriteRule {
         }
       }
       case union: PUnion => {
-        happen
+        happen()
         union.content.length match {
           case 0 => PEmpty
           case 1 => //noinspection ZeroIndexToHead

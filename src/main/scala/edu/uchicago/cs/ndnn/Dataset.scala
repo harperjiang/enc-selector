@@ -53,7 +53,7 @@ abstract class DatasetBase[D] extends Dataset[D] {
     val loaded = load()
     datas = loaded._1
     expects = loaded._2
-    permuteIdx = (0 until datas.length).toBuffer
+    permuteIdx = datas.indices.toBuffer
   }
 
   def dataSize = datas.length
@@ -67,7 +67,7 @@ abstract class DatasetBase[D] extends Dataset[D] {
 
     if (batchSize <= 0)
       throw new IllegalArgumentException("Batch Size should be non-negative")
-    val batches = (0 until datas.length by batchSize)
+    val batches = (datas.indices by batchSize)
     numBatch = batches.length
 
     batches.toIterator.map(i => {
@@ -93,7 +93,7 @@ abstract class DefaultDataset extends DatasetBase[INDArray] {
     val slice = ratio.map(d => Math.floor(d * length).toInt).toBuffer
     val addup = length - slice.sum
 
-    slice(slice.length - 1) += addup
+    slice.last += addup
 
     var pointer = 0
 
@@ -138,7 +138,7 @@ abstract class VarLenDatasetBase[D] extends Dataset[D] {
     expects = loaded._2
     groupByLength = loaded._1.zipWithIndex.map(d => (d._1.length, d._2)).groupBy(_._1)
       .values.map(_.map(_._2)).toArray
-    permuteIdx = (0 until groupByLength.length).toBuffer
+    permuteIdx = groupByLength.indices.toBuffer
   }
 
   def dataSize = datas.length
@@ -153,14 +153,14 @@ abstract class VarLenDatasetBase[D] extends Dataset[D] {
     if (batchSize <= 0)
       throw new IllegalArgumentException("Batch Size should be non-negative")
 
-    numBatch = groupByLength.map(group => (0 until group.length by batchSize).length).sum
+    numBatch = groupByLength.map(group => (group.indices by batchSize).length).sum
 
-    permuteIdx.map(idx => {
+    permuteIdx.flatMap(idx => {
       val group = groupByLength(idx)
       (0 until group.length by batchSize).map(iidx => {
         construct(group.slice(iidx, iidx + batchSize))
       })
-    }).flatten.toIterator
+    }).toIterator
   }
 }
 

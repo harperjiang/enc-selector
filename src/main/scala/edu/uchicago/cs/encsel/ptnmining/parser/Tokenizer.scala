@@ -38,7 +38,7 @@ object Tokenizer {
     val tokens = new mutable.Stack[Token]
 
     val find_match: TPara => Unit = (right: TPara) => {
-      if (tokens.filter(t => t.isInstanceOf[TPara] && t.asInstanceOf[TPara].matches(right)).nonEmpty) {
+      if (tokens.exists(t => t.isInstanceOf[TPara] && t.asInstanceOf[TPara].matches(right))) {
         val buffer = new ArrayBuffer[Token]
         while (!tokens.top.isInstanceOf[TPara] || !tokens.top.asInstanceOf[TPara].matches(right)) {
           buffer.insert(0, tokens.pop)

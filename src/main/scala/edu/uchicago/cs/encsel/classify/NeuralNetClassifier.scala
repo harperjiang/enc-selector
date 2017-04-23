@@ -34,7 +34,7 @@ import org.nd4j.linalg.api.ndarray.INDArray
 object ClassifierForInt extends App {
   val fullds = new EncselDataset(DataType.INTEGER)
   val datasets = fullds.split(Seq(0.9, 0.1))
-  val trainds = datasets(0)
+  val trainds = datasets.head
   val testds = datasets(1)
 
   val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
@@ -55,7 +55,7 @@ object ClassifierForInt extends App {
 object ClassifierForString extends App {
   val fullds = new EncselDataset(DataType.STRING)
   val datasets = fullds.split(Seq(0.9, 0.1))
-  val trainds = datasets(0)
+  val trainds = datasets.head
   val testds = datasets(1)
 
   val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)

@@ -71,7 +71,7 @@ class CSVRecordWrapper(inner: CSVRecord) extends Record {
   def length(): Int = {
     inner.size()
   }
-  override def toString(): String = {
+  override def toString: String = {
     inner.toString
   }
   def iterator(): Iterator[String] = {

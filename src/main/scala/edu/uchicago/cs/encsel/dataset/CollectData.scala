@@ -14,44 +14,41 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
-package edu.uchicago.cs.encsel.app
+
+package edu.uchicago.cs.encsel.dataset
 
 import java.io.File
-
-import java.util.concurrent.Executors
-import java.nio.file.Paths
-import edu.uchicago.cs.encsel.dataset.column.ColumnReaderFactory
-import java.util.concurrent.Callable
-import edu.uchicago.cs.encsel.dataset.column.Column
 import java.net.URI
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
-import java.nio.file.Path
-import java.nio.file.Files
+import java.nio.file.{Files, Paths}
+import java.util.concurrent.{Callable, Executors, TimeUnit}
+
 import edu.uchicago.cs.encsel.Config
-import edu.uchicago.cs.encsel.dataset.column.ColumnReader
-import edu.uchicago.cs.encsel.dataset.schema.Schema
-import org.slf4j.LoggerFactory
+import edu.uchicago.cs.encsel.dataset.column.{Column, ColumnReader, ColumnReaderFactory}
 import edu.uchicago.cs.encsel.dataset.feature.Features
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.schema.Schema
+import edu.uchicago.cs.encsel.util.FileUtils
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
-import edu.uchicago.cs.encsel.util.FileUtils
-import java.util.concurrent.TimeUnit
-
+/**
+  * Created by harper on 4/23/17.
+  */
 object CollectData extends App {
   val f = new File(args(0))
   //var f = new File("/home/harper/dataset/dc_dp")
   new DataCollector().scan(f.toURI)
 }
 
+
 class DataCollector {
 
-  var persistence = Persistence.get
+  var persistence: Persistence = Persistence.get
   val logger = LoggerFactory.getLogger(this.getClass)
   val threadPool = Executors.newFixedThreadPool(Config.collectorThreadCount)
 

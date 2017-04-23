@@ -84,7 +84,7 @@ class JPAPersistence extends Persistence {
     val em = JPAPersistence.emf.createEntityManager()
     val res = em.createQuery("SELECT c FROM Column c where c.id = :id",
       classOf[ColumnWrapper]).setParameter("id", id).getSingleResult
-    em.close
+    em.close()
     res
   }
 
@@ -92,7 +92,7 @@ class JPAPersistence extends Persistence {
     val em = JPAPersistence.emf.createEntityManager
     val result = em.createQuery("SELECT c FROM Column c where c.dataType = :dt", classOf[ColumnWrapper])
       .setParameter("dt", dataType).getResultList.map(_.asInstanceOf[Column]).toIterator
-    em.close
+    em.close()
     result
   }
 }

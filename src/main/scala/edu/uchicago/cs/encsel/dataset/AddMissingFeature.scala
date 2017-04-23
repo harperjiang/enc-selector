@@ -14,25 +14,23 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.encsel.dataset
 
-import scala.Iterable
-import edu.uchicago.cs.encsel.dataset.feature._
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.column.Column
+import edu.uchicago.cs.encsel.dataset.feature.Features
+import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
-import edu.uchicago.cs.encsel.dataset.column.Column
-import org.slf4j.LoggerFactory
-import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
-
+/**
+  * Created by harper on 4/23/17.
+  */
 object AddMissingFeature extends App {
 
   val logger = LoggerFactory.getLogger(getClass)

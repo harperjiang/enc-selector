@@ -51,7 +51,7 @@ class SchemaGuesser {
     var malformatCount = 0
     records.foreach(record => {
       if (record.length == columns.length) {
-        for (i <- 0 until columns.length) {
+        for (i <- columns.indices) {
           var value = record(i)
           if (value != null && value.trim().length() != 0) {
             value = value.trim()

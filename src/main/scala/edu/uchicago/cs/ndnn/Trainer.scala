@@ -28,7 +28,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks._
 
 trait Evaluator {
-  def init: Unit
+  def init(): Unit
 
   def record[D](batch: Batch[D], loss: Double, acc: Int): Unit
 
@@ -43,7 +43,7 @@ class MeanLossEvaluator extends Evaluator {
   var lossSum = 0d
   var accSum = 0
 
-  def init: Unit = {
+  def init(): Unit = {
     batchCounter = 0
     itemCounter = 0
     lossSum = 0
@@ -104,13 +104,13 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
 
       val graph = getGraph
 
-      getEvaluator.init
+      getEvaluator.init()
       trainset.batches(trainBatchSize).foreach(batch => {
         setupGraph(graph, batch)
         val loss = graph.train
         getEvaluator.record(batch, loss, -1)
       })
-      graph.epochDone
+      graph.epochDone()
 
       val trainLoss = getEvaluator.loss
       val testLoss = evaluate(testBatchSize)
@@ -142,7 +142,7 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
     val evaluator = getEvaluator
     val graph = getGraph
 
-    evaluator.init
+    evaluator.init()
 
     testset.batches(testBatchSize).foreach {
       batch => {

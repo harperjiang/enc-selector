@@ -20,7 +20,7 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.encsel.dataset.fix
 
 import java.io._
 import java.net.URI
@@ -54,8 +54,8 @@ object FixCSV extends App {
       case false => bad.println(p._1)
     }
   })
-  output.close
-  bad.close
+  output.close()
+  bad.close()
 }
 
 /**
@@ -156,7 +156,7 @@ class CSVLineFixer(expectCol: Int, fixCol: Int) {
               }
               if (next(input, index) == ',') {
                 // Previous mark is wrong, remove it
-                if (!seqmark.isEmpty)
+                if (seqmark.nonEmpty)
                   seqmark.remove(seqmark.length - 1)
                 seqmark += index
               }
@@ -230,8 +230,9 @@ class CSVLineFixer(expectCol: Int, fixCol: Int) {
           fixCol match {
             case -1 => ""
             case _ => {
+              //noinspection ReplaceToWithUntil
               // Merge additional columns to [length - fixCol - 1]
-              val toMerge = (expectCol - fixCol - 1 to record.size - fixCol - 1)
+              val toMerge = expectCol - fixCol - 1 until record.size - fixCol
               val merged = "\"%s\"".format(toMerge.map(i => escapeString(record.get(i))).mkString(","))
 
               var combined = (0 until expectCol - fixCol - 1).map(i => escapeField(record.get(i))) :+ merged

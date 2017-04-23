@@ -51,12 +51,7 @@ public class AdaptiveValuesWriterFactory implements ValuesWriterFactory {
 
 	private ParquetProperties parquetProperties;
 
-	public static ThreadLocal<EncodingSetting> encodingSetting = new ThreadLocal<EncodingSetting>() {
-		@Override
-		protected EncodingSetting initialValue() {
-			return new EncodingSetting();
-		}
-	};
+	public static ThreadLocal<EncodingSetting> encodingSetting = ThreadLocal.withInitial(() -> new EncodingSetting());
 
 	@Override
 	public void initialize(ParquetProperties parquetProperties) {

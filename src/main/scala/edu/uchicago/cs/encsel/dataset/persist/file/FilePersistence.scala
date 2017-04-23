@@ -76,6 +76,6 @@ class FilePersistence extends Persistence {
   }
 
   def lookup(dataType: DataType): Iterator[Column] = {
-    load.filter(_.dataType == dataType)
+    load().filter(_.dataType == dataType)
   }
 }

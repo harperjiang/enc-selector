@@ -59,7 +59,7 @@ class LSTMDataset(file: URI, extdict: LSTMDataset) extends DatasetBase[Array[Arr
       strlines.foreach(line =>
         line.toCharArray.foreach { c =>
           dict.getOrElseUpdate(c, {
-            inverseDict += c;
+            inverseDict += c
             dict.size
           })
         })

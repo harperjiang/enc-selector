@@ -45,13 +45,13 @@ trait NodeEnv {
     nodeBuffer += n
   }
 
-  def forward: Unit =
+  def forward(): Unit =
     nodeBuffer.foreach {
-      _.forward
+      _.forward()
     }
 
-  def backward: Unit =
-    nodeBuffer.reverseIterator.foreach(_.backward)
+  def backward(): Unit =
+    nodeBuffer.reverseIterator.foreach(_.backward())
 
   def param(n: String): Param = {
     val newparam = new Param(n)
@@ -82,8 +82,8 @@ abstract class Node(is: Node*) {
     this.env = e
   }
 
-  def forward: Unit = {
-    compute
+  def forward(): Unit = {
+    compute()
     if (this.value != null) {
       if (this.grad == null ||
         !this.grad.shape.sameElements(this.value.shape)) {
@@ -94,11 +94,11 @@ abstract class Node(is: Node*) {
     }
   }
 
-  def backward: Unit = updateGrad
+  def backward(): Unit = updateGrad()
 
-  def compute: Unit
+  def compute(): Unit
 
-  def updateGrad: Unit
+  def updateGrad(): Unit
 
   def getValue = value
 }
@@ -129,9 +129,9 @@ class Input(n: String) extends Node {
     }
   }
 
-  def compute: Unit = Unit
+  def compute(): Unit = Unit
 
-  def updateGrad: Unit = Unit
+  def updateGrad(): Unit = Unit
 }
 
 class Param(n: String) extends Input(n) {
@@ -140,11 +140,11 @@ class Param(n: String) extends Input(n) {
 
 class Add(left: Node, right: Node) extends Node(left, right) {
 
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Broadcast.add(left.value, right.value)
   }
 
-  def updateGrad: Unit = {
+  def updateGrad(): Unit = {
     this.left.grad.addi(this.grad)
 
     this.right.grad.addi(right.value.isVector match {
@@ -157,11 +157,11 @@ class Add(left: Node, right: Node) extends Node(left, right) {
 
 class Mul(left: Node, right: Node) extends Node(left, right) {
 
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Broadcast.mul(left.value, right.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     right.grad.isVector match {
       case false => {
         left.grad.addi(right.value.mul(grad))
@@ -177,32 +177,32 @@ class Mul(left: Node, right: Node) extends Node(left, right) {
 
 class DotMul(left: Node, right: Node) extends Node(left, right) {
 
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = left.value.mmul(right.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     left.grad.addi(grad.mmul(right.value.transpose()))
     right.grad.addi(left.value.transpose.mmul(grad))
   }
 }
 
 class ReLU(input: Node) extends Node(input) {
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Transforms.relu(input.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     input.grad.addi(this.value.gt(0).muli(this.grad))
   }
 }
 
 class LeakyReLU(input: Node) extends Node(input) {
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Transforms.leakyRelu(input.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     val op = new LeakyReLUDerivative(this.value)
     val derivative = Nd4j.getExecutioner.execAndReturn(op)
     input.grad.addi(derivative)
@@ -210,22 +210,22 @@ class LeakyReLU(input: Node) extends Node(input) {
 }
 
 class Sigmoid(input: Node) extends Node(input) {
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Transforms.sigmoid(input.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     val one = Nd4j.onesLike(this.value)
     input.grad.addi(one.subi(this.value).muli(this.value).muli(grad))
   }
 }
 
 class Tanh(input: Node) extends Node(input) {
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Transforms.tanh(input.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     val one = Nd4j.onesLike(this.value)
     input.grad.addi(this.value.sub(one.muli(value)).muli(grad))
   }
@@ -233,11 +233,11 @@ class Tanh(input: Node) extends Node(input) {
 
 class SoftMax(input: Node) extends Node(input) {
 
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Operations.softmax(input.value.dup())
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     val dup = this.value.dup()
     val gvdot = dup.muli(this.grad).sum(this.grad.shape.length - 1)
 
@@ -248,11 +248,11 @@ class SoftMax(input: Node) extends Node(input) {
 }
 
 class Concat(left: Node, right: Node, idx: Int = 1) extends Node(left, right) {
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Nd4j.concat(idx, left.value, right.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     left.grad.addi(this.grad.get(NDArrayIndex.all(),
       NDArrayIndex.interval(0, left.value.shape()(1))))
     right.grad.addi(this.grad.get(NDArrayIndex.all(),
@@ -261,7 +261,7 @@ class Concat(left: Node, right: Node, idx: Int = 1) extends Node(left, right) {
 }
 
 class Collect(nodes: Node*) extends Node(nodes: _*) {
-  def compute: Unit = {
+  def compute(): Unit = {
     /*
     val valueList = nodes.map(n => {
       n.value.get((NDArrayIndex.newAxis() +: NDArrayIndex.allFor(n.value)): _*)
@@ -270,7 +270,7 @@ class Collect(nodes: Node*) extends Node(nodes: _*) {
     this.value = Nd4j.create(nodes.map(_.value).toList, nodes.length +: nodes(0).value.shape())
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     val total = this.grad.shape.length - 1
     nodes.zipWithIndex.foreach { n => {
       n._1.grad = this.grad.get(Index.point(total + 1, 0, n._2): _*)
@@ -287,7 +287,7 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
   var fwdmap: INDArray = _
   var bwdmap: INDArray = _
 
-  def compute: Unit = {
+  def compute(): Unit = {
 
     val indexval = idx match {
       case input: Input => input.get[Array[Int]]
@@ -305,7 +305,7 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
     this.value = fwdmap.mmul(map.value)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     // Support only column vectors
     map.grad.addi(bwdmap.mmul(this.grad))
   }
@@ -313,11 +313,11 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
 
 class ArgMax(input: Node) extends Node(input) {
 
-  def compute: Unit = {
+  def compute(): Unit = {
     this.value = Nd4j.argMax(input.value, 1)
   }
 
-  def updateGrad = {
+  def updateGrad() = {
     // TODO This is jvm loop and has performance issue
     val zero = Nd4j.zerosLike(input.value)
     Index.put(zero, this.value, this.grad)

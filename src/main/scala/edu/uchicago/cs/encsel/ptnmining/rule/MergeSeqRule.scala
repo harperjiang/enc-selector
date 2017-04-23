@@ -37,11 +37,11 @@ class MergeSeqRule extends RewriteRule {
     val check = seq.content.map(_.isInstanceOf[PSeq]).reduce((a, b) => a || b)
     check match {
       case true => {
-        happen
-        PSeq.make(seq.content.map(_ match {
+        happen()
+        PSeq.make(seq.content.flatMap(_ match {
           case seq: PSeq => seq.content
           case x => Seq(x)
-        }).flatten)
+        }))
       }
       case false => ptn
     }

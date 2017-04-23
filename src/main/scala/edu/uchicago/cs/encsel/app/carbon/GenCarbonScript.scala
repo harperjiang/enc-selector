@@ -32,9 +32,9 @@ object GenCarbonScript extends App {
 
   //  println(folderSize(Paths.get(new File("/home/harper/Repositories/incubator-carbondata/bin/carbonshellstore/default/event_time_57463913727907242513").toURI())))
 
-  compareSize
+  compareSize()
 
-  def carbonScript: Unit = {
+  def carbonScript(): Unit = {
     val dir = Paths.get(new File("/home/harper/dataset/carbon").toURI)
 
     Files.list(dir).iterator().toArray.foreach(file => {
@@ -44,11 +44,11 @@ object GenCarbonScript extends App {
     })
   }
 
-  def addHeader: Unit = {
+  def addHeader(): Unit = {
 
   }
 
-  def compareSize: Unit = {
+  def compareSize(): Unit = {
     val dir = Paths.get(new File("/home/harper/dataset/carbon").toURI)
     val carbondir = Paths.get(new File("/home/harper/Repositories/incubator-carbondata/bin/carbonshellstore/default").toURI)
     Files.list(dir).iterator().toArray.foreach(file => {

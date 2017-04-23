@@ -64,7 +64,7 @@ object Schema {
     new Schema(cols.toArray, hasheader)
   }
 
-  def toParquetFile(schema: Schema, file: URI) = {
+  def toParquetFile(schema: Schema, file: URI): Unit = {
     val writer = new PrintWriter(new FileOutputStream(new File(file)))
 
     writer.println("message m {")

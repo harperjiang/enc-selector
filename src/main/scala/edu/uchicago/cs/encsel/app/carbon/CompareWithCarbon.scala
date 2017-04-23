@@ -42,9 +42,9 @@ object CompareWithCarbon extends App {
   val schema = new Schema(Array((DataType.STRING, "id")), false)
   val carbonRoot = "/home/hajiang/incubator-carbondata/bin/carbonshellstore/default"
 
-  genReport
+  genReport()
 
-  def compareSize: Unit = {
+  def compareSize(): Unit = {
     val parser = new CommonsCSVParser
     val records = parser.parse(new FileInputStream(idfile), schema)
     val carbondir = Paths.get(new File(carbonRoot).toURI)
@@ -71,7 +71,7 @@ object CompareWithCarbon extends App {
     }.map(p => new File(p.toUri).length()).sum
   }
 
-  def genReport = {
+  def genReport() = {
     val dictData = new HashMap[(Int, Int), Int]
     val carbonData = new HashMap[(Int, Int), Int]
 

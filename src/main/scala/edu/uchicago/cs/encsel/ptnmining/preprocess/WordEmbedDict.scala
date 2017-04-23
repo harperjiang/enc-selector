@@ -57,7 +57,7 @@ class WordEmbedDict(source: String) {
   }
 
   def addPhrase(text: String, words: Array[String]) = {
-    val sum = words.map(find).flatten.reduce((a, b) => a.add(b))
+    val sum = words.flatMap(find).reduce((a, b) => a.add(b))
     additional.put(text, Some(sum))
   }
 

@@ -14,17 +14,15 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.ndnn.rnn
 
 import edu.uchicago.cs.ndnn.SGD
-import edu.uchicago.cs.ndnn.rnn.{LSTMDataset, LSTMGraph, LSTMPredictGraph, LSTMTrainer}
 import org.nd4j.linalg.factory.Nd4j
 
 object ContentPredict extends App {
@@ -55,5 +53,5 @@ object ContentPredict extends App {
     }
   }
 
-  trainer.train(50, 50)
+  trainer.train(50)
 }
