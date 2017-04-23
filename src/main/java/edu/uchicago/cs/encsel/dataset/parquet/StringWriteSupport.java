@@ -48,7 +48,7 @@ public class StringWriteSupport extends WriteSupport<List<String>> {
 
 	@Override
 	public WriteContext init(Configuration config) {
-		return new WriteContext(schema, new HashMap<String, String>());
+		return new WriteContext(schema, new HashMap<>());
 	}
 
 	@Override

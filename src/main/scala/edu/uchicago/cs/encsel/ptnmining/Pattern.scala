@@ -134,7 +134,7 @@ object PSeq {
   def make(content: Seq[Pattern]): Pattern =
     content.length match {
       case 0 => PEmpty
-      case 1 => content(0)
+      case 1 => content.head
       case _ => new PSeq(content)
     }
 }
@@ -172,7 +172,7 @@ object PUnion {
   def make(content: Seq[Pattern]) = {
     content.length match {
       case 0 => PEmpty
-      case 1 => content(0)
+      case 1 => content.head
       case _ => new PUnion(content)
     }
   }

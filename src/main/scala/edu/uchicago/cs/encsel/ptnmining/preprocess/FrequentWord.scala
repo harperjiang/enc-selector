@@ -69,11 +69,11 @@ private[ptnmining] class SearchTable {
     current.end = true
   }
 
-  def reset: Unit = path = root
+  def reset(): Unit = path = root
 
   def accept(word: String): Boolean = {
     if (path.next.contains(word)) {
-      path = path.next.get(word).get
+      path = path.next(word)
       true
     } else {
       false
@@ -210,8 +210,7 @@ class FrequentWord {
     val words = tokens.map(_.filter(t => {
       t.isInstanceOf[TWord] || t.isInstanceOf[TInt] || t.isInstanceOf[TDouble]
     }).map(_.value))
-    val wordGroups = words.map(_.toSet.toList)
-      .flatten.groupBy(k => k).mapValues(_.length).filter(_._2 > 1)
+    val wordGroups = words.flatMap(_.toSet.toList).groupBy(k => k).mapValues(_.length).filter(_._2 > 1)
     val lineCount = tokens.length
     wordFrequency.clear
     wordFrequency ++= wordGroups.mapValues(_.toDouble / lineCount)
@@ -274,7 +273,7 @@ class FrequentWord {
     val output = new ArrayBuffer[Token]
     val buffer = new ArrayBuffer[Token]
     val symbuffer = new ArrayBuffer[Token]
-    st.reset
+    st.reset()
     in.foreach(token => {
       token.isData match {
         case true => {
@@ -289,7 +288,7 @@ class FrequentWord {
             }
             buffer.clear
             output ++= symbuffer
-            st.reset
+            st.reset()
             if (st.accept(token.value))
               buffer += token
             else

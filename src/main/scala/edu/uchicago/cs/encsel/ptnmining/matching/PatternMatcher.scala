@@ -104,7 +104,7 @@ private trait Match {
 
   def next: Seq[Pattern]
 
-  def reset: Unit
+  def reset(): Unit
 
   /**
     * Record the choices of Union under this match
@@ -125,7 +125,7 @@ private class SimpleMatch(ptn: Pattern) extends Match {
     }
   }
 
-  def reset = used = false
+  def reset() = used = false
 
   def choices = Map.empty[String, (Int, Int)]
 }
@@ -147,7 +147,7 @@ private class SeqMatch(seq: PSeq) extends Match {
         items.remove(pointer)
         children(pointer).next match {
           case e if e.isEmpty => {
-            children(pointer).reset
+            children(pointer).reset()
           }
           case x => {
             items += x
@@ -165,7 +165,7 @@ private class SeqMatch(seq: PSeq) extends Match {
     items.flatten
   }
 
-  def reset = children.foreach(_.reset)
+  def reset() = children.foreach(_.reset())
 
   def choices: Map[String, (Int, Int)] = children.map(_.choices).reduce((a1, a2) => a1 ++ a2)
 }
@@ -189,8 +189,8 @@ private class UnionMatch(union: PUnion) extends Match {
     }
   }
 
-  def reset = {
-    children.foreach(_.reset)
+  def reset() = {
+    children.foreach(_.reset())
     counter = 0
   }
 

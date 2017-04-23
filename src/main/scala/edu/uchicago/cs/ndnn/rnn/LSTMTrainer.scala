@@ -33,7 +33,7 @@ class LSTMEvaluator extends Evaluator {
   protected var lossSum = 0d
   protected var accSum = 0
 
-  override def init = {
+  override def init() = {
     batchCounter = 0
     charCounter = 0
     lossSum = 0

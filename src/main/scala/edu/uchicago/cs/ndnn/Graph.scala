@@ -59,24 +59,24 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
   def getOutput = out
 
   def train: Double = {
-    forward
+    forward()
     // Compute Loss
     val loss = lossFunction.loss(out.value, expected)
 
     // Backward
     out.grad = lossFunction.gradient
-    backward
+    backward()
     // Update Parameters
     params.foreach { updatePolicy.update }
     loss
   }
 
-  def epochDone = {
+  def epochDone() = {
     updatePolicy.weightDecay()
   }
 
   def test: (Double, Int) = {
-    forward
+    forward()
     // Compute Loss
     if (out != null && lossFunction != null) {
       val loss = lossFunction.loss(out.value, expected, true)

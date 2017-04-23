@@ -42,7 +42,7 @@ class DefaultRecord(val content: Array[String]) extends Record {
     content.length
   }
 
-  override def toString(): String = {
+  override def toString: String = {
     content.mkString("$$")
   }
 
@@ -66,7 +66,7 @@ class BlankRecord(size: Int) extends Record {
 
   def length(): Int = size
 
-  override def toString(): String = ""
+  override def toString: String = ""
 
   def iterator(): Iterator[String] = blankIterator
 }

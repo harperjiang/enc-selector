@@ -79,7 +79,7 @@ class CommonSeqRule extends RewriteRule {
       })
       patternSeqs += PUnion.make(sectionBuffers.last)
 
-      happen
+      happen()
       PSeq.make(patternSeqs)
     } else
       union

@@ -20,7 +20,7 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.app
+package edu.uchicago.cs.encsel.dataset.fix
 
 import java.io.{File, PrintWriter}
 import java.net.URI
@@ -81,13 +81,13 @@ class JsonFormatter(lines: Iterator[String]) extends Iterator[String] {
     if (!lines.hasNext && (buffer.isEmpty || buffer.last.endsWith("}"))) {
       return false
     }
-    return true
+    true
   }
 
   def next(): String = {
     if (buffer.isEmpty)
       throw new IllegalStateException
-    val result = buffer.map(escape(_)).mkString("\\n")
+    val result = buffer.map(escape).mkString("\\n")
     buffer.clear()
     partJson(result)
   }

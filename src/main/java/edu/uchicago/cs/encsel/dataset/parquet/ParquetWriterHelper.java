@@ -60,8 +60,8 @@ public class ParquetWriterHelper {
 	/**
 	 * Scan the file containing integer/long and determine the bit length
 	 * 
-	 * @param input
-	 * @return
+	 * @param input the file to scan
+	 * @return correct int bit length
 	 */
 	public static int scanIntBitLength(URI input) {
 		try {
@@ -117,7 +117,7 @@ public class ParquetWriterHelper {
 		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema, false);
 
 		String line;
-		List<String> holder = new ArrayList<String>();
+		List<String> holder = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
 			writer.write(holder);
@@ -147,7 +147,7 @@ public class ParquetWriterHelper {
 				encoding == IntEncoding.DICT);
 
 		String line;
-		List<String> holder = new ArrayList<String>();
+		List<String> holder = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
 			writer.write(holder);
@@ -177,7 +177,7 @@ public class ParquetWriterHelper {
 				encoding == LongEncoding.DICT);
 
 		String line;
-		List<String> holder = new ArrayList<String>();
+		List<String> holder = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
 			writer.write(holder);
@@ -205,7 +205,7 @@ public class ParquetWriterHelper {
 				encoding == StringEncoding.DICT);
 
 		String line;
-		List<String> holder = new ArrayList<String>();
+		List<String> holder = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
 			writer.write(holder);
@@ -233,7 +233,7 @@ public class ParquetWriterHelper {
 				encoding == FloatEncoding.DICT);
 
 		String line;
-		List<String> holder = new ArrayList<String>();
+		List<String> holder = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
 			writer.write(holder);
@@ -261,7 +261,7 @@ public class ParquetWriterHelper {
 				encoding == FloatEncoding.DICT);
 
 		String line;
-		List<String> holder = new ArrayList<String>();
+		List<String> holder = new ArrayList<>();
 		while ((line = reader.readLine()) != null) {
 			holder.add(line.trim());
 			writer.write(holder);

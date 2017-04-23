@@ -4,6 +4,9 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
+
+import edu.uchicago.cs.encsel.dataset.DataCollector
+
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 import org.junit.Assert.assertEquals

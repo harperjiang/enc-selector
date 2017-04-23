@@ -14,23 +14,24 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
-package edu.uchicago.cs.encsel.app
 
-import edu.uchicago.cs.encsel.util.FileUtils
+package edu.uchicago.cs.encsel.dataset
+
 import java.io.File
-import java.nio.file.Paths
-import java.nio.file.Files
-import java.nio.file.Path
-import edu.uchicago.cs.encsel.dataset.schema.SchemaGuesser
-import org.slf4j.LoggerFactory
-import edu.uchicago.cs.encsel.dataset.schema.Schema
+import java.nio.file.{Files, Path, Paths}
 
+import edu.uchicago.cs.encsel.dataset.schema.{Schema, SchemaGuesser}
+import edu.uchicago.cs.encsel.util.FileUtils
+import org.slf4j.LoggerFactory
+
+/**
+  * Created by harper on 4/23/17.
+  */
 object GuessSchema extends App {
 
   val guesser = new SchemaGuesser

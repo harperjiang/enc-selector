@@ -31,7 +31,7 @@ import edu.uchicago.cs.encsel.ptnmining._
 trait RewriteRule {
   private var modified: Boolean = false
 
-  protected def happen = modified = true
+  protected def happen() = modified = true
 
   def happened = modified
 

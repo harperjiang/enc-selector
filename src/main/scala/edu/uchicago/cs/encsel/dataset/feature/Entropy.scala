@@ -42,7 +42,7 @@ object Entropy extends FeatureExtractor {
     val lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
       .filter(StringUtils.isNotEmpty)
       .map(line => {
-        allcalc.add(line);
+        allcalc.add(line)
         entropy(line, linecalc)
       }).toTraversable
     if (0 == lineEntropy.size)
@@ -79,7 +79,7 @@ class EntropyCalc {
   def done(): Double = {
     val sum = counter.values.sum
     counter.map(entry => {
-      val p = (entry._2 / sum);
+      val p = (entry._2 / sum)
       -p * Math.log(p)
     }).sum
   }

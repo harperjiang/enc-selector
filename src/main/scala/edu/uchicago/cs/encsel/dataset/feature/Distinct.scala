@@ -55,7 +55,7 @@ object DistinctCounter {
       val hash = Math.abs(line.hashCode) % bitsize
       bitmap(hash / 64) |= (1L << (hash % 64))
     })
-    val occupy = bitmap.map(java.lang.Long.bitCount(_)).sum.toDouble
+    val occupy = bitmap.map(java.lang.Long.bitCount).sum.toDouble
     val empty = 1d - occupy / bitsize
     (-bitsize * Math.log(empty)).toInt
   }

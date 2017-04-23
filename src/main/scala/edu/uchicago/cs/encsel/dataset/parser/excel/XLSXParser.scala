@@ -74,7 +74,7 @@ class XSSFRowRecord(row: XSSFRow) extends Record {
     inner.getLastCellNum
   }
 
-  override def toString(): String = {
+  override def toString: String = {
     "XSSFCell@%d[%s]".format(row.getRowNum,
       row.cellIterator().map { cell =>
         XSSFRowRecord

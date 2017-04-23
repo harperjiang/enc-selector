@@ -82,7 +82,7 @@ class PluralDictRule extends Rule {
   var dict = new HashMap[String, String]()
   var inverse = new HashMap[String, String]()
 
-  def loadDict: Unit = {
+  def loadDict(): Unit = {
     val parser = new CSVParser()
     val dicturi = Thread.currentThread().getContextClassLoader.getResourceAsStream(dictFile)
     val records = parser.parse(dicturi, schema)
