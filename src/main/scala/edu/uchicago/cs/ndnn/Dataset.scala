@@ -93,7 +93,7 @@ abstract class DefaultDataset extends DatasetBase[INDArray] {
     val slice = ratio.map(d => Math.floor(d * length).toInt).toBuffer
     val addup = length - slice.sum
 
-    slice.last += addup
+    slice(slice.length - 1) += addup
 
     var pointer = 0
 
