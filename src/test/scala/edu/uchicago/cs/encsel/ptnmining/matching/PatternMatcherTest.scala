@@ -22,10 +22,10 @@
 
 package edu.uchicago.cs.encsel.ptnmining.matching
 
-import edu.uchicago.cs.encsel.ptnmining.parser.{TInt, TWord}
 import edu.uchicago.cs.encsel.ptnmining._
-import org.junit.Test
+import edu.uchicago.cs.encsel.ptnmining.parser.{TInt, TWord}
 import org.junit.Assert._
+import org.junit.Test
 
 /**
   * Created by harper on 4/1/17.
@@ -87,11 +87,13 @@ class PatternMatcherTest {
       new PToken(new TWord("aab")),
       new PToken(new TWord("wtw")),
       PEmpty,
-      new PWordAny)
+      new PWordAny,
+      new PIntRange(3, 60))
     patterns.zipWithIndex.foreach(p => p._1.name = p._2.toString)
 
     val rec1 = PatternMatcher.matchItems(patterns,
-      Seq(new TWord("dkkd"), new TInt("3123"), new TWord("aab"), new TWord("wtw"), new TWord("kmpt")))
+      Seq(new TWord("dkkd"), new TInt("3123"), new TWord("aab"), new TWord("wtw"),
+        new TWord("kmpt"), new TInt("21")))
     assertTrue(rec1.isDefined)
 
     assertEquals(new TWord("dkkd"), rec1.get.get("0").get)
@@ -99,10 +101,17 @@ class PatternMatcherTest {
     assertEquals(new TWord("aab"), rec1.get.get("2").get)
     assertEquals(new TWord("wtw"), rec1.get.get("3").get)
     assertEquals(new TWord("kmpt"), rec1.get.get("5").get)
+    assertEquals(new TInt("21"), rec1.get.get("6").get)
 
     val rec2 = PatternMatcher.matchItems(patterns,
       Seq(new TInt("3432"), new TWord("kkmdpt"), new TWord("wpnta")))
     assertTrue(rec2.isEmpty)
+
+    val rec3 = PatternMatcher.matchItems(patterns,
+      Seq(new TWord("dkkd"), new TInt("3123"), new TWord("aab"), new TWord("wtw"),
+        new TWord("kmpt"), new TInt("99"))
+    )
+    assertTrue(rec3.isEmpty)
   }
 
   @Test
