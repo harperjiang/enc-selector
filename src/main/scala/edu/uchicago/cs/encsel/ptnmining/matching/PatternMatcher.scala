@@ -78,6 +78,18 @@ object PatternMatcher {
             record.add(ptn.getName, tokens(pointer))
             pointer += 1
           }
+          case range: PIntRange => {
+            matched &= {
+              if (tokens(pointer).isInstanceOf[TInt]) {
+                val intToken = tokens(pointer).asInstanceOf[TInt]
+                range.range().contains(intToken.intValue)
+              } else {
+                false
+              }
+            }
+            record.add(ptn.getName, tokens(pointer))
+            pointer += 1
+          }
           case _ => throw new IllegalArgumentException("Non-matchable Pattern:"
             + ptn.getClass.getSimpleName)
         }
