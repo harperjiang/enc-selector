@@ -29,11 +29,14 @@ import edu.uchicago.cs.encsel.ptnmining._
   * Created by harper on 3/27/17.
   */
 trait RewriteRule {
+
   private var modified: Boolean = false
 
   protected def happen() = modified = true
 
   def happened = modified
+
+  def reset = modified = false
 
   /**
     * Apply the rule on pattern
@@ -52,7 +55,6 @@ trait RewriteRule {
     * @return the rewritten pattern
     */
   def modify(root: Pattern, condition: Pattern => Boolean, update: Pattern => Pattern): Option[Pattern] = {
-    modified = false
     root match {
       case token: PToken => Some(condition(token) match {
         case true => update(token)
@@ -65,15 +67,12 @@ trait RewriteRule {
       case union: PUnion => Some(condition(union) match {
         case true => update(union)
         case false => {
-          val oldmod = modified
-          modified = false
           // Look for match in the union, replace it with rewritten if any
           val modified_content = union.content.map(p => modify(p, condition, update).get)
           val modified_union = modified match {
             case true => new PUnion(modified_content)
             case false => union
           }
-          modified |= oldmod
           modified_union
         }
       })
@@ -81,15 +80,11 @@ trait RewriteRule {
         Some(condition(seq) match {
           case true => update(seq)
           case false => {
-            val oldmod = modified
-            modified = false
-
             val modified_content = seq.content.map(p => modify(p, condition, update).get)
             val modified_seq = modified match {
               case true => new PSeq(modified_content)
               case false => seq
             }
-            modified |= oldmod
             modified_seq
           }
         })
