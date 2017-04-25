@@ -2,8 +2,8 @@ package edu.uchicago.cs.encsel.ptnmining.eval
 
 import edu.uchicago.cs.encsel.ptnmining._
 import edu.uchicago.cs.encsel.ptnmining.parser.{TInt, TSymbol, TWord, Tokenizer}
-import org.junit.Test
 import org.junit.Assert._
+import org.junit.Test
 
 /**
   * Created by harper on 4/6/17.
@@ -12,7 +12,7 @@ class PatternEvaluatorTest {
 
   @Test
   def testEvaluate: Unit = {
-    // Pattern Size is 26
+    // Pattern Size is 63
     val pattern1 = new PSeq(
       new PToken(new TWord("good")),
       new PUnion(
@@ -35,22 +35,24 @@ class PatternEvaluatorTest {
             new PToken(new TWord("D"))
           )
         )
-      )
+      ),
+      new PIntRange(100, 150)
     )
 
-    val dataset = Seq("good1-ASM", "good2-MTM", "good2-DDTE",
-      "good3-CHO-A", "good3-CHO-B", "good3-ASM", "ttmdpt-dawee-323").map(Tokenizer.tokenize(_).toSeq)
+    val dataset = Seq("good1-ASM127", "good2-MTM101", "good2-DDTE122",
+      "good3-CHO-A134", "good3-CHO-B120", "good3-ASM149", "ttmdpt-dawee-323").map(Tokenizer.tokenize(_).toSeq)
 
     val result = PatternEvaluator.evaluate(pattern1, dataset)
 
-    assertEquals(84, result, 0.01)
+    assertEquals(99, result, 0.01)
 
     val pattern2 = new PSeq(new PWordAny, new PIntAny, new PToken(new TSymbol("-")),
-      new PWordAny, new PUnion(PEmpty, new PSeq(new PWordAny, new PToken(new TSymbol("-")), new PWordAny)))
+      new PWordAny,
+      new PUnion(PEmpty, new PSeq(new PWordAny, new PToken(new TSymbol("-")), new PWordAny)),
+      new PIntAny)
 
     val result2 = PatternEvaluator.evaluate(pattern2, dataset)
 
-    assertEquals(111, result2, 0.01)
+    assertEquals(143, result2, 0.01)
   }
-
 }

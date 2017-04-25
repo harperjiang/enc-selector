@@ -28,7 +28,7 @@ import edu.uchicago.cs.encsel.ptnmining.{Pattern, PatternVisitor}
 import scala.collection.mutable
 
 /**
-  * Created by harper on 4/2/17.
+  * Assign unique name to each pattern node
   */
 class NamingVisitor extends PatternVisitor {
   private val counter = new mutable.Stack[Int]

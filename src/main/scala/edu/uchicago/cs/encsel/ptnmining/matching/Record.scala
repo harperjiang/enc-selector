@@ -28,12 +28,15 @@ import edu.uchicago.cs.encsel.ptnmining.parser.Token
 import scala.collection.mutable
 
 /**
-  * Created by harper on 3/31/17.
+  * Mapping between pattern node and token
   */
 class Record {
   val values: mutable.HashMap[String, Token] = new mutable.HashMap[String, Token]
 
   val choices: mutable.HashMap[String, (Int, Int)] = new mutable.HashMap[String, (Int, Int)]
+
+  // The delta towards min value of range
+  val rangeDeltas: mutable.HashMap[String, Int] = new mutable.HashMap[String, Int]
 
   def add(name: String, value: Token) = {
     values += ((name, value))

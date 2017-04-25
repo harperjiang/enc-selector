@@ -23,26 +23,19 @@
 
 package edu.uchicago.cs.encsel.ptnmining
 
-import edu.uchicago.cs.encsel.ptnmining.parser.{TSpace, Token, Tokenizer}
+import edu.uchicago.cs.encsel.ptnmining.parser.Tokenizer
 import edu.uchicago.cs.encsel.ptnmining.preprocess.FrequentWord
-
-import scala.collection.mutable
 
 /**
   * Created by harper on 3/25/17.
   */
 class PatternMiner {
 
-  val freqword = new FrequentWord
-
   def mine(input: Seq[String]): Pattern = {
 
     val tokens = input.map(Tokenizer.tokenize(_).toSeq)
     // Pre-processing
-    freqword.init(tokens)
-    val merged = freqword.merge()
-
-    val ptn = Pattern.generate(merged)
+    val ptn = Pattern.generate(tokens)
 
     ptn
   }

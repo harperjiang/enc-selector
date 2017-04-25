@@ -35,6 +35,7 @@ class PatternMinerTest {
   def testMine: Unit = {
     val input = Source.fromFile("src/test/resource/pattern_miner_sample").getLines().toSeq
     val pm = new PatternMiner
-    pm.mine(input)
+    val pattern = pm.mine(input)
+    return
   }
 }

@@ -30,7 +30,9 @@ import scala.collection.mutable.ArrayBuffer
 
 
 /**
-  * Created by harper on 3/31/17.
+  * Find a possible match between a pattern and a sequence of token.
+  * If a match can be found, a mapping between pattern node and token
+  * will be returned.
   */
 object PatternMatcher {
 
@@ -82,6 +84,7 @@ object PatternMatcher {
             matched &= {
               if (tokens(pointer).isInstanceOf[TInt]) {
                 val intToken = tokens(pointer).asInstanceOf[TInt]
+                record.rangeDeltas += ((range.name, range.max - range.min))
                 range.range().contains(intToken.intValue)
               } else {
                 false

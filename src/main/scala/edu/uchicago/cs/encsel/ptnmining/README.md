@@ -55,11 +55,13 @@ If a leaf token corresponds to ...
 For each `PUnion` in use, a selector is needed depending on the content size (log_2)
 
 If there are x `PAny`, x separators are also needed 
+3. `PIntRange`, size is the delta size
+
 ### Token Size Calculation
 
 If the token is 
 1. `TSymbol` 1
-2. `TInt` log_2(value)
+2. `TInt` ceil(log_2(value)/8) compact size
 3. `TDouble` 4/8 depending on the size
 4. `TWord` length of the token
 
