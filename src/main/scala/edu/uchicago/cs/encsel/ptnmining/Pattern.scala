@@ -42,9 +42,12 @@ object Pattern {
 
     val translated = new PUnion(in.map(l => new PSeq(l.map(new PToken(_)): _*)))
 
-    rules.foreach(_ match {
-      case data: DataRewriteRule => data.generateOn(in)
-      case _ => Unit
+    rules.foreach(rule => {
+      rule match {
+        case data: DataRewriteRule => data.generateOn(in)
+        case _ => Unit
+      }
+      rule.reset
     })
     // Repeatedly refine the pattern using supplied rules
     var toRefine: Pattern = translated
@@ -244,5 +247,29 @@ class PDoubleAny extends PAny {
   def this(ml: Int) = {
     this()
     maxLength = ml
+  }
+}
+
+class PIntRange extends Pattern {
+  var min: Int = 0
+  var max: Int = 0
+
+  def this(min: Int, max: Int) {
+    this()
+    this.min = min
+    this.max = max
+  }
+
+  def range(): Range = (min to max)
+
+  override def hashCode(): Int = this.min.hashCode() * 13 + this.max.hashCode()
+
+  override def equals(obj: scala.Any): Boolean = {
+    obj match {
+      case range: PIntRange => {
+        this.min == range.min && this.max == range.max
+      }
+      case _ => super.equals(obj)
+    }
   }
 }
