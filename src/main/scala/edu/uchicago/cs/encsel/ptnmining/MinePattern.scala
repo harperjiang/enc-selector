@@ -26,12 +26,15 @@ import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.encsel.ptnmining.parser.Tokenizer
 
+import scala.collection.mutable
 import scala.io.Source
 
 /**
   * Mine Pattern from string type data
   */
 object MinePattern extends App {
+
+  val histogram = new mutable.HashMap[Int, Int]
 
   Persistence.get.lookup(DataType.STRING).foreach(column => {
 
@@ -53,6 +56,11 @@ object MinePattern extends App {
         }
       }
     })
-    println(failed.toDouble / 1000)
+    val failure = failed.toDouble / 1000
+    val index = (failure / 0.1).toInt
+
+    histogram.put(index, histogram.getOrElseUpdate(index, 0) + 1)
+
   })
+  println(histogram)
 }
