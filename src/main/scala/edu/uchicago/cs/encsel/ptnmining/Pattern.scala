@@ -35,7 +35,7 @@ import scala.collection.mutable
 
 object Pattern {
 
-  val rules = Array(new CommonSeqRule, new SuccinctRule, new MergeSeqRule, new UseAnyRule)
+  val rules = Array(new CommonSeqRule, new SuccinctRule, new MergeSeqRule, new IntegerRangeRule, new UseAnyRule)
 
   def generate(in: Seq[Seq[Token]]): Pattern = {
     // Generate a direct pattern by translating tokens
@@ -47,7 +47,6 @@ object Pattern {
         case data: DataRewriteRule => data.generateOn(in)
         case _ => Unit
       }
-      rule.reset
     })
     // Repeatedly refine the pattern using supplied rules
     var toRefine: Pattern = translated
@@ -71,6 +70,7 @@ object Pattern {
     var current = root
 
     rules.indices.foreach(i => {
+      rules(i).reset
       current = rules(i).rewrite(current)
       if (rules(i).happened) {
         // Apply the first valid rule

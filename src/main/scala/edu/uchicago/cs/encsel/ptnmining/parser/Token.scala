@@ -24,7 +24,7 @@
 package edu.uchicago.cs.encsel.ptnmining.parser
 
 /**
-  * Created by harper on 3/24/17.
+  * Token is a data processing unit
   */
 trait Token {
   def value: String
@@ -65,7 +65,7 @@ class TInt(v: AnyRef) extends Token {
 
   def intValue = value.toInt
 
-  override def length = Math.ceil(Math.log(intValue) / (8 * Math.log(2))).toInt
+  override def length = 2
 }
 
 class TDouble(v: AnyRef) extends Token {

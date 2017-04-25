@@ -41,7 +41,7 @@ class CommonSeqRule extends RewriteRule {
     val unionData = union.asInstanceOf[PUnion].content.map(p => {
       p match {
         case seq: PSeq => seq.content
-        case _ => Array(p).toSeq
+        case _ => Seq(p)
       }
     })
     val cseq = new CommonSeq

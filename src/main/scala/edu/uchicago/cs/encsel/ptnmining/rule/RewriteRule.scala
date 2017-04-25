@@ -56,14 +56,6 @@ trait RewriteRule {
     */
   def modify(root: Pattern, condition: Pattern => Boolean, update: Pattern => Pattern): Option[Pattern] = {
     root match {
-      case token: PToken => Some(condition(token) match {
-        case true => update(token)
-        case false => token
-      })
-      case any: PAny => Some(condition(any) match {
-        case true => update(any)
-        case false => any
-      })
       case union: PUnion => Some(condition(union) match {
         case true => update(union)
         case false => {
@@ -89,10 +81,10 @@ trait RewriteRule {
           }
         })
       }
-      case PEmpty => {
-        Some(condition(PEmpty) match {
-          case true => update(PEmpty)
-          case false => PEmpty
+      case pattern => {
+        Some(condition(pattern) match {
+          case true => update(pattern)
+          case false => pattern
         })
       }
     }

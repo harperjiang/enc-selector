@@ -24,6 +24,9 @@ package edu.uchicago.cs.encsel.ptnmining
 
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.model.DataType
+import edu.uchicago.cs.encsel.ptnmining.parser.Tokenizer
+
+import scala.io.Source
 
 /**
   * Mine Pattern from string type data
@@ -31,6 +34,25 @@ import edu.uchicago.cs.encsel.model.DataType
 object MinePattern extends App {
 
   Persistence.get.lookup(DataType.STRING).foreach(column => {
-//   Pattern.generate()
+
+    val rows = Source.fromFile(column.colFile).getLines().slice(0, 2000).toSeq
+
+    val train = rows.slice(0, 1000)
+    val test = rows.slice(1000, 2000)
+
+    val pattern = Pattern.generate(train.map(Tokenizer.tokenize(_).toSeq))
+
+    var failed = 0
+
+    test.map(Tokenizer.tokenize).foreach(tokens => {
+      pattern.matchon(tokens.toSeq) match {
+        case None => {
+          failed += 1
+        }
+        case Some(record) => {
+        }
+      }
+    })
+    println(failed.toDouble / 1000)
   })
 }

@@ -29,7 +29,9 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * Created by harper on 3/25/17.
+  * Parse and convert a string into sequence of tokens
+  *
+  * @see lexer.jflex
   */
 object Tokenizer {
   def tokenize(line: String): Iterator[Token] = {

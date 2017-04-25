@@ -23,13 +23,13 @@
 
 package edu.uchicago.cs.encsel.ptnmining.eval
 
-import edu.uchicago.cs.encsel.ptnmining.{PAny, Pattern}
 import edu.uchicago.cs.encsel.ptnmining.parser.Token
+import edu.uchicago.cs.encsel.ptnmining.{PAny, Pattern}
 import org.apache.commons.lang3.StringUtils
 
 /**
   * <code>PatternEvaluator</code> evaluates a given pattern on a dataset to
-  * determine its efficiency
+  * determine its efficiency based on the pattern size + encoded data size
   *
   */
 object PatternEvaluator {
@@ -43,7 +43,7 @@ object PatternEvaluator {
     ptn.visit(sizeVisitor)
     val ptnSize = sizeVisitor.size
 
-    val anyNames = ptn.flatten.filter(_.isInstanceOf[PAny]).map(_.getName).toSet
+    val anyNames = ptn.flatten.filter(_.isInstanceOf[PAny]).map(_.getName).distinct
 
     // Encoded Data Size
     val matched = dataset.map(di => (ptn.matchon(di), di))
@@ -55,17 +55,18 @@ object PatternEvaluator {
         case true => {
           val content = record.get
           val unionSel = content.choices.values
-            .map(x => Math.ceil(Math.log(x._2) / (8 * Math.log(2))).toInt).sum
+            .map(x => intSize(x._2)).sum
           val anys = anyNames.map(name => {
             content.get(name) match {
               case Some(token) => token.length
               case None => 0
             }
           })
+          val intRange = content.rangeDeltas.values.map(intSize).sum
           unionSel + (anys.isEmpty match {
             case true => 0
             case false => anys.sum + anys.size
-          })
+          }) + intRange
         }
         case false => origin.map(_.value.length).sum
       }
@@ -73,4 +74,6 @@ object PatternEvaluator {
 
     ptnSize + encodedSize.sum
   }
+
+  def intSize(input: Int): Int = Math.ceil(Math.log(input) / (8 * Math.log(2))).toInt
 }
