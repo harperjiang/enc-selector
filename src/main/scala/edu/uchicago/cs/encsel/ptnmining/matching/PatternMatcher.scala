@@ -69,44 +69,47 @@ object PatternMatcher {
     var matched = true
     ptns.foreach(ptn => {
       if (matched) {
-        ptn match {
-          case PEmpty => {}
-          case wany: PWordAny => {
-            matched &= tokens(pointer).isInstanceOf[TWord]
-            record.add(ptn.getName, tokens(pointer))
-            pointer += 1
-          }
-          case iany: PIntAny => {
-            matched &= tokens(pointer).isInstanceOf[TInt]
-            record.add(ptn.getName, tokens(pointer))
-            pointer += 1
-          }
-          case dany: PDoubleAny => {
-            matched &= tokens(pointer).isInstanceOf[TDouble]
-            record.add(ptn.getName, tokens(pointer))
-            pointer += 1
-          }
-          case token: PToken => {
-            matched &= tokens(pointer).equals(token.token)
-            record.add(ptn.getName, tokens(pointer))
-            pointer += 1
-          }
-          case range: PIntRange => {
-            matched &= {
-              if (tokens(pointer).isInstanceOf[TInt]) {
-                val intToken = tokens(pointer).asInstanceOf[TInt]
-                record.rangeDeltas += ((range.name, range.max - range.min))
-                range.range().contains(intToken.intValue)
-              } else {
-                false
-              }
+        if (pointer >= tokens.length)
+          matched = false
+        else
+          ptn match {
+            case PEmpty => {}
+            case wany: PWordAny => {
+              matched &= tokens(pointer).isInstanceOf[TWord]
+              record.add(ptn.getName, tokens(pointer))
+              pointer += 1
             }
-            record.add(ptn.getName, tokens(pointer))
-            pointer += 1
+            case iany: PIntAny => {
+              matched &= tokens(pointer).isInstanceOf[TInt]
+              record.add(ptn.getName, tokens(pointer))
+              pointer += 1
+            }
+            case dany: PDoubleAny => {
+              matched &= tokens(pointer).isInstanceOf[TDouble]
+              record.add(ptn.getName, tokens(pointer))
+              pointer += 1
+            }
+            case token: PToken => {
+              matched &= tokens(pointer).equals(token.token)
+              record.add(ptn.getName, tokens(pointer))
+              pointer += 1
+            }
+            case range: PIntRange => {
+              matched &= {
+                if (tokens(pointer).isInstanceOf[TInt]) {
+                  val intToken = tokens(pointer).asInstanceOf[TInt]
+                  record.rangeDeltas += ((range.name, range.max - range.min))
+                  range.range().contains(intToken.intValue)
+                } else {
+                  false
+                }
+              }
+              record.add(ptn.getName, tokens(pointer))
+              pointer += 1
+            }
+            case _ => throw new IllegalArgumentException("Non-matchable Pattern:"
+              + ptn.getClass.getSimpleName)
           }
-          case _ => throw new IllegalArgumentException("Non-matchable Pattern:"
-            + ptn.getClass.getSimpleName)
-        }
       }
     })
     matched match {
