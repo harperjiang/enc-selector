@@ -36,6 +36,17 @@ import scala.collection.mutable.ArrayBuffer
   */
 object PatternMatcher {
 
+  /**
+    * Match a token sequence with corresponding pattern
+    *
+    * As the token sequence will be toured several times, use
+    * Seq rather than iterator here
+    *
+    * @param ptn    Pattern
+    * @param tokens token sequences
+    * @return None if not match
+    *         Some(Record) if match found
+    */
   def matchon(ptn: Pattern, tokens: Seq[Token]): Option[Record] = {
     val matchNode = Match.build(ptn)
     var items = matchNode.next
