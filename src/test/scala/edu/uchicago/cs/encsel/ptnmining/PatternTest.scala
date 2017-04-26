@@ -59,4 +59,19 @@ class PatternTest {
 
     assertTrue(pattern.isInstanceOf[PSeq])
   }
+
+  @Test
+  def testGenerateOnEmpty: Unit = {
+    val input = (1 to 10).map(i => i % 2 match {
+      case 1 => ""
+      case 0 => "abc"
+    }).toSeq
+
+    val pattern = Pattern.generate(input.map(Tokenizer.tokenize(_).toSeq))
+    assertTrue(pattern.isInstanceOf[PUnion])
+    val content = pattern.asInstanceOf[PUnion].content
+    assertEquals(PEmpty,content(0))
+    assertTrue(content(1).isInstanceOf[PToken])
+    assertEquals("abc",content(1).asInstanceOf[PToken].token.value)
+  }
 }
