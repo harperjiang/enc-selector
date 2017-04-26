@@ -125,6 +125,8 @@ class CommonSeq {
     *         (a_start, b_start, length)
     */
   def between[T](a: Seq[T], b: Seq[T], equal: (T, T) => Boolean): Seq[(Int, Int, Int)] = {
+    if (a.isEmpty || b.isEmpty)
+      return Seq[(Int, Int, Int)]()
     val data = a.indices.map(i => new Array[Int](b.length))
     a.indices.foreach(i => data(i)(0) = equal(a(i), b.head))
     b.indices.foreach(i => data(0)(i) = equal(a.head, b(i)))
