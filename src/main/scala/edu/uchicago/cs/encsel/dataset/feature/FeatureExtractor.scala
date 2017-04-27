@@ -22,12 +22,24 @@
  */
 package edu.uchicago.cs.encsel.dataset.feature
 
-import java.io.File
-import java.net.URI
 import edu.uchicago.cs.encsel.dataset.column.Column
 
+import scala.util.Random
+
 object FeatureExtractor {
-  val emptyFilter: Iterator[String] => Iterator[String] = a => a
+  def emptyFilter: Iterator[String] => Iterator[String] = a => a
+
+  def firstNFilter(n: Int): Iterator[String] => Iterator[String] = {
+    (input: Iterator[String]) => {
+      input.slice(0, n)
+    }
+  }
+
+  def iidSamplingFilter(ratio: Double): Iterator[String] => Iterator[String] = {
+    (input: Iterator[String]) => {
+      input.filter(p => Random.nextDouble() <= ratio)
+    }
+  }
 }
 
 trait FeatureExtractor {
