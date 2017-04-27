@@ -30,10 +30,12 @@ object Sparsity extends FeatureExtractor {
 
   def featureType = "Sparsity"
 
-  def extract(input: Column): Iterable[Feature] = {
+  def extract(input: Column,
+              filter: Iterator[String] => Iterator[String],
+              prefix: String): Iterable[Feature] = {
     var counter = 0
     var emptyCount = 0
-    Source.fromFile(input.colFile).getLines().foreach {
+    filter(Source.fromFile(input.colFile).getLines()).foreach {
       line => {
         counter += 1
         if (line.trim().isEmpty) {
@@ -41,8 +43,9 @@ object Sparsity extends FeatureExtractor {
         }
       }
     }
-    Iterable(new Feature(featureType, "count", counter),
-      new Feature(featureType, "empty_count", emptyCount),
-      new Feature(featureType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
+    val fType = "%s%s".format(prefix,featureType)
+    Iterable(new Feature(fType, "count", counter),
+      new Feature(fType, "empty_count", emptyCount),
+      new Feature(fType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
   }
 }

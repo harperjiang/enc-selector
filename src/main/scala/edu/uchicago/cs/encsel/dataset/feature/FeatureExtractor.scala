@@ -26,8 +26,14 @@ import java.io.File
 import java.net.URI
 import edu.uchicago.cs.encsel.dataset.column.Column
 
+object FeatureExtractor {
+  val emptyFilter: Iterator[String] => Iterator[String] = a => a
+}
+
 trait FeatureExtractor {
   def featureType: String
 
-  def extract(input: Column): Iterable[Feature]
+  def extract(input: Column,
+              filter: Iterator[String] => Iterator[String] = FeatureExtractor.emptyFilter,
+              prefix: String = ""): Iterable[Feature]
 }
