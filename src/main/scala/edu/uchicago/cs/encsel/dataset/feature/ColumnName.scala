@@ -33,7 +33,9 @@ object ColumnName extends FeatureExtractor {
 
   def featureType: String = "ColumnName"
 
-  def extract(input: Column): Iterable[Feature] = {
+  def extract(input: Column,
+              filter: Iterator[String] => Iterator[String],
+              prefix: String): Iterable[Feature] = {
     throw new UnsupportedOperationException("Not implemented")
   }
 }
