@@ -31,15 +31,19 @@ import java.util
 object Distinct extends FeatureExtractor {
   def featureType = "Distinct"
 
-  def extract(col: Column): Iterable[Feature] = {
-    val sum = Source.fromFile(new File(col.colFile)).getLines().count(_ => true)
-    val size = DistinctCounter.count(Source.fromFile(new File(col.colFile)).getLines(), sum)
+  def extract(col: Column,
+              filter: Iterator[String] => Iterator[String],
+              prefix: String): Iterable[Feature] = {
+    val sum = filter(Source.fromFile(new File(col.colFile)).getLines()).count(_ => true)
+    val size = DistinctCounter.count(
+      filter(Source.fromFile(new File(col.colFile)).getLines()), sum)
     match {
       case gt if gt >= sum => sum
       case lt => lt
     }
-    Array(new Feature(featureType, "count", size.toDouble),
-      new Feature(featureType, "ratio", size.toDouble / sum))
+    val fType = "%s%s".format(prefix, featureType)
+    Array(new Feature(fType, "count", size.toDouble),
+      new Feature(fType, "ratio", size.toDouble / sum))
   }
 }
 

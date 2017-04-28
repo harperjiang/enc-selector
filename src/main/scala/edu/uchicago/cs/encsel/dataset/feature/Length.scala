@@ -33,17 +33,19 @@ object Length extends FeatureExtractor {
 
   def featureType = "Length"
 
-  def extract(input: Column): Iterable[Feature] = {
-    val length = Source.fromFile(new File(input.colFile)).getLines()
-      .filter(StringUtils.isNotEmpty).map(_.length().toDouble).toTraversable
+  def extract(input: Column,
+              filter: Iterator[String] => Iterator[String],
+              prefix: String): Iterable[Feature] = {
+    val length = filter(Source.fromFile(new File(input.colFile)).getLines())
+      .filter(StringUtils.isNotEmpty).map(_.length().toDouble).toSeq
     if (0 == length.size)
       return Iterable[Feature]()
     val statforlen = DataUtils.stat(length)
-
+    val fType = "%s%s".format(prefix, featureType)
     Iterable(
-      new Feature(featureType, "max", length.max),
-      new Feature(featureType, "min", length.min),
-      new Feature(featureType, "mean", statforlen._1),
-      new Feature(featureType, "variance", statforlen._2))
+      new Feature(fType, "max", length.max),
+      new Feature(fType, "min", length.min),
+      new Feature(fType, "mean", statforlen._1),
+      new Feature(fType, "variance", statforlen._2))
   }
 }

@@ -35,11 +35,13 @@ object Entropy extends FeatureExtractor {
 
   def featureType = "Entropy"
 
-  def extract(input: Column): Iterable[Feature] = {
+  def extract(input: Column,
+              filter: Iterator[String] => Iterator[String],
+              prefix: String): Iterable[Feature] = {
     val allcalc = new EntropyCalc()
     val linecalc = new EntropyCalc()
 
-    val lineEntropy = Source.fromFile(new File(input.colFile)).getLines()
+    val lineEntropy = filter(Source.fromFile(new File(input.colFile)).getLines())
       .filter(StringUtils.isNotEmpty)
       .map(line => {
         allcalc.add(line)
@@ -48,11 +50,14 @@ object Entropy extends FeatureExtractor {
     if (0 == lineEntropy.size)
       return Iterable[Feature]()
     val stat = DataUtils.stat(lineEntropy)
-    Iterable(new Feature(featureType, "line_max", lineEntropy.max),
-      new Feature(featureType, "line_min", lineEntropy.min),
-      new Feature(featureType, "line_mean", stat._1),
-      new Feature(featureType, "line_var", stat._2),
-      new Feature(featureType, "total", allcalc.done()))
+
+    val fType = "%s%s".format(prefix,featureType)
+
+    Iterable(new Feature(fType, "line_max", lineEntropy.max),
+      new Feature(fType, "line_min", lineEntropy.min),
+      new Feature(fType, "line_mean", stat._1),
+      new Feature(fType, "line_var", stat._2),
+      new Feature(fType, "total", allcalc.done()))
   }
 
   def entropy(data: String, linecalc: EntropyCalc): Double = {
