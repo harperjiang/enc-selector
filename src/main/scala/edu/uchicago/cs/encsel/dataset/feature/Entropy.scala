@@ -51,17 +51,24 @@ object Entropy extends FeatureExtractor {
         allcalc.add(line)
         entropy(line, linecalc)
       }).toTraversable
-    if (0 == lineEntropy.size)
-      return Iterable[Feature]()
-    val stat = DataUtils.stat(lineEntropy)
 
     val fType = "%s%s".format(prefix, featureType)
 
-    Iterable(new Feature(fType, "line_max", lineEntropy.max),
-      new Feature(fType, "line_min", lineEntropy.min),
-      new Feature(fType, "line_mean", stat._1),
-      new Feature(fType, "line_var", stat._2),
-      new Feature(fType, "total", allcalc.done()))
+    if (0 == lineEntropy.size) {
+      Iterable(new Feature(fType, "line_max", 0),
+        new Feature(fType, "line_min", 0),
+        new Feature(fType, "line_mean", 0),
+        new Feature(fType, "line_var", 0),
+        new Feature(fType, "total", 0))
+    } else {
+      val stat = DataUtils.stat(lineEntropy)
+
+      Iterable(new Feature(fType, "line_max", lineEntropy.max),
+        new Feature(fType, "line_min", lineEntropy.min),
+        new Feature(fType, "line_mean", stat._1),
+        new Feature(fType, "line_var", stat._2),
+        new Feature(fType, "total", allcalc.done()))
+    }
   }
 
   def entropy(data: String, linecalc: EntropyCalc): Double = {

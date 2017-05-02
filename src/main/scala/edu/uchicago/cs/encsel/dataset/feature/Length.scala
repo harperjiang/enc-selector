@@ -23,11 +23,13 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
-import edu.uchicago.cs.encsel.dataset.column.Column
-import scala.io.Source
 import java.io.File
+
+import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.util.DataUtils
 import org.apache.commons.lang.StringUtils
+
+import scala.io.Source
 
 object Length extends FeatureExtractor {
 
@@ -38,16 +40,22 @@ object Length extends FeatureExtractor {
   def extract(input: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
+
+    val fType = "%s%s".format(prefix, featureType)
     val length = filter(Source.fromFile(new File(input.colFile)).getLines())
       .filter(StringUtils.isNotEmpty).map(_.length().toDouble).toSeq
-    if (0 == length.size)
-      return Iterable[Feature]()
-    val statforlen = DataUtils.stat(length)
-    val fType = "%s%s".format(prefix, featureType)
-    Iterable(
-      new Feature(fType, "max", length.max),
-      new Feature(fType, "min", length.min),
-      new Feature(fType, "mean", statforlen._1),
-      new Feature(fType, "variance", statforlen._2))
+    if (0 == length.size) {
+      Iterable(new Feature(fType, "max", 0),
+        new Feature(fType, "min", 0),
+        new Feature(fType, "mean", 0),
+        new Feature(fType, "variance", 0))
+    } else {
+      val statforlen = DataUtils.stat(length)
+      Iterable(
+        new Feature(fType, "max", length.max),
+        new Feature(fType, "min", length.min),
+        new Feature(fType, "mean", statforlen._1),
+        new Feature(fType, "variance", statforlen._2))
+    }
   }
 }
