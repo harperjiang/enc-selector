@@ -23,12 +23,12 @@
 package edu.uchicago.cs.encsel.dataset.column
 
 import java.net.URI
+import java.util
 
 import edu.uchicago.cs.encsel.dataset.feature.Feature
 import edu.uchicago.cs.encsel.model.DataType
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
 
 class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var origin: URI = o
@@ -36,7 +36,7 @@ class Column(o: URI, ci: Int, cn: String, dt: DataType) extends Serializable {
   var colName: String = cn
   var colFile: URI = _
   var dataType = dt
-  var features: java.util.List[Feature] = ListBuffer[Feature]()
+  var features: java.util.Set[Feature] = new util.HashSet[Feature]()
 
   def this() {
     this(null, -1, null, null)

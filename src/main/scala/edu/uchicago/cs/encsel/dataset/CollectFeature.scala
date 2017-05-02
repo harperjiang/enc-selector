@@ -20,34 +20,31 @@
  *     Hao Jiang - initial API and implementation
  *
  */
-package edu.uchicago.cs.encsel.dataset.feature
 
-import edu.uchicago.cs.encsel.dataset.column.Column
+package edu.uchicago.cs.encsel.dataset
 
-import scala.util.Random
+import edu.uchicago.cs.encsel.dataset.feature.{FeatureExtractor, Features}
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
 
-object FeatureExtractor {
-  def emptyFilter: Iterator[String] => Iterator[String] = a => a
+import scala.collection.JavaConversions._
 
-  def firstNFilter(n: Int): Iterator[String] => Iterator[String] = {
-    (input: Iterator[String]) => {
-      input.slice(0, n)
-    }
+/**
+  * Created by harper on 5/2/17.
+  */
+object CollectFeature extends App {
+
+  val prefix = args(0)
+
+  val filter = args(1) match {
+    case "none" => FeatureExtractor.emptyFilter
+    case "firstn" => FeatureExtractor.firstNFilter(args(2).toInt)
+    case "iid" => FeatureExtractor.iidSamplingFilter(args(2).toDouble)
+    case _ => throw new IllegalArgumentException(args(1))
   }
 
-  def iidSamplingFilter(ratio: Double): Iterator[String] => Iterator[String] = {
-    (input: Iterator[String]) => {
-      input.filter(p => Random.nextDouble() <= ratio)
-    }
-  }
-}
-
-trait FeatureExtractor {
-  def featureType: String
-
-  def supportFilter: Boolean
-
-  def extract(input: Column,
-              filter: Iterator[String] => Iterator[String] = FeatureExtractor.emptyFilter,
-              prefix: String = ""): Iterable[Feature]
+  val persistence = Persistence.get
+  persistence.load().foreach(column => {
+    column.features ++= Features.extract(column, filter, prefix)
+    persistence.save(Seq(column))
+  })
 }

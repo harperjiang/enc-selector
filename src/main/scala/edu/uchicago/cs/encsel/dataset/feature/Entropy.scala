@@ -22,18 +22,22 @@
  */
 package edu.uchicago.cs.encsel.dataset.feature
 
-import edu.uchicago.cs.encsel.dataset.column.Column
-import scala.io.Source
 import java.io.File
+
+import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.util.DataUtils
 import org.apache.commons.lang.StringUtils
 import org.slf4j.LoggerFactory
+
+import scala.io.Source
 
 object Entropy extends FeatureExtractor {
 
   var logger = LoggerFactory.getLogger(getClass)
 
   def featureType = "Entropy"
+
+  def supportFilter: Boolean = true
 
   def extract(input: Column,
               filter: Iterator[String] => Iterator[String],
@@ -51,7 +55,7 @@ object Entropy extends FeatureExtractor {
       return Iterable[Feature]()
     val stat = DataUtils.stat(lineEntropy)
 
-    val fType = "%s%s".format(prefix,featureType)
+    val fType = "%s%s".format(prefix, featureType)
 
     Iterable(new Feature(fType, "line_max", lineEntropy.max),
       new Feature(fType, "line_min", lineEntropy.min),

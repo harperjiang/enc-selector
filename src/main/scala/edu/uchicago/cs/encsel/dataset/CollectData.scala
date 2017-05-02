@@ -41,7 +41,6 @@ import scala.collection.JavaConversions._
   */
 object CollectData extends App {
   val f = new File(args(0))
-  //var f = new File("/home/harper/dataset/dc_dp")
   new DataCollector().scan(f.toURI)
 }
 
@@ -120,7 +119,7 @@ class DataCollector {
 
   private def extractFeature(col: Column): Unit = {
     try {
-      col.features = Features.extract(col).toList
+      col.features ++= Features.extract(col).toSet
     } catch {
       case e: Exception => logger.warn("Exception while processing column:%s@%s".format(col.colName, col.origin), e)
     }

@@ -25,13 +25,15 @@ package edu.uchicago.cs.encsel.dataset.feature
 import edu.uchicago.cs.encsel.dataset.column.Column
 
 /**
- * The <code>ColumnName</code> feature tries to capture the relationship
- * between column name and its encoding.
- *
- */
+  * The <code>ColumnName</code> feature tries to capture the relationship
+  * between column name and its encoding.
+  *
+  */
 object ColumnName extends FeatureExtractor {
 
   def featureType: String = "ColumnName"
+
+  def supportFilter: Boolean = false
 
   def extract(input: Column,
               filter: Iterator[String] => Iterator[String],

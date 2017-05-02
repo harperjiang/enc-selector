@@ -22,14 +22,17 @@
  */
 package edu.uchicago.cs.encsel.dataset.feature
 
-import edu.uchicago.cs.encsel.dataset.column.Column
-
-import scala.io.Source
 import java.io.File
 import java.util
 
+import edu.uchicago.cs.encsel.dataset.column.Column
+
+import scala.io.Source
+
 object Distinct extends FeatureExtractor {
   def featureType = "Distinct"
+
+  def supportFilter: Boolean = true
 
   def extract(col: Column,
               filter: Iterator[String] => Iterator[String],

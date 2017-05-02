@@ -52,6 +52,10 @@ object ClassifierForInt extends App {
   trainer.train(50)
 }
 
+object ClassifierForIntFirstN extends App {
+
+}
+
 object ClassifierForString extends App {
   val fullds = new EncselDataset(DataType.STRING)
   val datasets = fullds.split(Seq(0.9, 0.1))
