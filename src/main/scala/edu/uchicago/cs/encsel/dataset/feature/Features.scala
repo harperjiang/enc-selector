@@ -23,16 +23,14 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
-import scala.Iterable
-import scala.collection.mutable.ArrayBuffer
-
+import edu.uchicago.cs.encsel.dataset.column.Column
 import org.slf4j.LoggerFactory
 
-import edu.uchicago.cs.encsel.dataset.column.Column
+import scala.collection.mutable.ArrayBuffer
 
 object Features {
   val logger = LoggerFactory.getLogger(getClass)
-  var extractors = new ArrayBuffer[FeatureExtractor]()
+  val extractors = new ArrayBuffer[FeatureExtractor]()
 
   install(EncFileSize)
   install(Sparsity)
@@ -48,6 +46,22 @@ object Features {
     extractors.flatMap(ex => {
       try {
         ex.extract(input)
+      } catch {
+        case e: Exception => {
+          logger.error("Exception while executing %s on %s:%s, skipping"
+            .format(ex.getClass.getSimpleName, input.origin, input.colName), e)
+          Iterable[Feature]()
+        }
+      }
+    })
+  }
+
+  def extract(input: Column,
+              filter: Iterator[String] => Iterator[String],
+              prefix: String): Iterable[Feature] = {
+    extractors.filter(_.supportFilter).flatMap(ex => {
+      try {
+        ex.extract(input, filter, prefix)
       } catch {
         case e: Exception => {
           logger.error("Exception while executing %s on %s:%s, skipping"

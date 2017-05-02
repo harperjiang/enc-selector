@@ -33,6 +33,8 @@ object Length extends FeatureExtractor {
 
   def featureType = "Length"
 
+  def supportFilter: Boolean = true
+
   def extract(input: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {

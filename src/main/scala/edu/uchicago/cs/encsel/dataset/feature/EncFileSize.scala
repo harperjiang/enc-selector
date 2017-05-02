@@ -33,6 +33,8 @@ object EncFileSize extends FeatureExtractor {
 
   def featureType = "EncFileSize"
 
+  def supportFilter: Boolean = false
+
   def extract(col: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {

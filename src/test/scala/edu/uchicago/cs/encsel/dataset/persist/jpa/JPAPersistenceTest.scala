@@ -3,18 +3,13 @@ package edu.uchicago.cs.encsel.dataset.persist.jpa
 import java.io.File
 import java.util.ArrayList
 
-import scala.collection.JavaConversions._
-
-import org.junit.Assert._
-import org.junit.Before
-import org.junit.Test
-
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.feature.Feature
 import edu.uchicago.cs.encsel.model.DataType
-import javax.persistence.Embeddable
-import javax.persistence.Entity
-import javax.persistence.Table
+import org.junit.Assert._
+import org.junit.{Before, Test}
+
+import scala.collection.JavaConversions._
 
 class JPAPersistenceTest {
 
@@ -38,7 +33,7 @@ class JPAPersistenceTest {
     col1.colFile = new File("aab").toURI
     col1.origin = new File("ccd").toURI
 
-    col1.features = new ArrayList[Feature]
+    col1.features = new java.util.HashSet[Feature]
 
     var fea1 = new Feature
     fea1.name = "M"
@@ -60,11 +55,11 @@ class JPAPersistenceTest {
     val col1 = new Column(new File("dd").toURI, 3, "m", DataType.INTEGER)
     col1.colFile = new File("tt").toURI
 
-    col1.features = new ArrayList[Feature]
+    col1.features = new java.util.HashSet[Feature]
 
     val fea1 = new Feature("W", "A", 3.5)
 
-    col1.features = Array(fea1).toList
+    col1.features ++= Array(fea1)
 
     jpa.save(Array(col1))
 
@@ -104,10 +99,10 @@ class JPAPersistenceTest {
     jpa.save(cols)
 
     assertEquals(1, cols.length)
-    val features = cols(0).features
+    val features = cols(0).features.toList
     assertEquals(2, features.size)
-    assertEquals("M", features(0).name)
-    assertEquals("PP", features(1).name)
+    assertEquals("PP", features(0).name)
+    assertEquals("M", features(1).name)
   }
 
   @Test
@@ -122,11 +117,11 @@ class JPAPersistenceTest {
     col1.id = 2
     col1.colFile = new File("tt").toURI
 
-    col1.features = new ArrayList[Feature]
+    col1.features = new java.util.HashSet[Feature]
 
     val fea1 = new Feature("W", "A", 3.5)
 
-    col1.features = Array[Feature](fea1).toList
+    col1.features ++= Array(fea1)
 
     jpa.save(Array[Column](col1))
 

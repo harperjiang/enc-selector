@@ -30,6 +30,8 @@ object Sparsity extends FeatureExtractor {
 
   def featureType = "Sparsity"
 
+  def supportFilter: Boolean = true
+
   def extract(input: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
