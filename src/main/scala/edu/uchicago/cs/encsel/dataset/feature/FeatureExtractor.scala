@@ -40,10 +40,15 @@ object FeatureExtractor {
       input.filter(p => Random.nextDouble() <= ratio)
     }
   }
+
+
 }
 
 trait FeatureExtractor {
+
   def featureType: String
+
+  protected def featureType(prefix: String): String = "%s%s".format(prefix, featureType)
 
   def supportFilter: Boolean
 

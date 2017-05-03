@@ -25,41 +25,60 @@ package edu.uchicago.cs.encsel.model;
 
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Comparator;
+
 /**
  * @author Cathy
- *
  */
 public enum DataType {
-	INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN;
+    INTEGER, LONG, FLOAT, DOUBLE, STRING, BOOLEAN;
 
-	public boolean check(String input) {
-		input = input.trim();
-		// Do not check empty
-		if (StringUtils.isEmpty(input))
-			return true;
-		try {
-			switch (this) {
-			case INTEGER:
-				Integer.parseInt(input);
-				break;
-			case LONG:
-				Long.parseLong(input);
-				break;
-			case FLOAT:
-				Float.parseFloat(input);
-				break;
-			case DOUBLE:
-				Double.parseDouble(input);
-				break;
-			case STRING:
-				break;
-			case BOOLEAN:
-				Boolean.parseBoolean(input);
-				break;
-			}
-		} catch (Exception e) {
-			return false;
-		}
-		return true;
-	}
+    public boolean check(String input) {
+        input = input.trim();
+        // Do not check empty
+        if (StringUtils.isEmpty(input))
+            return true;
+        try {
+            switch (this) {
+                case INTEGER:
+                    Integer.parseInt(input);
+                    break;
+                case LONG:
+                    Long.parseLong(input);
+                    break;
+                case FLOAT:
+                    Float.parseFloat(input);
+                    break;
+                case DOUBLE:
+                    Double.parseDouble(input);
+                    break;
+                case STRING:
+                    break;
+                case BOOLEAN:
+                    Boolean.parseBoolean(input);
+                    break;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    public Comparator<String> comparator() {
+        switch (this) {
+            case INTEGER:
+                return Comparator.comparingInt((String input) -> Integer.parseInt(input));
+            case LONG:
+                return Comparator.comparingLong((String input) -> Long.parseLong(input));
+            case FLOAT:
+                return Comparator.comparingDouble((String input) -> Float.parseFloat(input));
+            case DOUBLE:
+                return Comparator.comparingDouble((String input) -> Double.parseDouble(input));
+            case STRING:
+                return Comparator.naturalOrder();
+            case BOOLEAN:
+                return Comparator.naturalOrder();
+        }
+        throw new IllegalArgumentException();
+    }
 }
