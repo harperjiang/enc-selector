@@ -55,7 +55,7 @@ object EncselDataset {
 /**
   * Encoding Selector Dataset. Load Column Data from Database with the given data type
   */
-class EncselDataset(val dataType: DataType) extends DefaultDataset {
+class EncselDataset(val dataType: DataType, val prefix: String = "") extends DefaultDataset {
 
   protected var _numClass: Int = _
 
@@ -70,7 +70,7 @@ class EncselDataset(val dataType: DataType) extends DefaultDataset {
 
     Persistence.get.lookup(dataType).foreach(column => {
       val feature = mapping.map(m => {
-        column.findFeature(m._1, m._2) match {
+        column.findFeature(prefix + m._1, m._2) match {
           case None => 0
           case Some(e) => e.value
         }

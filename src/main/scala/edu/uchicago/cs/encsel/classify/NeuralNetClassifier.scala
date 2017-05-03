@@ -53,7 +53,24 @@ object ClassifierForInt extends App {
 }
 
 object ClassifierForIntFirstN extends App {
+  val fullds = new EncselDataset(DataType.INTEGER, "f1000_")
+  val datasets = fullds.split(Seq(0.9, 0.1))
+  val trainds = datasets.head
+  val testds = datasets(1)
 
+  val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
+  val trainer = new SimpleTrainer[INDArray, Dataset[INDArray], EncSelNNGraph](trainds, testds, graph) {
+
+    {
+      paramStore = new FileStore("enc_nn_int_firstn_model")
+    }
+
+    override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
+      graph.x.set(batch.data)
+      graph.expect(batch.groundTruth)
+    }
+  }
+  trainer.train(50)
 }
 
 object ClassifierForString extends App {

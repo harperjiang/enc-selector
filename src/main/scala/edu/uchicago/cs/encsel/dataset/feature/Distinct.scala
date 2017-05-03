@@ -22,7 +22,6 @@
  */
 package edu.uchicago.cs.encsel.dataset.feature
 
-import java.io.File
 import java.util
 
 import edu.uchicago.cs.encsel.dataset.column.Column
@@ -39,16 +38,21 @@ object Distinct extends FeatureExtractor {
               prefix: String): Iterable[Feature] = {
     val source = Source.fromFile(col.colFile)
     val filtered = filter(source.getLines()).toTraversable
+    val fType = "%s%s".format(prefix, featureType)
     try {
-      val sum = filtered.count(_ => true)
-      val size = DistinctCounter.count(filtered.toIterator, sum)
-      match {
-        case gt if gt >= sum => sum
-        case lt => lt
+      val sum = filtered.size
+      if (sum != 0) {
+        val size = DistinctCounter.count(filtered.toIterator, sum)
+        match {
+          case gt if gt >= sum => sum
+          case lt => lt
+        }
+        Seq(new Feature(fType, "count", size.toDouble),
+          new Feature(fType, "ratio", size.toDouble / sum))
+      } else {
+        Seq(new Feature(fType, "count", 0),
+          new Feature(fType, "ratio", 0))
       }
-      val fType = "%s%s".format(prefix, featureType)
-      Array(new Feature(fType, "count", size.toDouble),
-        new Feature(fType, "ratio", size.toDouble / sum))
     } finally {
       source.close()
     }
