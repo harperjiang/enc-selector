@@ -30,7 +30,8 @@ import edu.uchicago.cs.encsel.dataset.column.Column
 import scala.io.Source
 
 /**
-  * How much is the dataset sorted
+  * This feature computes how much the dataset is sorted by compute the number
+  * of inverted pairs compared to
   */
 class Sortness(val windowSize: Int = 2) extends FeatureExtractor {
 
@@ -60,9 +61,11 @@ class Sortness(val windowSize: Int = 2) extends FeatureExtractor {
       }
       val fType = featureType(prefix)
       if (0 != sum) {
+        val r = (sum - inverted).toDouble / sum
+        val measurement = 2 * Math.abs(r - 0.5)
         Iterable(
           new Feature(fType, "%d_totalpair".format(windowSize), sum),
-          new Feature(fType, "%d_ivpair".format(windowSize), (sum - inverted).toDouble / sum)
+          new Feature(fType, "%d_ivpair".format(windowSize), measurement)
         )
       } else {
         Iterable(
