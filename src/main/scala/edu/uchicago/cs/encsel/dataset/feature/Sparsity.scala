@@ -24,6 +24,7 @@
 package edu.uchicago.cs.encsel.dataset.feature
 
 import edu.uchicago.cs.encsel.dataset.column.Column
+
 import scala.io.Source
 
 object Sparsity extends FeatureExtractor {
@@ -48,9 +49,15 @@ object Sparsity extends FeatureExtractor {
         }
       }
       val fType = "%s%s".format(prefix, featureType)
-      Iterable(new Feature(fType, "count", counter),
-        new Feature(fType, "empty_count", emptyCount),
-        new Feature(fType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
+      if (counter != 0) {
+        Iterable(new Feature(fType, "count", counter),
+          new Feature(fType, "empty_count", emptyCount),
+          new Feature(fType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
+      } else {
+        Iterable(new Feature(fType, "count", counter),
+          new Feature(fType, "empty_count", emptyCount),
+          new Feature(fType, "valid_ratio", 0))
+      }
     } finally {
       source.close()
     }

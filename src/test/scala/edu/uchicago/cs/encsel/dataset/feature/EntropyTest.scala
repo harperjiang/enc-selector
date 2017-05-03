@@ -1,10 +1,11 @@
 package edu.uchicago.cs.encsel.dataset.feature
 
-import org.junit.Test
-import org.junit.Assert._
+import java.io.File
+
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.model.DataType
-import java.io.File
+import org.junit.Assert._
+import org.junit.Test
 
 class EntropyTest {
 
@@ -64,6 +65,26 @@ class EntropyTest {
     col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
 
     var features = Entropy.extract(col).toArray
+
+    assertEquals(5, features.length)
+    assertEquals("line_max", features(0).name)
+    assertEquals(0, features(0).value, 0.001)
+    assertEquals("line_min", features(1).name)
+    assertEquals(0, features(1).value, 0.001)
+    assertEquals("line_mean", features(2).name)
+    assertEquals(0, features(2).value, 0.001)
+    assertEquals("line_var", features(3).name)
+    assertEquals(0, features(3).value, 0.001)
+    assertEquals("total", features(4).name)
+    assertEquals(0, features(4).value, 0.001)
+  }
+
+  @Test
+  def testRunEmptyFiltered: Unit = {
+    val col = new Column(null, -1, "", DataType.INTEGER)
+    col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
+
+    var features = Entropy.extract(col, FeatureExtractor.iidSamplingFilter(0.0001), "abc").toArray
 
     assertEquals(5, features.length)
     assertEquals("line_max", features(0).name)
