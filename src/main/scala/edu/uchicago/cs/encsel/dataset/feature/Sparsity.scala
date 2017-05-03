@@ -37,17 +37,22 @@ object Sparsity extends FeatureExtractor {
               prefix: String): Iterable[Feature] = {
     var counter = 0
     var emptyCount = 0
-    filter(Source.fromFile(input.colFile).getLines()).foreach {
-      line => {
-        counter += 1
-        if (line.trim().isEmpty) {
-          emptyCount += 1
+    val source = Source.fromFile(input.colFile)
+    try {
+      filter(source.getLines()).foreach {
+        line => {
+          counter += 1
+          if (line.trim().isEmpty) {
+            emptyCount += 1
+          }
         }
       }
+      val fType = "%s%s".format(prefix, featureType)
+      Iterable(new Feature(fType, "count", counter),
+        new Feature(fType, "empty_count", emptyCount),
+        new Feature(fType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
+    } finally {
+      source.close()
     }
-    val fType = "%s%s".format(prefix,featureType)
-    Iterable(new Feature(fType, "count", counter),
-      new Feature(fType, "empty_count", emptyCount),
-      new Feature(fType, "valid_ratio", (counter.toDouble - emptyCount) / counter))
   }
 }
