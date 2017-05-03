@@ -24,6 +24,7 @@
 package edu.uchicago.cs.encsel.dataset.feature
 
 import edu.uchicago.cs.encsel.dataset.column.Column
+import edu.uchicago.cs.encsel.dataset.persist.jpa.ColumnWrapper
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
@@ -45,7 +46,13 @@ object Features {
   def extract(input: Column): Iterable[Feature] = {
     extractors.flatMap(ex => {
       try {
-        ex.extract(input)
+        val extracted = ex.extract(input)
+        extracted.foreach(feature => {
+          if (feature.value.isNaN)
+            throw new IllegalArgumentException("NaN observed in %s:%s for column %d"
+              .format(feature.featureType, feature.name, input.asInstanceOf[ColumnWrapper].id))
+        })
+        extracted
       } catch {
         case e: Exception => {
           logger.error("Exception while executing %s on %s:%s, skipping"
