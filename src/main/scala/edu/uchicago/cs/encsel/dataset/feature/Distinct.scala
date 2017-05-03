@@ -37,16 +37,20 @@ object Distinct extends FeatureExtractor {
   def extract(col: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
-    val sum = filter(Source.fromFile(new File(col.colFile)).getLines()).count(_ => true)
-    val size = DistinctCounter.count(
-      filter(Source.fromFile(new File(col.colFile)).getLines()), sum)
-    match {
-      case gt if gt >= sum => sum
-      case lt => lt
+    val source = Source.fromFile(col.colFile)
+    try {
+      val sum = filter(source.getLines()).count(_ => true)
+      val size = DistinctCounter.count(filter(source.getLines()), sum)
+      match {
+        case gt if gt >= sum => sum
+        case lt => lt
+      }
+      val fType = "%s%s".format(prefix, featureType)
+      Array(new Feature(fType, "count", size.toDouble),
+        new Feature(fType, "ratio", size.toDouble / sum))
+    } finally {
+      source.close()
     }
-    val fType = "%s%s".format(prefix, featureType)
-    Array(new Feature(fType, "count", size.toDouble),
-      new Feature(fType, "ratio", size.toDouble / sum))
   }
 }
 

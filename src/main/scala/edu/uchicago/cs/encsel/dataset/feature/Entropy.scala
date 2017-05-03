@@ -45,29 +45,33 @@ object Entropy extends FeatureExtractor {
     val allcalc = new EntropyCalc()
     val linecalc = new EntropyCalc()
 
-    val lineEntropy = filter(Source.fromFile(new File(input.colFile)).getLines())
-      .filter(StringUtils.isNotEmpty)
-      .map(line => {
-        allcalc.add(line)
-        entropy(line, linecalc)
-      }).toTraversable
+    val source = Source.fromFile(input.colFile)
+    try {
+      val lineEntropy = filter(source.getLines()).filter(StringUtils.isNotEmpty)
+        .map(line => {
+          allcalc.add(line)
+          entropy(line, linecalc)
+        }).toTraversable
 
-    val fType = "%s%s".format(prefix, featureType)
+      val fType = "%s%s".format(prefix, featureType)
 
-    if (0 == lineEntropy.size) {
-      Iterable(new Feature(fType, "line_max", 0),
-        new Feature(fType, "line_min", 0),
-        new Feature(fType, "line_mean", 0),
-        new Feature(fType, "line_var", 0),
-        new Feature(fType, "total", 0))
-    } else {
-      val stat = DataUtils.stat(lineEntropy)
+      if (0 == lineEntropy.size) {
+        Iterable(new Feature(fType, "line_max", 0),
+          new Feature(fType, "line_min", 0),
+          new Feature(fType, "line_mean", 0),
+          new Feature(fType, "line_var", 0),
+          new Feature(fType, "total", 0))
+      } else {
+        val stat = DataUtils.stat(lineEntropy)
 
-      Iterable(new Feature(fType, "line_max", lineEntropy.max),
-        new Feature(fType, "line_min", lineEntropy.min),
-        new Feature(fType, "line_mean", stat._1),
-        new Feature(fType, "line_var", stat._2),
-        new Feature(fType, "total", allcalc.done()))
+        Iterable(new Feature(fType, "line_max", lineEntropy.max),
+          new Feature(fType, "line_min", lineEntropy.min),
+          new Feature(fType, "line_mean", stat._1),
+          new Feature(fType, "line_var", stat._2),
+          new Feature(fType, "total", allcalc.done()))
+      }
+    } finally {
+      source.close()
     }
   }
 
