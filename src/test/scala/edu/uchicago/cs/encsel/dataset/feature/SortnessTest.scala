@@ -33,7 +33,7 @@ class SortnessTest {
   def testExtractEmpty: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_int.data").toURI
-    val features = new Sortness(2).extract(col, FeatureExtractor.iidSamplingFilter(0.0001), "abc_").toArray
+    val features = new Sortness(2).extract(col, FeatureExtractor.iidSamplingFilter(0.000001), "abc_").toArray
 
     assertEquals(2, features.length)
 
