@@ -67,13 +67,45 @@ public enum DataType {
     public Comparator<String> comparator() {
         switch (this) {
             case INTEGER:
-                return Comparator.comparingInt((String input) -> Integer.parseInt(input));
+                return (String a, String b) -> {
+                    if (StringUtils.isEmpty(a)) {
+                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    }
+                    if (StringUtils.isEmpty(b)) {
+                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    }
+                    return Integer.compare(Integer.parseInt(a), Integer.parseInt(b));
+                };
             case LONG:
-                return Comparator.comparingLong((String input) -> Long.parseLong(input));
+                return (String a, String b) -> {
+                    if (StringUtils.isEmpty(a)) {
+                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    }
+                    if (StringUtils.isEmpty(b)) {
+                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    }
+                    return Long.compare(Long.parseLong(a), Long.parseLong(b));
+                };
             case FLOAT:
-                return Comparator.comparingDouble((String input) -> Float.parseFloat(input));
+                return (String a, String b) -> {
+                    if (StringUtils.isEmpty(a)) {
+                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    }
+                    if (StringUtils.isEmpty(b)) {
+                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    }
+                    return Float.compare(Float.parseFloat(a), Float.parseFloat(b));
+                };
             case DOUBLE:
-                return Comparator.comparingDouble((String input) -> Double.parseDouble(input));
+                return (String a, String b) -> {
+                    if (StringUtils.isEmpty(a)) {
+                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    }
+                    if (StringUtils.isEmpty(b)) {
+                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    }
+                    return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
+                };
             case STRING:
                 return Comparator.naturalOrder();
             case BOOLEAN:
