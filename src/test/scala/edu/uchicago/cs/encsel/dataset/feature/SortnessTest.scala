@@ -26,7 +26,7 @@ class SortnessTest {
 
     assertEquals("Sortness", features(1).featureType)
     assertEquals("2_ivpair", features(1).name)
-    assertEquals(0.8611, features(1).value, 0.001)
+    assertEquals(0.7222, features(1).value, 0.001)
   }
 
   @Test
