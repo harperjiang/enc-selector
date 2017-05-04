@@ -23,45 +23,30 @@
 
 package edu.uchicago.cs.dist
 
-import java.util.UUID
-
 /**
-  * Created by harper on 5/3/17.
+  * Created by harper on 5/4/17.
   */
-trait Task {
+
+object ChannelRegistry {
+  def get: ChannelRegistry = new ChannelRegistry() {
+    override def find(name: String): Channel = {
+      null
+    }
+  }
+}
+
+trait ChannelRegistry {
+
+  def find(name: String): Channel
+}
+
+trait Channel {
 
   def id: String
 
-  def spawn(numPiece: Int): Seq[TaskPiece]
+  def send(data: Serializable): Unit
 
-  def collect(piece: TaskPiece): Unit
-}
+  def listen(): Serializable
 
-trait TaskPiece extends Serializable {
-
-  def parentId: String
-
-  def id: String
-
-  def parameter: Serializable
-
-  def result: Serializable
-
-  def execute()
-}
-
-abstract class DefaultTask extends Task {
-
-  val id: String = UUID.randomUUID().toString
-}
-
-abstract class DefaultTaskPiece(parent: Task) extends TaskPiece {
-
-  val parentId = parent.id
-
-  val id = UUID.randomUUID().toString
-
-  var parameter: Serializable = null
-
-  var result: Serializable = null
+  def listen(callback: (Serializable) => Unit)
 }
