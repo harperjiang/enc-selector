@@ -37,12 +37,12 @@ object Distinct extends FeatureExtractor {
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
     val source = Source.fromFile(col.colFile)
-    val filtered = filter(source.getLines()).toTraversable
     val fType = "%s%s".format(prefix, featureType)
     try {
-      val sum = filtered.size
+      val sum = filter(source.getLines()).size
       if (sum != 0) {
-        val size = DistinctCounter.count(filtered.toIterator, sum)
+        source.reset()
+        val size = DistinctCounter.count(filter(source.getLines()), sum)
         match {
           case gt if gt >= sum => sum
           case lt => lt
