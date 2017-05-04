@@ -23,11 +23,12 @@
 package edu.uchicago.cs.encsel.dataset
 
 import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.dataset.feature.Features
+import edu.uchicago.cs.encsel.dataset.feature.Sortness
 import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
+
 /**
   * Created by harper on 4/23/17.
   */
@@ -37,7 +38,7 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Features.extractors
+  val missed = Seq(new Sortness(2), new Sortness(5), new Sortness(10), new Sortness(50))
 
   val em = JPAPersistence.emf.createEntityManager()
   val query = em.createNativeQuery("SELECT c.* FROM col_data c",

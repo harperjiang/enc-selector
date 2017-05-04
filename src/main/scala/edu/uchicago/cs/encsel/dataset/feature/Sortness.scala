@@ -61,8 +61,7 @@ class Sortness(val windowSize: Int = 2) extends FeatureExtractor {
       }
       val fType = featureType(prefix)
       if (0 != sum) {
-        val r = (sum - inverted).toDouble / sum
-        val measurement = 2 * Math.abs(r - 0.5)
+        val measurement = 2 * Math.abs(((sum - inverted).toDouble / sum) - 0.5)
         Iterable(
           new Feature(fType, "%d_totalpair".format(windowSize), sum),
           new Feature(fType, "%d_ivpair".format(windowSize), measurement)
