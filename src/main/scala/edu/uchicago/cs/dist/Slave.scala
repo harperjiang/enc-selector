@@ -21,35 +21,11 @@
  *
  */
 
-package edu.uchicago.cs.encsel.classify
-
-import edu.uchicago.cs.ndnn._
+package edu.uchicago.cs.dist
 
 /**
-  * Created by harper on 4/21/17.
+  * Created by harper on 5/3/17.
   */
-object EncSelNNGraph {
-  val hiddenDim = 300
-}
+class Slave {
 
-class EncSelNNGraph(numFeature: Int, numClass: Int)
-  extends Graph(Xavier, new Adam(0.001,0.9,0.999), new SoftMaxLogLoss) {
-
-  val x = input("x")
-
-  {
-    val w = param("w", Array(numFeature, EncSelNNGraph.hiddenDim))
-    val b = param("b", Array(EncSelNNGraph.hiddenDim))(Zero)
-    val map = param("map", Array(EncSelNNGraph.hiddenDim, numClass))
-    val mapb = param("mapb", Array(numClass))(Zero)
-
-    val wx = new DotMul(x, w)
-    val wxab = new Add(wx, b)
-    val sigmoid = new Tanh(wxab)
-    val mapped = new DotMul(sigmoid, map)
-    val offset = new Add(mapped, mapb)
-    val softmax = new SoftMax(offset)
-
-    output(softmax)
-  }
 }
