@@ -68,43 +68,51 @@ public enum DataType {
         switch (this) {
             case INTEGER:
                 return (String a, String b) -> {
-                    if (StringUtils.isEmpty(a)) {
-                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    String at = a.trim();
+                    String bt = b.trim();
+                    if (StringUtils.isEmpty(at)) {
+                        return StringUtils.isEmpty(bt) ? 0 : -1;
                     }
-                    if (StringUtils.isEmpty(b)) {
-                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    if (StringUtils.isEmpty(bt)) {
+                        return StringUtils.isEmpty(at) ? 0 : 1;
                     }
-                    return Integer.compare(Integer.parseInt(a), Integer.parseInt(b));
+                    return Integer.compare(Integer.parseInt(at), Integer.parseInt(bt));
                 };
             case LONG:
                 return (String a, String b) -> {
-                    if (StringUtils.isEmpty(a)) {
-                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    String at = a.trim();
+                    String bt = b.trim();
+                    if (StringUtils.isEmpty(at)) {
+                        return StringUtils.isEmpty(bt) ? 0 : -1;
                     }
-                    if (StringUtils.isEmpty(b)) {
-                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    if (StringUtils.isEmpty(bt)) {
+                        return StringUtils.isEmpty(at) ? 0 : 1;
                     }
-                    return Long.compare(Long.parseLong(a), Long.parseLong(b));
+                    return Long.compare(Long.parseLong(at), Long.parseLong(bt));
                 };
             case FLOAT:
                 return (String a, String b) -> {
-                    if (StringUtils.isEmpty(a)) {
-                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    String at = a.trim();
+                    String bt = b.trim();
+                    if (StringUtils.isEmpty(at)) {
+                        return StringUtils.isEmpty(bt) ? 0 : -1;
                     }
-                    if (StringUtils.isEmpty(b)) {
-                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    if (StringUtils.isEmpty(bt)) {
+                        return StringUtils.isEmpty(at) ? 0 : 1;
                     }
-                    return Float.compare(Float.parseFloat(a), Float.parseFloat(b));
+                    return Float.compare(Float.parseFloat(at), Float.parseFloat(bt));
                 };
             case DOUBLE:
                 return (String a, String b) -> {
-                    if (StringUtils.isEmpty(a)) {
-                        return StringUtils.isEmpty(b) ? 0 : -1;
+                    String at = a.trim();
+                    String bt = b.trim();
+                    if (StringUtils.isEmpty(at)) {
+                        return StringUtils.isEmpty(bt) ? 0 : -1;
                     }
-                    if (StringUtils.isEmpty(b)) {
-                        return StringUtils.isEmpty(a) ? 0 : 1;
+                    if (StringUtils.isEmpty(bt)) {
+                        return StringUtils.isEmpty(at) ? 0 : 1;
                     }
-                    return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
+                    return Double.compare(Double.parseDouble(at), Double.parseDouble(bt));
                 };
             case STRING:
                 return Comparator.naturalOrder();
