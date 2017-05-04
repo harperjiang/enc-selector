@@ -23,9 +23,46 @@
 
 package edu.uchicago.cs.dist
 
+import java.util.concurrent.Executors
+
 /**
   * Created by harper on 5/3/17.
   */
-class Slave {
 
+object Slave extends App {
+  new Slave(ChannelRegistry.get).start()
+  while (true) {
+    Thread.sleep(1000)
+  }
+}
+
+
+class Slave(val registry: ChannelRegistry) {
+
+  val receiveChannel = registry.find("distribute")
+  val feedbackChannel = registry.find("collect")
+
+  val threadPool = Executors.newFixedThreadPool(10)
+
+  def start(): Unit = {
+    receiveChannel.listen((task: Serializable) => {
+      if (task.isInstanceOf[TaskPiece]) {
+        val piece = task.asInstanceOf[TaskPiece]
+        threadPool.submit(new TaskRunnable(this, piece))
+      }
+    })
+  }
+
+  def taskDone(piece: TaskPiece): Unit = {
+    feedbackChannel.send(piece)
+  }
+}
+
+class TaskRunnable(val slave: Slave, val piece: TaskPiece) extends Runnable {
+
+  override def run(): Unit = {
+    piece.execute()
+    slave.taskDone(piece)
+
+  }
 }
