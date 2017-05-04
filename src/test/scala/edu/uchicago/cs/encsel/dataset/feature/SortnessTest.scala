@@ -26,7 +26,7 @@ class SortnessTest {
 
     assertEquals("Sortness", features(1).featureType)
     assertEquals("2_ivpair", features(1).name)
-    assertEquals(0.7222, features(1).value, 0.001)
+    assertEquals(0.2778, features(1).value, 0.001)
   }
 
   @Test
@@ -42,6 +42,23 @@ class SortnessTest {
     assertEquals(0, features(0).value, 0.001)
 
     assertEquals("abc_Sortness", features(1).featureType)
+    assertEquals("2_ivpair", features(1).name)
+    assertEquals(0, features(1).value, 0.001)
+  }
+
+  @Test
+  def testExtractEmptyColumn:Unit = {
+    val col = new Column(null, -1, "", DataType.INTEGER)
+    col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
+    val features = new Sortness(2).extract(col).toArray
+
+    assertEquals(2, features.length)
+
+    assertEquals("Sortness", features(0).featureType)
+    assertEquals("2_totalpair", features(0).name)
+    assertEquals(69, features(0).value, 0.001)
+
+    assertEquals("Sortness", features(1).featureType)
     assertEquals("2_ivpair", features(1).name)
     assertEquals(0, features(1).value, 0.001)
   }
