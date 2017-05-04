@@ -36,12 +36,12 @@ object Distinct extends FeatureExtractor {
   def extract(col: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
-    val source = Source.fromFile(col.colFile)
+    var source: Source = Source.fromFile(col.colFile)
     val fType = "%s%s".format(prefix, featureType)
     try {
       val sum = filter(source.getLines()).size
       if (sum != 0) {
-        source.reset()
+        source = source.reset()
         val size = DistinctCounter.count(filter(source.getLines()), sum)
         match {
           case gt if gt >= sum => sum
