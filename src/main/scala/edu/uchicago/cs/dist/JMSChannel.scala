@@ -33,12 +33,13 @@ import org.apache.activemq.ActiveMQConnectionFactory
 
 class JMSChannelRegistry(host: String) extends ChannelRegistry {
 
-  val connectionFactory = new ActiveMQConnectionFactory(host)
+  protected val connectionFactory = new ActiveMQConnectionFactory(host)
   // Create a Connection
-  val connection = connectionFactory.createConnection
+  protected val connection = connectionFactory.createConnection
   connection.start
   // Create a Session
-  val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+  protected val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+
 
   override def find(name: String): Channel = {
     val dest = session.createQueue(name)

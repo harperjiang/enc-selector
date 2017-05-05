@@ -44,7 +44,7 @@ class FeaturesTest {
     val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_int.data").toURI
 
-    val filter = FeatureExtractor.firstNFilter(5)
+    val filter = Filter.firstNFilter(5)
 
     val features = Features.extract(col, filter, "ak_")
     val fa = features.toArray

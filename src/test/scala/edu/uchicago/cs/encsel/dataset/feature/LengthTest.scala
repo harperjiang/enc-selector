@@ -50,7 +50,7 @@ class LengthTest {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
 
-    val features = Length.extract(col,FeatureExtractor.iidSamplingFilter(0.00001),"abc_").toArray
+    val features = Length.extract(col,Filter.iidSamplingFilter(0.00001),"abc_").toArray
 
     assertEquals(4, features.length)
     assertEquals("max", features(0).name)
