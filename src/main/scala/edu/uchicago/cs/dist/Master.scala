@@ -23,9 +23,54 @@
 
 package edu.uchicago.cs.dist
 
+import org.slf4j.LoggerFactory
+
+import scala.collection.mutable
+
 /**
   * Created by harper on 5/3/17.
   */
-class Master {
+class Master(val registry: ChannelRegistry) {
 
+  val logger = LoggerFactory.getLogger(getClass())
+
+
+  val distributeChannel = registry.find("distribute")
+  val collectChannel = registry.find("collect")
+
+  val taskLog = new mutable.HashMap[String, (Task, Int)]
+
+  {
+    collectChannel.listen((data: AnyRef) => {
+      if (data.isInstanceOf[TaskPiece]) {
+        collect(data.asInstanceOf[TaskPiece])
+      }
+    })
+  }
+
+  def submit(task: Task) = {
+    val numSlaves = 0
+    val pieces = task.spawn(numSlaves)
+    taskLog += ((task.id -> (task, pieces.length)))
+    pieces.foreach(distributeChannel.send)
+  }
+
+  def collect(piece: TaskPiece) = {
+    this.synchronized({
+      taskLog.get(piece.parentId) match {
+        case None => {
+          logger.error("Unexpected message for a non-existed task")
+        }
+        case Some(content) => {
+          val counter = content._2 - 1
+          content._1.collect(piece)
+          if (counter > 0) {
+            taskLog += ((piece.parentId -> (content._1, counter)))
+          } else {
+            taskLog.remove(piece.parentId)
+          }
+        }
+      }
+    })
+  }
 }
