@@ -32,6 +32,8 @@ trait Task {
 
   def id: String
 
+  def status: TaskStatus
+
   def spawn(numPiece: Int): Seq[TaskPiece]
 
   def collect(piece: TaskPiece): Unit
@@ -45,14 +47,26 @@ trait TaskPiece extends Serializable {
 
   def parameter: java.io.Serializable
 
+  def failed: Boolean
+
   def result: java.io.Serializable
 
   def execute()
+
+  def markFail()
 }
 
 abstract class DefaultTask extends Task {
 
   val id: String = UUID.randomUUID().toString
+
+  var status: TaskStatus = TaskStatus.SUCCESS
+
+  def collect(piece: TaskPiece): Unit = {
+    if (piece.failed) {
+      status = TaskStatus.FAILURE
+    }
+  }
 }
 
 abstract class DefaultTaskPiece(parent: Task) extends TaskPiece {
@@ -64,4 +78,11 @@ abstract class DefaultTaskPiece(parent: Task) extends TaskPiece {
   var parameter: java.io.Serializable = null
 
   var result: java.io.Serializable = null
+
+  var failed: Boolean = false
+
+  def markFail(): Unit = {
+    failed = true
+  }
+
 }

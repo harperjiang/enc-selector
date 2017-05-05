@@ -28,12 +28,15 @@ import java.util.Comparator
 import edu.uchicago.cs.encsel.dataset.column.Column
 
 import scala.io.Source
+import scala.util.Random
 
 /**
   * This feature computes how much the dataset is sorted by compute the number
-  * of inverted pairs compared to
+  * of inverted pairs
   */
-class Sortness(val windowSize: Int = 2) extends FeatureExtractor {
+class Sortness(val windowSize: Int,
+               val skip: Int = 1,
+               val selection: Double = 1) extends FeatureExtractor {
 
   def featureType: String = "Sortness"
 
@@ -48,11 +51,13 @@ class Sortness(val windowSize: Int = 2) extends FeatureExtractor {
       var sum = 0
       var inverted = 0
       if (windowSize != -1) {
-        filter(source.getLines()).sliding(windowSize, 1).foreach(group => {
-          val (invert, total) = computeInvertPair(group, input.dataType.comparator())
-          sum += total
-          inverted += invert
-        })
+        filter(source.getLines()).sliding(windowSize, skip)
+          .filter(p => Random.nextDouble() <= selection)
+          .foreach(group => {
+            val (invert, total) = computeInvertPair(group, input.dataType.comparator())
+            sum += total
+            inverted += invert
+          })
       } else {
         val (invert, total) = computeInvertPair(filter(source.getLines()).toSeq,
           input.dataType.comparator())
@@ -65,13 +70,13 @@ class Sortness(val windowSize: Int = 2) extends FeatureExtractor {
         val ratio = (sum - inverted).toDouble / sum
         val measurement = 1 - Math.abs(2 * ratio - 1)
         Iterable(
-          new Feature(fType, "%d_totalpair".format(windowSize), sum),
-          new Feature(fType, "%d_ivpair".format(windowSize), measurement)
+          new Feature(fType, "totalpair_%d_%d_%.4f".format(windowSize, skip, selection), sum),
+          new Feature(fType, "ivpair_%d_%d_%.4f".format(windowSize, skip, selection), measurement)
         )
       } else {
         Iterable(
-          new Feature(fType, "%d_totalpair".format(windowSize), sum),
-          new Feature(fType, "%d_ivpair".format(windowSize), 0)
+          new Feature(fType, "totalpair_%d_%d_%.4f".format(windowSize, skip, selection), sum),
+          new Feature(fType, "ivpair_%d_%d_%.4f".format(windowSize, skip, selection), 0)
         )
       }
     } finally {

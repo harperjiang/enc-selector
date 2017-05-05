@@ -21,31 +21,40 @@
  *
  */
 
-package edu.uchicago.cs.encsel.dataset
+package edu.uchicago.cs.encsel.dataset.feature
 
-import edu.uchicago.cs.encsel.dataset.feature.{Features, Filter}
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
-
-import scala.collection.JavaConversions._
+import scala.util.Random
 
 /**
-  * Created by harper on 5/2/17.
+  * Stream Filters
   */
-object CollectFeature extends App {
+object Filter {
+  def emptyFilter: Iterator[String] => Iterator[String] = a => a
 
-  val prefix = args(0)
-
-  val filter = args(1) match {
-    case "none" => Filter.emptyFilter
-    case "firstn" => Filter.firstNFilter(args(2).toInt)
-    case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
-    case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
-    case _ => throw new IllegalArgumentException(args(1))
+  def firstNFilter(n: Int): Iterator[String] => Iterator[String] = {
+    (input: Iterator[String]) => {
+      input.slice(0, n)
+    }
   }
 
-  val persistence = Persistence.get
-  persistence.load().foreach(column => {
-    column.features ++= Features.extract(column, filter, prefix)
-    persistence.save(Seq(column))
-  })
+  def iidSamplingFilter(ratio: Double): Iterator[String] => Iterator[String] = {
+    (input: Iterator[String]) => {
+      input.filter(p => Random.nextDouble() <= ratio)
+    }
+  }
+
+  def minSizeFilter(size: Int, ratio: Double) = {
+    (input: Iterator[String]) => {
+      var counter = 0
+      input.filter(record => {
+        if (counter < size) {
+          counter += record.length
+          true
+        } else {
+          Random.nextDouble() <= ratio
+        }
+      })
+
+    }
+  }
 }
