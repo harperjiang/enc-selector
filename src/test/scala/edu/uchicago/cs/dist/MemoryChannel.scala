@@ -7,13 +7,13 @@ import java.util.concurrent.ArrayBlockingQueue
   */
 class MemoryChannel extends Channel {
 
-  protected val content = new ArrayBlockingQueue[Serializable](10)
+  val content = new ArrayBlockingQueue[java.io.Serializable](100)
 
-  protected var callback: (Serializable) => Unit = null
+  protected var callback: (java.io.Serializable) => Unit = null
 
   var id: String = ""
 
-  def send(data: Serializable): Unit = {
+  def send(data: java.io.Serializable): Unit = {
     if (callback == null)
       content.offer(data)
     else {
@@ -21,9 +21,9 @@ class MemoryChannel extends Channel {
     }
   }
 
-  def listen(): Serializable = content.take()
+  def listen(): java.io.Serializable = content.take()
 
-  def listen(callback: (Serializable) => Unit) = {
+  def listen(callback: (java.io.Serializable) => Unit) = {
     this.callback = callback
   }
 

@@ -43,9 +43,9 @@ trait TaskPiece extends Serializable {
 
   def id: String
 
-  def parameter: Serializable
+  def parameter: java.io.Serializable
 
-  def result: Serializable
+  def result: java.io.Serializable
 
   def execute()
 }
@@ -61,7 +61,7 @@ abstract class DefaultTaskPiece(parent: Task) extends TaskPiece {
 
   val id = UUID.randomUUID().toString
 
-  var parameter: Serializable = null
+  var parameter: java.io.Serializable = null
 
-  var result: Serializable = null
+  var result: java.io.Serializable = null
 }

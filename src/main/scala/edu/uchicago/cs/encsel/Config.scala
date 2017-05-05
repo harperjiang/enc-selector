@@ -35,6 +35,8 @@ object Config {
   var columnFolder = "./columns"
   val tempFolder = "./temp"
 
+  var distJmsHost = "vm://localhost"
+
   load()
 
   val logger = LoggerFactory.getLogger(getClass)
@@ -48,6 +50,8 @@ object Config {
       columnReaderEnableCheck = "true".equals(p.getProperty("column.readerEnableCheck"))
       columnReaderErrorLimit = Integer.parseInt(p.getProperty("column.readerErrorLimit"))
       columnFolder = p.getProperty("column.folder")
+
+      distJmsHost = p.getProperty("dist.jms.host")
     } catch {
       case e: Exception => {
         logger.warn("Failed to load configuration", e)
