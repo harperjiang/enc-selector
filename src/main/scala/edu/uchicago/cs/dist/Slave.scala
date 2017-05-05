@@ -45,7 +45,7 @@ class Slave(val registry: ChannelRegistry) {
   val threadPool = Executors.newFixedThreadPool(10)
 
   def start(): Unit = {
-    receiveChannel.listen((task: Serializable) => {
+    receiveChannel.listen((task: java.io.Serializable) => {
       if (task.isInstanceOf[TaskPiece]) {
         val piece = task.asInstanceOf[TaskPiece]
         threadPool.submit(new TaskRunnable(this, piece))
@@ -63,6 +63,5 @@ class TaskRunnable(val slave: Slave, val piece: TaskPiece) extends Runnable {
   override def run(): Unit = {
     piece.execute()
     slave.taskDone(piece)
-
   }
 }

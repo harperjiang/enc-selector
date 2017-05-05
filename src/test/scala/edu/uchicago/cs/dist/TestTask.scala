@@ -10,7 +10,7 @@ class TestTask extends DefaultTask {
   val done = new mutable.HashSet[Int]()
 
   override def spawn(numPiece: Int): Seq[TaskPiece] = {
-    (0 to 10).map(i => new TestTaskPiece(this, i)).toSeq
+    (0 until 10).map(i => new TestTaskPiece(this, i))
   }
 
   override def collect(piece: TaskPiece): Unit = {
@@ -24,6 +24,6 @@ class TestTask extends DefaultTask {
 class TestTaskPiece(task: Task, val number: Int) extends DefaultTaskPiece(task) {
 
   override def execute(): Unit = {
-
+    this.result = this.id
   }
 }

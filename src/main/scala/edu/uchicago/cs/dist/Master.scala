@@ -41,7 +41,7 @@ class Master(val registry: ChannelRegistry) {
   val taskLog = new mutable.HashMap[String, (Task, Int)]
 
   {
-    collectChannel.listen((data: AnyRef) => {
+    collectChannel.listen((data: java.io.Serializable) => {
       if (data.isInstanceOf[TaskPiece]) {
         collect(data.asInstanceOf[TaskPiece])
       }
