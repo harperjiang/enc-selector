@@ -21,31 +21,12 @@
  *
  */
 
-package edu.uchicago.cs.encsel.dataset
-
-import edu.uchicago.cs.encsel.dataset.feature.{Features, Filter}
-import edu.uchicago.cs.encsel.dataset.persist.Persistence
-
-import scala.collection.JavaConversions._
+package edu.uchicago.cs.dist;
 
 /**
-  * Created by harper on 5/2/17.
-  */
-object CollectFeature extends App {
+ * Created by harper on 5/5/17.
+ */
+public enum TaskStatus {
 
-  val prefix = args(0)
-
-  val filter = args(1) match {
-    case "none" => Filter.emptyFilter
-    case "firstn" => Filter.firstNFilter(args(2).toInt)
-    case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
-    case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
-    case _ => throw new IllegalArgumentException(args(1))
-  }
-
-  val persistence = Persistence.get
-  persistence.load().foreach(column => {
-    column.features ++= Features.extract(column, filter, prefix)
-    persistence.save(Seq(column))
-  })
+    SUCCESS, FAILURE
 }

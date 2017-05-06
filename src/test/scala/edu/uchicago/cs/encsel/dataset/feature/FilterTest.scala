@@ -6,12 +6,12 @@ import org.junit.Test
 /**
   * Created by harper on 4/27/17.
   */
-class FeatureExtractorTest {
+class FilterTest {
 
   @Test
   def testEmptyFilter: Unit = {
     val input = Iterator("a", "b", "c", "d", "e", "f", "g")
-    val filtered = FeatureExtractor.emptyFilter(input).toArray
+    val filtered = Filter.emptyFilter(input).toArray
     assertEquals(7, filtered.size)
     for (i <- 0 until 7) {
       assertEquals(('a' + i).toChar.toString, filtered(i))
@@ -21,7 +21,7 @@ class FeatureExtractorTest {
   @Test
   def testFirstNFilter: Unit = {
     val input = (0 to 1000).map(_.toString).toIterator
-    val filtered = FeatureExtractor.firstNFilter(50)(input).toArray
+    val filtered = Filter.firstNFilter(50)(input).toArray
     assertEquals(50, filtered.size)
     for (i <- 0 until 50) {
       assertEquals(filtered(i), i.toString)
@@ -31,7 +31,7 @@ class FeatureExtractorTest {
   @Test
   def testIidSamplingFilter: Unit = {
     val input = (0 to 5000).map(_.toString).toIterator
-    val filtered = FeatureExtractor.iidSamplingFilter(0.1)(input).toArray
+    val filtered = Filter.iidSamplingFilter(0.1)(input).toArray
     assertTrue(450 <= filtered.size)
     assertTrue(filtered.size <= 550)
     filtered.foreach(i => {
@@ -41,6 +41,18 @@ class FeatureExtractorTest {
     val set = filtered.toSet
     assertEquals(set.size, filtered.size)
   }
+
+  @Test
+  def testMinSizeFilter: Unit = {
+    val input1 = (0 until 20).map(i => "abcde").toIterator
+    val filtered1 = Filter.minSizeFilter(100, 0.1)(input1).toArray
+
+    assertEquals(20, filtered1.size)
+
+    val input2 = (0 until 1000).map(i => "a").toIterator
+    val filtered2 = Filter.minSizeFilter(100, 0.1)(input2).toArray
+
+    assertTrue(170 <= filtered2.size)
+    assertTrue(filtered2.size <= 210)
+  }
 }
-
-

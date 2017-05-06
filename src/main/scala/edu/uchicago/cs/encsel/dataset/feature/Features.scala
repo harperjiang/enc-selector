@@ -46,13 +46,7 @@ object Features {
   def extract(input: Column): Iterable[Feature] = {
     extractors.flatMap(ex => {
       try {
-        val extracted = ex.extract(input)
-        extracted.foreach(feature => {
-          if (feature.value.isNaN)
-            throw new IllegalArgumentException("NaN observed in %s:%s for column %d"
-              .format(feature.featureType, feature.name, input.asInstanceOf[ColumnWrapper].id))
-        })
-        extracted
+        ex.extract(input)
       } catch {
         case e: Exception => {
           logger.error("Exception while executing %s on %s:%s, skipping"
