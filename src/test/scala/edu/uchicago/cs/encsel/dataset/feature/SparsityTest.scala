@@ -37,7 +37,7 @@ class SparsityTest {
     val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_sparsity.data").toURI
 
-    val features = Sparsity.extract(col, FeatureExtractor.iidSamplingFilter(0.0001), "")
+    val features = Sparsity.extract(col, Filter.iidSamplingFilter(0.0001), "")
     assertEquals(3, features.size)
 
     val farray = features.toArray

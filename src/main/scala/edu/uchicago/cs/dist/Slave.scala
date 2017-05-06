@@ -23,7 +23,10 @@
 
 package edu.uchicago.cs.dist
 
+import java.util.UUID
 import java.util.concurrent.Executors
+
+import org.slf4j.LoggerFactory
 
 /**
   * Created by harper on 5/3/17.
@@ -31,26 +34,31 @@ import java.util.concurrent.Executors
 
 object Slave extends App {
   new Slave(ChannelRegistry.get).start()
-  while (true) {
-    Thread.sleep(1000)
-  }
 }
 
 
 class Slave(val registry: ChannelRegistry) {
 
+  val id = UUID.randomUUID().toString
+
   val receiveChannel = registry.find("distribute")
   val feedbackChannel = registry.find("collect")
+  val heartbeatChannel = registry.find("heartbeat")
+
 
   val threadPool = Executors.newFixedThreadPool(10)
 
+  val heartbeatThread = new HeartbeatThread(this)
+
   def start(): Unit = {
-    receiveChannel.listen((task: Serializable) => {
+    receiveChannel.listen((task: java.io.Serializable) => {
       if (task.isInstanceOf[TaskPiece]) {
         val piece = task.asInstanceOf[TaskPiece]
         threadPool.submit(new TaskRunnable(this, piece))
       }
     })
+
+    heartbeatThread.start()
   }
 
   def taskDone(piece: TaskPiece): Unit = {
@@ -60,9 +68,31 @@ class Slave(val registry: ChannelRegistry) {
 
 class TaskRunnable(val slave: Slave, val piece: TaskPiece) extends Runnable {
 
-  override def run(): Unit = {
-    piece.execute()
-    slave.taskDone(piece)
+  val logger = LoggerFactory.getLogger(getClass())
 
+  override def run(): Unit = {
+    try {
+      piece.execute()
+    } catch {
+      case e: Exception => {
+        piece.markFail()
+      }
+    }
+    slave.taskDone(piece)
+  }
+}
+
+class HeartbeatThread(slave: Slave) extends Thread {
+  {
+    setDaemon(false)
+    setName("Heartbeat")
+  }
+
+  override def run(): Unit = {
+    while (true) {
+      slave.heartbeatChannel.send(slave.id)
+      // TODO move this to configuration
+      Thread.sleep(30000)
+    }
   }
 }

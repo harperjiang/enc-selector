@@ -33,7 +33,7 @@ class DistinctTest {
   def testExtractWithFilter: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI
-    val features = Distinct.extract(col, FeatureExtractor.firstNFilter(3), "abc_").toArray
+    val features = Distinct.extract(col, Filter.firstNFilter(3), "abc_").toArray
 
     assertEquals(2, features.length)
     assertEquals("abc_Distinct", features(0).featureType)
@@ -49,7 +49,7 @@ class DistinctTest {
   def testEmptyInput: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI
-    val features = Distinct.extract(col, FeatureExtractor.iidSamplingFilter(0.0001), "abc_").toArray
+    val features = Distinct.extract(col, Filter.iidSamplingFilter(0.0001), "abc_").toArray
 
     assertEquals(2, features.length)
     assertEquals("abc_Distinct", features(0).featureType)

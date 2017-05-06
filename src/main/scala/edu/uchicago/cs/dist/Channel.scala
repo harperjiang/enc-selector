@@ -23,16 +23,14 @@
 
 package edu.uchicago.cs.dist
 
+import edu.uchicago.cs.encsel.Config
+
 /**
   * Created by harper on 5/4/17.
   */
 
 object ChannelRegistry {
-  def get: ChannelRegistry = new ChannelRegistry() {
-    override def find(name: String): Channel = {
-      null
-    }
-  }
+  def get: ChannelRegistry = new JMSChannelRegistry(Config.distJmsHost)
 }
 
 trait ChannelRegistry {
@@ -44,9 +42,9 @@ trait Channel {
 
   def id: String
 
-  def send(data: Serializable): Unit
+  def send(data: java.io.Serializable): Unit
 
-  def listen(): Serializable
+  def listen(): java.io.Serializable
 
-  def listen(callback: (Serializable) => Unit)
+  def listen(callback: (java.io.Serializable) => Unit)
 }
