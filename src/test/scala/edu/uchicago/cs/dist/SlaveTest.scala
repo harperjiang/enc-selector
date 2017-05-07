@@ -16,7 +16,7 @@ class SlaveTest {
   def setup: Unit = {
     reg.channels += ("distribute" -> new MemoryChannel())
     reg.channels += ("collect" -> new MemoryChannel())
-
+    reg.channels += ("heartbeat" -> new MemoryChannel())
     slave = new Slave(reg)
   }
 
@@ -41,5 +41,16 @@ class SlaveTest {
       val piece = item.asInstanceOf[TestTaskPiece]
       assertEquals(piece.id, piece.result)
     })
+  }
+
+  @Test
+  def testHeartbeat: Unit = {
+    slave.start()
+
+    val hb = reg.find("heartbeat").asInstanceOf[MemoryChannel]
+
+    Thread.sleep(1000)
+    assertEquals(1, hb.content.size)
+    assertEquals(slave.id, hb.content.peek())
   }
 }

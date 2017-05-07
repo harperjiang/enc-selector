@@ -43,6 +43,18 @@ class FilterTest {
   }
 
   @Test
+  def testSizeFilter: Unit = {
+    val input1 = (0 until 20).map(i => "abcde").toIterator
+    val input2 = (0 until 1000).map(i => "abcde").toIterator
+
+    val filtered1 = Filter.sizeFilter(500)(input1).toArray
+    val filtered2 = Filter.sizeFilter(500)(input2).toArray
+
+    assertEquals(20, filtered1.size)
+    assertEquals(100, filtered2.size)
+  }
+
+  @Test
   def testMinSizeFilter: Unit = {
     val input1 = (0 until 20).map(i => "abcde").toIterator
     val filtered1 = Filter.minSizeFilter(100, 0.1)(input1).toArray

@@ -21,11 +21,11 @@ class SortnessTest {
     assertEquals(2, features.length)
 
     assertEquals("Sortness", features(0).featureType)
-    assertEquals("totalpair_2_1_1.0000", features(0).name)
+    assertEquals("totalpair_2", features(0).name)
     assertEquals(36, features(0).value, 0.001)
 
     assertEquals("Sortness", features(1).featureType)
-    assertEquals("ivpair_2_1_1.0000", features(1).name)
+    assertEquals("ivpair_2", features(1).name)
     assertEquals(0.2778, features(1).value, 0.001)
   }
 
@@ -38,11 +38,11 @@ class SortnessTest {
     assertEquals(2, features.length)
 
     assertEquals("abc_Sortness", features(0).featureType)
-    assertEquals("totalpair_2_1_1.0000", features(0).name)
+    assertEquals("totalpair_2", features(0).name)
     assertEquals(0, features(0).value, 0.001)
 
     assertEquals("abc_Sortness", features(1).featureType)
-    assertEquals("ivpair_2_1_1.0000", features(1).name)
+    assertEquals("ivpair_2", features(1).name)
     assertEquals(0, features(1).value, 0.001)
   }
 
@@ -55,11 +55,11 @@ class SortnessTest {
     assertEquals(2, features.length)
 
     assertEquals("Sortness", features(0).featureType)
-    assertEquals("totalpair_2_1_1.0000", features(0).name)
+    assertEquals("totalpair_2", features(0).name)
     assertEquals(69, features(0).value, 0.001)
 
     assertEquals("Sortness", features(1).featureType)
-    assertEquals("ivpair_2_1_1.0000", features(1).name)
+    assertEquals("ivpair_2", features(1).name)
     assertEquals(0, features(1).value, 0.001)
   }
 }

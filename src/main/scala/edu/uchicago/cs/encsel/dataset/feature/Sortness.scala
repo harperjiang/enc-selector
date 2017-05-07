@@ -34,9 +34,7 @@ import scala.util.Random
   * This feature computes how much the dataset is sorted by compute the number
   * of inverted pairs
   */
-class Sortness(val windowSize: Int,
-               val skip: Int = 1,
-               val selection: Double = 1) extends FeatureExtractor {
+class Sortness(val windowSize: Int) extends FeatureExtractor {
 
   def featureType: String = "Sortness"
 
@@ -47,11 +45,13 @@ class Sortness(val windowSize: Int,
               prefix: String): Iterable[Feature] = {
 
     val source = Source.fromFile(input.colFile)
+    // The ratio of selection makes sure the operation is n
+    val selection = 2.0 / windowSize * windowSize
     try {
       var sum = 0
       var inverted = 0
       if (windowSize != -1) {
-        filter(source.getLines()).sliding(windowSize, skip)
+        filter(source.getLines()).sliding(windowSize, 1)
           .filter(p => Random.nextDouble() <= selection)
           .foreach(group => {
             val (invert, total) = computeInvertPair(group, input.dataType.comparator())
@@ -70,13 +70,13 @@ class Sortness(val windowSize: Int,
         val ratio = (sum - inverted).toDouble / sum
         val measurement = 1 - Math.abs(2 * ratio - 1)
         Iterable(
-          new Feature(fType, "totalpair_%d_%d_%.4f".format(windowSize, skip, selection), sum),
-          new Feature(fType, "ivpair_%d_%d_%.4f".format(windowSize, skip, selection), measurement)
+          new Feature(fType, "totalpair_%d".format(windowSize), sum),
+          new Feature(fType, "ivpair_%d".format(windowSize), measurement)
         )
       } else {
         Iterable(
-          new Feature(fType, "totalpair_%d_%d_%.4f".format(windowSize, skip, selection), sum),
-          new Feature(fType, "ivpair_%d_%d_%.4f".format(windowSize, skip, selection), 0)
+          new Feature(fType, "totalpair_%d".format(windowSize), sum),
+          new Feature(fType, "ivpair_%d".format(windowSize), 0)
         )
       }
     } finally {

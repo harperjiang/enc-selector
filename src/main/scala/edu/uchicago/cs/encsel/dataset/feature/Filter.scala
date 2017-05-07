@@ -43,7 +43,20 @@ object Filter {
     }
   }
 
-  def minSizeFilter(size: Int, ratio: Double) = {
+  def sizeFilter(size: Int): Iterator[String] => Iterator[String] = {
+    (input: Iterator[String]) => {
+      var counter = 0
+      input.filter(record => {
+        if (counter < size) {
+          counter += record.size
+          true
+        } else
+          false
+      })
+    }
+  }
+
+  def minSizeFilter(size: Int, ratio: Double): Iterator[String] => Iterator[String] = {
     (input: Iterator[String]) => {
       var counter = 0
       input.filter(record => {
@@ -54,7 +67,6 @@ object Filter {
           Random.nextDouble() <= ratio
         }
       })
-
     }
   }
 }

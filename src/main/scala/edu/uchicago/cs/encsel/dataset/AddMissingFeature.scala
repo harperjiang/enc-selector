@@ -38,7 +38,7 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Seq(new Sortness(5), new Sortness(10), new Sortness(50), new Sortness(100))
+  val missed = Seq(new Sortness(50), new Sortness(100))
 
   val em = JPAPersistence.emf.createEntityManager()
   val query = em.createNativeQuery("SELECT c.* FROM col_data c",
