@@ -16,7 +16,7 @@ class MasterTest {
   def setup: Unit = {
     reg.channels += ("distribute" -> new MemoryChannel())
     reg.channels += ("collect" -> new MemoryChannel())
-
+    reg.channels += ("heartbeat" -> new MemoryChannel())
     master = new Master(reg)
   }
 
@@ -52,5 +52,15 @@ class MasterTest {
     assertFalse(master.taskLog.contains(task.id))
 
     assertEquals(10, task.done.size)
+  }
+
+  @Test
+  def testHeartbeat: Unit = {
+    val hbchannel = reg.find("heartbeat")
+    for (i <- 0 to 9) {
+      hbchannel.send(i.toString)
+    }
+
+    assertEquals(10, master.slaves.size)
   }
 }

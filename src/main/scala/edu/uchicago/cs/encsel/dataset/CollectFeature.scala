@@ -39,6 +39,7 @@ object CollectFeature extends App {
     case "none" => Filter.emptyFilter
     case "firstn" => Filter.firstNFilter(args(2).toInt)
     case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
+    case "size" => Filter.sizeFilter(args(2).toInt)
     case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
     case _ => throw new IllegalArgumentException(args(1))
   }
