@@ -38,6 +38,7 @@ object Features {
   install(Entropy)
   install(Length)
   install(Distinct)
+  install(new Sortness(100))
 
   def install(fe: FeatureExtractor) = {
     extractors += fe
