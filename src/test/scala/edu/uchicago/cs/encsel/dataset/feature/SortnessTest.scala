@@ -69,7 +69,7 @@ class SortnessTest {
 
     assertEquals("Sortness", features(0).featureType)
     assertEquals("totalpair_2", features(0).name)
-    assertEquals(69, features(0).value, 0.001)
+    assertEquals(12, features(0).value, 0.001)
 
     assertEquals("Sortness", features(1).featureType)
     assertEquals("ivpair_2", features(1).name)
