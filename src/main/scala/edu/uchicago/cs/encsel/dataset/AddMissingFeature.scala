@@ -22,8 +22,9 @@
 
 package edu.uchicago.cs.encsel.dataset
 
+import edu.uchicago.cs.encsel.dataset.CollectFeature.args
 import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.dataset.feature.Sortness
+import edu.uchicago.cs.encsel.dataset.feature.{Filter, Sortness}
 import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
 import org.slf4j.LoggerFactory
 
@@ -40,6 +41,24 @@ object AddMissingFeature extends App {
 
   val missed = Seq(new Sortness(50), new Sortness(100))
 
+  val prefix = args.length match {
+    case gt if gt > 0 => args(0)
+    case _ => ""
+  }
+
+  val filter = args.length match {
+    case gt if gt > 0 =>
+      args(1) match {
+        case "none" => Filter.emptyFilter
+        case "firstn" => Filter.firstNFilter(args(2).toInt)
+        case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
+        case "size" => Filter.sizeFilter(args(2).toInt)
+        case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
+        case _ => throw new IllegalArgumentException(args(1))
+      }
+    case _ => Filter.emptyFilter
+  }
+
   val em = JPAPersistence.emf.createEntityManager()
   val query = em.createNativeQuery("SELECT c.* FROM col_data c",
     classOf[ColumnWrapper])
@@ -49,7 +68,7 @@ object AddMissingFeature extends App {
       em.getTransaction.begin()
       try {
         missed.foreach(fe => {
-          column.features ++= fe.extract(column)
+          column.features ++= fe.extract(column, filter, prefix)
         })
         em.merge(colnotype)
         em.getTransaction.commit()
