@@ -46,20 +46,20 @@ class Sortness(val windowSize: Int) extends FeatureExtractor {
 
     val source = Source.fromFile(input.colFile)
     // The ratio of selection makes sure the operation is n
-    val selection = 2.0 / windowSize * windowSize
+    val selection = 2.0 / windowSize
     try {
       var sum = 0
       var inverted = 0
       if (windowSize != -1) {
-        filter(source.getLines()).sliding(windowSize, 1)
+        filter(source.getLines()).sliding(windowSize, windowSize)
           .filter(p => Random.nextDouble() <= selection)
           .foreach(group => {
-            val (invert, total) = computeInvertPair(group, input.dataType.comparator())
+            val (invert, total) = Sortness.computeInvertPair(group, input.dataType.comparator())
             sum += total
             inverted += invert
           })
       } else {
-        val (invert, total) = computeInvertPair(filter(source.getLines()).toSeq,
+        val (invert, total) = Sortness.computeInvertPair(filter(source.getLines()).toSeq,
           input.dataType.comparator())
         sum += total
         inverted += invert
@@ -84,8 +84,11 @@ class Sortness(val windowSize: Int) extends FeatureExtractor {
     }
   }
 
-  protected def computeInvertPair(input: Seq[String],
-                                  comparator: Comparator[String]): (Int, Int) = {
+}
+
+object Sortness {
+  def computeInvertPair(input: Seq[String],
+                        comparator: Comparator[String]): (Int, Int) = {
     if (input.isEmpty)
       return (0, 0)
     var invert = 0
@@ -96,6 +99,6 @@ class Sortness(val windowSize: Int) extends FeatureExtractor {
         }
       })
     })
-    return (invert, input.length * (input.length + 1) / 2)
+    return (invert, input.length * (input.length - 1) / 2)
   }
 }
