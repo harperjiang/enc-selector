@@ -29,7 +29,6 @@ import scala.util.Random
   * Stream Filters
   */
 object Filter {
-  def emptyFilter: Iterator[String] => Iterator[String] = a => a
 
   def firstNFilter(n: Int): Iterator[String] => Iterator[String] = {
     (input: Iterator[String]) => {

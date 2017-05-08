@@ -23,8 +23,6 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
-import java.io.File
-
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.util.DataUtils
 import org.apache.commons.lang.StringUtils
@@ -37,14 +35,12 @@ object Length extends FeatureExtractor {
 
   def supportFilter: Boolean = true
 
-  def extract(input: Column,
-              filter: Iterator[String] => Iterator[String],
-              prefix: String): Iterable[Feature] = {
+  def extract(input: Column, prefix: String): Iterable[Feature] = {
 
     val fType = "%s%s".format(prefix, featureType)
     val source = Source.fromFile(input.colFile)
     try {
-      val length = filter(source.getLines())
+      val length = source.getLines()
         .filter(StringUtils.isNotEmpty).map(_.length().toDouble).toSeq
       if (0 == length.size) {
         Iterable(new Feature(fType, "max", 0),

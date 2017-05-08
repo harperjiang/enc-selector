@@ -35,20 +35,20 @@ class SparsityTest {
   @Test
   def testEmptyInput: Unit = {
     val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_sparsity.data").toURI
+    col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
 
-    val features = Sparsity.extract(col, Filter.iidSamplingFilter(0.0001), "")
+    val features = Sparsity.extract(col, "")
     assertEquals(3, features.size)
 
     val farray = features.toArray
 
     assertEquals("Sparsity", farray(0).featureType)
     assertEquals("count", farray(0).name)
-    assertEquals(0, farray(0).value, 0.01)
+    assertEquals(24, farray(0).value, 0.01)
 
     assertEquals("Sparsity", farray(1).featureType)
     assertEquals("empty_count", farray(1).name)
-    assertEquals(0, farray(1).value, 0.01)
+    assertEquals(24, farray(1).value, 0.01)
 
     assertEquals("Sparsity", farray(2).featureType)
     assertEquals("valid_ratio", farray(2).name)

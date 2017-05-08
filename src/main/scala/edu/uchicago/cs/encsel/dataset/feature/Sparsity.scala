@@ -33,21 +33,17 @@ object Sparsity extends FeatureExtractor {
 
   def supportFilter: Boolean = true
 
-  def extract(input: Column,
-              filter: Iterator[String] => Iterator[String],
-              prefix: String): Iterable[Feature] = {
+  def extract(input: Column, prefix: String): Iterable[Feature] = {
     var counter = 0
     var emptyCount = 0
     val source = Source.fromFile(input.colFile)
     try {
-      filter(source.getLines()).foreach {
-        line => {
-          counter += 1
-          if (line.trim().isEmpty) {
-            emptyCount += 1
-          }
+      source.getLines().foreach(line => {
+        counter += 1
+        if (line.trim().isEmpty) {
+          emptyCount += 1
         }
-      }
+      })
       val fType = "%s%s".format(prefix, featureType)
       if (counter != 0) {
         Iterable(new Feature(fType, "count", counter),

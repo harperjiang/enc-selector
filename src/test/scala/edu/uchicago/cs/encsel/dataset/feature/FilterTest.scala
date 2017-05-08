@@ -9,16 +9,6 @@ import org.junit.Test
 class FilterTest {
 
   @Test
-  def testEmptyFilter: Unit = {
-    val input = Iterator("a", "b", "c", "d", "e", "f", "g")
-    val filtered = Filter.emptyFilter(input).toArray
-    assertEquals(7, filtered.size)
-    for (i <- 0 until 7) {
-      assertEquals(('a' + i).toChar.toString, filtered(i))
-    }
-  }
-
-  @Test
   def testFirstNFilter: Unit = {
     val input = (0 to 1000).map(_.toString).toIterator
     val filtered = Filter.firstNFilter(50)(input).toArray

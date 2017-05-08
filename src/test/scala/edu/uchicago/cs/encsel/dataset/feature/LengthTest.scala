@@ -43,24 +43,4 @@ class LengthTest {
     assertEquals("variance", features(3).name)
     assertEquals(0, features(3).value, 0.001)
   }
-
-
-  @Test
-  def testFilteredEmptyInput: Unit = {
-    val col = new Column(null, -1, "", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
-
-    val features = Length.extract(col,Filter.iidSamplingFilter(0.00001),"abc_").toArray
-
-    assertEquals(4, features.length)
-    assertEquals("max", features(0).name)
-    assertEquals(0, features(0).value, 0.001)
-    assertEquals("min", features(1).name)
-    assertEquals(0, features(1).value, 0.001)
-    assertEquals("mean", features(2).name)
-    assertEquals(0, features(2).value, 0.001)
-    assertEquals("variance", features(3).name)
-    assertEquals(0, features(3).value, 0.001)
-  }
-
 }

@@ -33,16 +33,14 @@ object Distinct extends FeatureExtractor {
 
   def supportFilter: Boolean = true
 
-  def extract(col: Column,
-              filter: Iterator[String] => Iterator[String],
-              prefix: String): Iterable[Feature] = {
+  def extract(col: Column, prefix: String): Iterable[Feature] = {
     var source: Source = Source.fromFile(col.colFile)
     val fType = "%s%s".format(prefix, featureType)
     try {
-      val sum = filter(source.getLines()).size
+      val sum = source.getLines().size
       if (sum != 0) {
         source = source.reset()
-        val size = DistinctCounter.count(filter(source.getLines()), sum)
+        val size = DistinctCounter.count(source.getLines(), sum)
         match {
           case gt if gt >= sum => sum
           case lt => lt
