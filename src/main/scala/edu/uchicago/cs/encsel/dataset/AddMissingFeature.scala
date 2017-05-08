@@ -38,7 +38,7 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Seq(new Sortness(500), new Sortness(1000))
+  val missed = Seq(new Sortness(50), new Sortness(100), new Sortness(200), new Sortness(500))
 
   val prefix = args.length match {
     case gt if gt > 0 => args(0)
@@ -48,6 +48,7 @@ object AddMissingFeature extends App {
   val filter = args.length match {
     case gt if gt > 0 =>
       args(1) match {
+        case "none" => null
         case "firstn" => Filter.firstNFilter(args(2).toInt)
         case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
         case "size" => Filter.sizeFilter(args(2).toInt)
@@ -62,7 +63,11 @@ object AddMissingFeature extends App {
 
   val persistence = Persistence.get
   persistence.load().foreach(column => {
-    column.features ++= Features.extract(column, filter, prefix)
+    if (filter == null) {
+      column.features ++= Features.extract(column)
+    } else {
+      column.features ++= Features.extract(column, filter, prefix)
+    }
     persistence.save(Seq(column))
   })
 }

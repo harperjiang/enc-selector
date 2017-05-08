@@ -31,16 +31,16 @@ class DistinctTest {
   @Test
   def testEmptyInput: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_str2.data").toURI
+    col.colFile = new File("src/test/resource/test_col_empty.dat").toURI
     val features = Distinct.extract(col, "abc_").toArray
 
     assertEquals(2, features.length)
     assertEquals("abc_Distinct", features(0).featureType)
     assertEquals("count", features(0).name)
-    assertEquals(0, features(0).value, 0.001)
+    assertEquals(1, features(0).value, 0.001)
 
     assertEquals("abc_Distinct", features(1).featureType)
     assertEquals("ratio", features(1).name)
-    assertEquals(0, features(1).value, 0.001)
+    assertEquals(0.0417, features(1).value, 0.001)
   }
 }
