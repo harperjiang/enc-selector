@@ -55,7 +55,7 @@ object AddMissingFeature extends App {
         case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
         case _ => throw new IllegalArgumentException(args(1))
       }
-    case _ => throw new IllegalArgumentException()
+    case _ => null
   }
 
   Features.extractors.clear()
