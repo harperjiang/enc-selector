@@ -7,6 +7,8 @@ import edu.uchicago.cs.encsel.model.DataType
 import org.junit.Assert._
 import org.junit.Test
 
+import scala.io.Source
+
 class FeaturesTest {
 
   @Test
@@ -71,6 +73,21 @@ class FeaturesTest {
     assertEquals("line_min", fa(4).name)
     assertEquals(0.693, fa(4).value, 0.001)
 
+  }
+
+  @Test
+  def testFilterFile: Unit = {
+    Features.filterFile(new File("src/test/resource/test_col_int.data").toURI,
+      new File("src/test/resource/test_col_int.data.filtered").toURI, Filter.firstNFilter(5))
+
+    val lines = Source.fromFile(new File("src/test/resource/test_col_int.data.filtered")).getLines().toArray
+    assertEquals(5,lines.size)
+
+    assertEquals("34",lines(0))
+    assertEquals("24",lines(1))
+    assertEquals("24",lines(2))
+    assertEquals("2424",lines(3))
+    assertEquals("23234",lines(4))
   }
 }
 

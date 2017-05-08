@@ -16,7 +16,6 @@ class DistinctTest {
   def testExtract: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI
-    //col.colFile = new File("/home/harper/Downloads/QUEUED_TIMESTAMP_06669881738871581783.tmp").toURI
     val features = Distinct.extract(col).toArray
 
     assertEquals(2, features.length)
@@ -30,26 +29,10 @@ class DistinctTest {
   }
 
   @Test
-  def testExtractWithFilter: Unit = {
-    val col = new Column(null, -1, "", DataType.INTEGER)
-    col.colFile = new File("src/test/resource/test_col_str2.data").toURI
-    val features = Distinct.extract(col, Filter.firstNFilter(3), "abc_").toArray
-
-    assertEquals(2, features.length)
-    assertEquals("abc_Distinct", features(0).featureType)
-    assertEquals("count", features(0).name)
-    assertEquals(3, features(0).value, 0.001)
-
-    assertEquals("abc_Distinct", features(1).featureType)
-    assertEquals("ratio", features(1).name)
-    assertEquals(1, features(1).value, 0.001)
-  }
-
-  @Test
   def testEmptyInput: Unit = {
     val col = new Column(null, -1, "", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_str2.data").toURI
-    val features = Distinct.extract(col, Filter.iidSamplingFilter(0.0001), "abc_").toArray
+    val features = Distinct.extract(col, "abc_").toArray
 
     assertEquals(2, features.length)
     assertEquals("abc_Distinct", features(0).featureType)

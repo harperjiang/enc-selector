@@ -23,29 +23,22 @@
 
 package edu.uchicago.cs.encsel.dataset
 
-import edu.uchicago.cs.encsel.dataset.feature.{Features, Filter}
+import edu.uchicago.cs.encsel.dataset.feature.Sortness
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
-
-import scala.collection.JavaConversions._
+import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
 
 /**
-  * Created by harper on 5/2/17.
+  * Created by harper on 5/8/17.
   */
-object CollectFeature extends App {
+object SingleColumnInspect extends App {
 
-  val prefix = args(0)
+  val p = Persistence.get.asInstanceOf[JPAPersistence]
 
-  val filter = args(1) match {
-    case "firstn" => Filter.firstNFilter(args(2).toInt)
-    case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
-    case "size" => Filter.sizeFilter(args(2).toInt)
-    case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
-    case _ => throw new IllegalArgumentException(args(1))
-  }
+  val column = p.find(4)
 
-  val persistence = Persistence.get
-  persistence.load().foreach(column => {
-    column.features ++= Features.extract(column, filter, prefix)
-    persistence.save(Seq(column))
-  })
+  val sort = new Sortness(100)
+
+  val features = sort.extract(column)
+
+  Unit
 }

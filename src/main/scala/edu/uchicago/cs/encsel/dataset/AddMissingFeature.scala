@@ -22,10 +22,9 @@
 
 package edu.uchicago.cs.encsel.dataset
 
-import edu.uchicago.cs.encsel.dataset.CollectFeature.args
-import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.dataset.feature.{Filter, Sortness}
-import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
+import edu.uchicago.cs.encsel.dataset.feature.{Features, Filter, Sortness}
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
@@ -49,35 +48,21 @@ object AddMissingFeature extends App {
   val filter = args.length match {
     case gt if gt > 0 =>
       args(1) match {
-        case "none" => Filter.emptyFilter
         case "firstn" => Filter.firstNFilter(args(2).toInt)
         case "iid" => Filter.iidSamplingFilter(args(2).toDouble)
         case "size" => Filter.sizeFilter(args(2).toInt)
         case "minsize" => Filter.minSizeFilter(args(2).toInt, args(3).toDouble)
         case _ => throw new IllegalArgumentException(args(1))
       }
-    case _ => Filter.emptyFilter
+    case _ => throw new IllegalArgumentException()
   }
 
-  val em = JPAPersistence.emf.createEntityManager()
-  val query = em.createNativeQuery("SELECT c.* FROM col_data c",
-    classOf[ColumnWrapper])
-  query.getResultList.foreach(colnotype => {
-    val column = colnotype.asInstanceOf[Column]
-    missed.foreach(fe => {
-      em.getTransaction.begin()
-      try {
-        missed.foreach(fe => {
-          column.features ++= fe.extract(column, filter, prefix)
-        })
-        em.merge(colnotype)
-        em.getTransaction.commit()
-      } catch {
-        case e: Exception => {
-          logger.warn("Exception for column %s:%s".format(column.origin.toString, column.colName), e)
-          em.getTransaction.rollback()
-        }
-      }
-    })
+  Features.extractors.clear()
+  Features.extractors ++= missed
+
+  val persistence = Persistence.get
+  persistence.load().foreach(column => {
+    column.features ++= Features.extract(column, filter, prefix)
+    persistence.save(Seq(column))
   })
 }

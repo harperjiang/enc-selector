@@ -25,6 +25,7 @@ package edu.uchicago.cs.encsel.dataset.feature
 
 import java.util.Comparator
 
+import edu.uchicago.cs.encsel.common.Conversions._
 import edu.uchicago.cs.encsel.dataset.column.Column
 
 import scala.io.Source
@@ -40,50 +41,75 @@ class Sortness(val windowSize: Int) extends FeatureExtractor {
 
   def supportFilter: Boolean = true
 
-  def extract(input: Column,
-              filter: (Iterator[String]) => Iterator[String],
-              prefix: String): Iterable[Feature] = {
+  def extract(input: Column, prefix: String): Iterable[Feature] = {
+
+    val lineCount = FeatureExtractorUtils.lineCount(input)
+
+    val selection = lineCount > windowSize * windowSize match {
+      case true => 2.0 / windowSize
+      case false => 2.0 * windowSize / lineCount
+    }
 
     val source = Source.fromFile(input.colFile)
     // The ratio of selection makes sure the operation is n
-    val selection = 2.0 / windowSize
     try {
-      var sum = 0
-      var inverted = 0
+      var total_pair = 0
+      var inverted_pair = 0
+      var counter = 0
+      var rankdiff = 0
+
       if (windowSize != -1) {
-        filter(source.getLines()).sliding(windowSize, windowSize)
+        source.getLines().sliding(windowSize, windowSize)
           .filter(p => Random.nextDouble() <= selection)
           .foreach(group => {
             val (invert, total) = Sortness.computeInvertPair(group, input.dataType.comparator())
-            sum += total
-            inverted += invert
+            total_pair += total
+            inverted_pair += invert
+
+            val diffrank = Sortness.computeDiffRank(group, input.dataType.comparator())
+            counter += group.length
+            rankdiff += diffrank
           })
       } else {
-        val (invert, total) = Sortness.computeInvertPair(filter(source.getLines()).toSeq,
-          input.dataType.comparator())
-        sum += total
-        inverted += invert
+        val group = source.getLines().toSeq
+
+        val (invert, total) = Sortness.computeInvertPair(group, input.dataType.comparator())
+        total_pair += total
+        inverted_pair += invert
+
+        rankdiff += Sortness.computeDiffRank(group, input.dataType.comparator())
+        counter += group.size
       }
       val fType = featureType(prefix)
-      if (0 != sum) {
+      if (0 != total_pair) {
         // 1 - abs(2x-1)
-        val ratio = (sum - inverted).toDouble / sum
-        val measurement = 1 - Math.abs(2 * ratio - 1)
+        val ratio = (total_pair - inverted_pair).toDouble / total_pair
+        val ivpair = 1 - Math.abs(2 * ratio - 1)
+        // Kendall's Tau
+        val ktau = (total_pair - 2 * inverted_pair).toDouble / total_pair
+        // Spearman's Rho
+        val srho = 1 - 6.0 * rankdiff / (counter * (counter * counter - 1))
+
         Iterable(
-          new Feature(fType, "totalpair_%d".format(windowSize), sum),
-          new Feature(fType, "ivpair_%d".format(windowSize), measurement)
+          new Feature(fType, "totalpair_%d".format(windowSize), total_pair),
+          new Feature(fType, "ivpair_%d".format(windowSize), ivpair),
+          new Feature(fType, "kendalltau_%d".format(windowSize), ktau),
+          new Feature(fType, "numitem_%d".format(windowSize), counter),
+          new Feature(fType, "spearmanrho_%d".format(windowSize), srho)
         )
       } else {
         Iterable(
-          new Feature(fType, "totalpair_%d".format(windowSize), sum),
-          new Feature(fType, "ivpair_%d".format(windowSize), 0)
+          new Feature(fType, "totalpair_%d".format(windowSize), 0),
+          new Feature(fType, "ivpair_%d".format(windowSize), 0),
+          new Feature(fType, "kendalltau_%d".format(windowSize), 0),
+          new Feature(fType, "numitem_%d".format(windowSize), 0),
+          new Feature(fType, "spearmanrho_%d".format(windowSize), 0)
         )
       }
     } finally {
       source.close()
     }
   }
-
 }
 
 object Sortness {
@@ -101,4 +127,17 @@ object Sortness {
     })
     return (invert, input.length * (input.length - 1) / 2)
   }
+
+  def computeDiffRank(input: Seq[String], comparator: Comparator[String]): Int = {
+    if (input.isEmpty)
+      return 0
+
+    var counter =
+      input.zipWithIndex.sortBy(_._1)(comparator).zipWithIndex.map(item => {
+        val d = item._1._2 - item._2
+        d * d
+      }).sum
+    counter
+  }
+
 }

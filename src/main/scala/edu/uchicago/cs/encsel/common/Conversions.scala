@@ -22,9 +22,19 @@
  */
 package edu.uchicago.cs.encsel.common
 
+import java.util.Comparator
 import java.util.concurrent.Callable
 
 object Conversions {
-  implicit def funToRunnable(fun: () => Unit): Runnable = new Runnable() { def run() = fun() }
-  implicit def funToCallable[T](fun: () => T): Callable[T] = new Callable[T]() { def call(): T = fun() }
+  implicit def funToRunnable(fun: () => Unit): Runnable = new Runnable() {
+    def run() = fun()
+  }
+
+  implicit def funToCallable[T](fun: () => T): Callable[T] = new Callable[T]() {
+    def call(): T = fun()
+  }
+
+  implicit def comparatorToOrdering[T](comparator: Comparator[T]) = new Ordering[T] {
+    override def compare(x: T, y: T): Int = comparator.compare(x, y)
+  }
 }

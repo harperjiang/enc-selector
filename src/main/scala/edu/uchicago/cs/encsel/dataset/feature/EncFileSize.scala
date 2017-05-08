@@ -24,10 +24,9 @@ package edu.uchicago.cs.encsel.dataset.feature
 
 import java.io.File
 
-import scala.Iterable
 import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.model._
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
+import edu.uchicago.cs.encsel.model._
 
 object EncFileSize extends FeatureExtractor {
 
@@ -35,9 +34,7 @@ object EncFileSize extends FeatureExtractor {
 
   def supportFilter: Boolean = false
 
-  def extract(col: Column,
-              filter: Iterator[String] => Iterator[String],
-              prefix: String): Iterable[Feature] = {
+  def extract(col: Column, prefix: String): Iterable[Feature] = {
     // Ignore filter
     val fType = "%s%s".format(prefix, featureType)
     col.dataType match {

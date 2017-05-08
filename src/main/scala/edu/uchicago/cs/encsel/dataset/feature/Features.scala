@@ -23,11 +23,14 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
+import java.io._
+import java.net.URI
+
 import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.dataset.persist.jpa.ColumnWrapper
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
 
 object Features {
   val logger = LoggerFactory.getLogger(getClass)
@@ -61,9 +64,17 @@ object Features {
   def extract(input: Column,
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
+    // Filter the file to URI
+    val filteredURI = new URI(input.colFile.toString + ".filtered")
+
+    filterFile(input.colFile, filteredURI, filter)
+
+    val filteredColumn = new Column(input.origin, input.colIndex, input.colName, input.dataType)
+    filteredColumn.colFile = filteredURI
+
     extractors.filter(_.supportFilter).flatMap(ex => {
       try {
-        ex.extract(input, filter, prefix)
+        ex.extract(filteredColumn, prefix)
       } catch {
         case e: Exception => {
           logger.error("Exception while executing %s on %s:%s, skipping"
@@ -72,5 +83,16 @@ object Features {
         }
       }
     })
+  }
+
+  def filterFile(src: URI, target: URI, filter: Iterator[String] => Iterator[String]): Unit = {
+    val filteredWriter = new PrintWriter(new FileOutputStream(new File(target)))
+    val source = Source.fromFile(src)
+    try {
+      filter(source.getLines()).foreach(filteredWriter.println)
+    } finally {
+      source.close()
+      filteredWriter.close()
+    }
   }
 }

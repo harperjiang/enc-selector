@@ -24,6 +24,8 @@ package edu.uchicago.cs.encsel.dataset.feature
 
 import edu.uchicago.cs.encsel.dataset.column.Column
 
+import scala.sys.process._
+
 trait FeatureExtractor {
 
   def featureType: String
@@ -32,7 +34,13 @@ trait FeatureExtractor {
 
   def supportFilter: Boolean
 
-  def extract(input: Column,
-              filter: Iterator[String] => Iterator[String] = Filter.emptyFilter,
-              prefix: String = ""): Iterable[Feature]
+  def extract(input: Column, prefix: String = ""): Iterable[Feature]
+}
+
+object FeatureExtractorUtils {
+
+  def lineCount(column: Column): Int = {
+    val result = "wc -l %s".format(column.colFile.getPath).!!
+    result.split("\\s+")(0).toInt
+  }
 }
