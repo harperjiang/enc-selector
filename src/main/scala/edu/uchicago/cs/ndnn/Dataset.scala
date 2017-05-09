@@ -26,6 +26,7 @@ import java.util.Collections
 
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -43,6 +44,8 @@ trait Dataset[D] {
 class Batch[D](val size: Int, val data: D, val groundTruth: D)
 
 abstract class DatasetBase[D] extends Dataset[D] {
+
+  protected val logger = LoggerFactory.getLogger(getClass())
 
   protected var datas: Array[Array[Double]] = _
   protected var expects: Array[Double] = _

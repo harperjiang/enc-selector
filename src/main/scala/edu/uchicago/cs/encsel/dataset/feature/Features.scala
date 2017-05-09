@@ -25,6 +25,7 @@ package edu.uchicago.cs.encsel.dataset.feature
 
 import java.io._
 import java.net.URI
+import java.nio.file.{Files, Paths}
 
 import edu.uchicago.cs.encsel.dataset.column.Column
 import org.slf4j.LoggerFactory
@@ -41,7 +42,9 @@ object Features {
   install(Entropy)
   install(Length)
   install(Distinct)
+  install(new Sortness(50))
   install(new Sortness(100))
+  install(new Sortness(200))
 
   def install(fe: FeatureExtractor) = {
     extractors += fe
@@ -65,14 +68,14 @@ object Features {
               filter: Iterator[String] => Iterator[String],
               prefix: String): Iterable[Feature] = {
     // Filter the file to URI
-    val filteredURI = new URI(input.colFile.toString + ".filtered")
+    val filteredURI = new URI(input.colFile.toString + "." + prefix)
 
     filterFile(input.colFile, filteredURI, filter)
 
     val filteredColumn = new Column(input.origin, input.colIndex, input.colName, input.dataType)
     filteredColumn.colFile = filteredURI
 
-    extractors.filter(_.supportFilter).flatMap(ex => {
+    val extracted = extractors.filter(_.supportFilter).flatMap(ex => {
       try {
         ex.extract(filteredColumn, prefix)
       } catch {
@@ -83,7 +86,12 @@ object Features {
         }
       }
     })
+    // Delete the filtered file
+    Files.delete(Paths.get(filteredURI))
+
+    extracted
   }
+
 
   def filterFile(src: URI, target: URI, filter: Iterator[String] => Iterator[String]): Unit = {
     val filteredWriter = new PrintWriter(new FileOutputStream(new File(target)))
