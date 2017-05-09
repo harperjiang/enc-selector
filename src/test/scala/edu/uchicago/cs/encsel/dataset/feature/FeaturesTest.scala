@@ -51,7 +51,7 @@ class FeaturesTest {
     val features = Features.extract(col, filter, "ak_")
     val fa = features.toArray
 
-    assertEquals(19, fa.size)
+    assertEquals(29, fa.size)
 
     assertEquals("ak_Sparsity", fa(0).featureType)
     assertEquals("count", fa(0).name)
