@@ -40,7 +40,11 @@ object EncselDataset {
       ("Entropy", "line_var"),
       ("Entropy", "total"),
       ("Length", "variance"),
-      ("Sparsity", "valid_ratio")))
+      ("Sparsity", "valid_ratio"),
+      ("Sortness", "ivpair_50"),
+      ("Sortness", "kendalltau_50"),
+      ("Sortness", "spearmanrho_50")
+    ))
     , (DataType.INTEGER -> Array(("Distinct", "ratio"),
       ("Entropy", "line_mean"),
       ("Entropy", "line_max"),
@@ -48,7 +52,11 @@ object EncselDataset {
       ("Entropy", "line_var"),
       ("Entropy", "total"),
       ("Length", "variance"),
-      ("Sparsity", "valid_ratio")))
+      ("Sparsity", "valid_ratio"),
+      ("Sortness", "ivpair_50"),
+      ("Sortness", "kendalltau_50"),
+      ("Sortness", "spearmanrho_50")
+    ))
   )
 }
 
@@ -71,7 +79,10 @@ class EncselDataset(val dataType: DataType, val prefix: String = "") extends Def
     Persistence.get.lookup(dataType).foreach(column => {
       val feature = mapping.map(m => {
         column.findFeature(prefix + m._1, m._2) match {
-          case None => 0
+          case None => {
+            logger.warn("Feature %s:%s not found".format(prefix + m._1, m._2))
+            0
+          }
           case Some(e) => e.value
         }
       })
