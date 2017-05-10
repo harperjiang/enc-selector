@@ -53,7 +53,7 @@ object ClassifierForInt extends App {
       graph.expect(batch.groundTruth)
     }
   }
-  trainer.train(50)
+  trainer.train(200)
 }
 
 object ClassifierForString extends App {
@@ -78,7 +78,7 @@ object ClassifierForString extends App {
       graph.expect(batch.groundTruth)
     }
   }
-  trainer.train(50)
+  trainer.train(200)
 }
 
 object DataAnalysis extends App {
