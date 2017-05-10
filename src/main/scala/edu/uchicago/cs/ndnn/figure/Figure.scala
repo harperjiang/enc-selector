@@ -23,19 +23,19 @@
 
 package edu.uchicago.cs.ndnn.figure
 
-import javafx.scene.chart.Axis
+import javafx.scene.chart.NumberAxis
 
 /**
   * Created by harper on 5/10/17.
   */
 class LineChart[X, Y] {
 
-  protected var xaxis: Axis[X] = _
+  protected var xaxis: NumberAxis = _
 
-  protected var yaxis: Axis[Y] = _
+  protected var yaxis: NumberAxis = _
 
   def xLabel(label: String): LineChart[X, Y] = {
-
+    xaxis = new NumberAxis
 
     this
   }
