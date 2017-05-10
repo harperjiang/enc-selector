@@ -29,11 +29,11 @@ import edu.uchicago.cs.ndnn._
   * Created by harper on 4/21/17.
   */
 object EncSelNNGraph {
-  val hiddenDim = 300
+  val hiddenDim = 400
 }
 
 class EncSelNNGraph(numFeature: Int, numClass: Int)
-  extends Graph(Xavier, new Adam(0.001, 0.9, 0.999), new SoftMaxLogLoss) {
+  extends Graph(Xavier, new Adam(0.01, 0.99, 0.9, 0.999, -1), new SoftMaxLogLoss) {
 
   val x = input("x")
 

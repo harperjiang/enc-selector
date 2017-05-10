@@ -55,7 +55,13 @@ object EncselDataset {
       ("Sparsity", "valid_ratio"),
       ("Sortness", "ivpair_50"),
       ("Sortness", "kendalltau_50"),
-      ("Sortness", "spearmanrho_50")
+      ("Sortness", "spearmanrho_50"),
+      ("Sortness", "ivpair_100"),
+      ("Sortness", "kendalltau_100"),
+      ("Sortness", "spearmanrho_100"),
+      ("Sortness", "ivpair_200"),
+      ("Sortness", "kendalltau_200"),
+      ("Sortness", "spearmanrho_200")
     ))
   )
 }
