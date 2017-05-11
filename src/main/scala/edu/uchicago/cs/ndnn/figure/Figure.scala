@@ -29,89 +29,102 @@ import javafx.scene.{Group, Scene}
 import javafx.stage.Stage
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Created by harper on 5/10/17.
   */
 
-object FigureApp {
-  var root: Group = null
-  var width: Int = 0
-  var height: Int = 0
-  var title: String = ""
+object Figure {
+  var current: Figure = null
 }
 
+class FigureApp extends Application {
 
-object LineFigure extends Application {
+  override def start(primaryStage: Stage): Unit = {
+    if (Figure.current == null)
+      throw new IllegalArgumentException
+    Figure.current.config(primaryStage)
+    primaryStage.show()
+  }
+}
+
+abstract class Figure {
+
+  def config(stage: Stage): Unit
+
+  protected var width = 0
+  protected var height = 0
+
+  def show(width: Int = 800, height: Int = 600): Unit = {
+    this.width = width
+    this.height = height
+
+    Figure.current = this
+
+    Application.launch(classOf[FigureApp])
+  }
+}
+
+class LineFigure extends Figure {
 
   protected var _title: String = ""
-
-  protected var xaxis: NumberAxis = _
-
-  protected var yaxis: NumberAxis = _
-
-  protected var lineChart: LineChart[Number, Number] = _
-
-  protected def getXAxis: NumberAxis = {
-    if (xaxis == null)
-      xaxis = new NumberAxis()
-    xaxis
-  }
-
-  protected def getYAxis: NumberAxis = {
-    if (yaxis == null)
-      yaxis = new NumberAxis()
-    yaxis
-  }
-
-  protected def getLineChart: LineChart[Number, Number] = {
-    if (null == lineChart)
-      lineChart = new LineChart(getXAxis, getYAxis)
-    return lineChart
-  }
 
   def title(title: String): LineFigure = {
     this._title = title
     this
   }
 
+  protected var xlabel: String = ""
+
   def xLabel(label: String): LineFigure = {
-    getXAxis.setLabel(label)
+    xlabel = label
     this
   }
+
+  protected var ylabel: String = ""
 
   def yLabel(label: String): LineFigure = {
-    getYAxis.setLabel(label)
+    ylabel = label
     this
   }
+
+  protected val datas = new ArrayBuffer[(Seq[(Number, Number)], String)]
 
   def addPlot(data: Seq[(Number, Number)], legend: String): LineFigure = {
-
-    val plotData = new XYChart.Series[Number, Number]()
-    plotData.setName(legend)
-    plotData.getData.addAll(data.map(point => new XYChart.Data[Number, Number](point._1, point._2)))
-
-    getLineChart.getData.add(plotData)
+    datas += ((data, legend))
     this
   }
 
-  def show(width: Int = 600, height: Int = 400): Unit = {
-    FigureApp.root = new Group(getLineChart)
-    FigureApp.width = width
-    FigureApp.height = height
-    FigureApp.title = _title
 
-  }
+  override def config(stage: Stage): Unit = {
+    val xaxis = new NumberAxis()
+    xaxis.setLabel(xlabel)
+    val yaxis = new NumberAxis()
+    yaxis.setLabel(ylabel)
 
+    val lineChart = new LineChart(xaxis, yaxis)
+    lineChart.setTitle(_title)
+    lineChart.setCreateSymbols(false)
+    lineChart.setPrefWidth(width)
+    lineChart.setPrefHeight(height)
 
-  override def start(stage: Stage): Unit = {
+    datas.foreach(pair => {
+      val data = pair._1
+      val legend = pair._2
+      val plotData = new XYChart.Series[Number, Number]()
+      plotData.getData.addAll(data.map(point => new XYChart.Data(point._1, point._2)))
+      plotData.setName(legend)
+      lineChart.getData.add(plotData)
+    })
+
+    val root = new Group(lineChart)
     //Creating a scene object
-    val scene: Scene = new Scene(FigureApp.root, FigureApp.width, FigureApp.height)
+    val scene: Scene = new Scene(root, width, height)
     //Setting title to the Stage
     stage.setTitle(_title)
     //Adding scene to the stage
     stage.setScene(scene)
-    stage.show()
   }
 
 }

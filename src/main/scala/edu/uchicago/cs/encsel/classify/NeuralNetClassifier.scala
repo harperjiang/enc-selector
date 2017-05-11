@@ -26,7 +26,10 @@ package edu.uchicago.cs.encsel.classify.nn
 import edu.uchicago.cs.encsel.classify.{EncSelNNGraph, EncselDataset}
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.ndnn._
+import edu.uchicago.cs.ndnn.figure.LineFigure
 import org.nd4j.linalg.api.ndarray.INDArray
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Use Neural Network to choose encoding
@@ -54,6 +57,22 @@ object ClassifierForInt extends App {
     }
   }
   trainer.train(200)
+
+  val trainLoss = new ArrayBuffer[(Number, Number)]
+  val testLoss = new ArrayBuffer[(Number, Number)]
+  val accuracy = new ArrayBuffer[(Number, Number)]
+
+  trainer.trainHistory.zipWithIndex.foreach(item => {
+    trainLoss += ((item._2, item._1._1))
+    testLoss += ((item._2, item._1._2))
+    accuracy += ((item._2, item._1._3))
+  })
+
+  new LineFigure().title("").xLabel("Epoch").yLabel("")
+    .addPlot(trainLoss, "Training Loss")
+    .addPlot(testLoss, "Test Loss")
+    .addPlot(accuracy, "Test Accuracy")
+    .show()
 }
 
 object ClassifierForString extends App {

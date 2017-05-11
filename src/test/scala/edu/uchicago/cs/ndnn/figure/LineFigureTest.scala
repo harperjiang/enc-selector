@@ -12,7 +12,6 @@ class LineFigureTest {
   @Test
   def testLineFigure: Unit = {
 
-    new JFXPanel()
     val lineFigure = new LineFigure()
 
     lineFigure.xLabel("X").yLabel("Y").title("Title")

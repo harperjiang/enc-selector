@@ -50,8 +50,10 @@ class LSTMEvaluator extends Evaluator {
 
   override def loss = lossSum / batchCounter
 
+  override def accuracy: Double = accSum.toDouble / charCounter
+
   override def summary = {
-    "Average loss %f, prediction accuracy %f".format(lossSum / batchCounter, accSum.toDouble / charCounter)
+    "Average loss %f, prediction accuracy %f".format(loss, accuracy)
   }
 }
 
