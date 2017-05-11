@@ -71,6 +71,6 @@ class AdjInvertPairTest {
 
     assertEquals("AdjInvertPair", features(2).featureType)
     assertEquals("kendallstau", features(2).name)
-    assertEquals(0, features(2).value, 0.001)
+    assertEquals(1, features(2).value, 0.001)
   }
 }
