@@ -13,8 +13,9 @@ class LineFigureTest {
   def testLineFigure: Unit = {
 
     val lineFigure = new LineFigure()
-
-    lineFigure.xLabel("X").yLabel("Y").title("Title")
-      .addPlot(Seq[(Number, Number)]((1, 5), (2, 7), (3, 4)), "line 1").show()
+    /*
+        lineFigure.xLabel("X").yLabel("Y").title("Title")
+          .addPlot(Seq[(Number, Number)]((1, 5), (2, 7), (3, 4)), "line 1").show()
+          */
   }
 }
