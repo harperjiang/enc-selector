@@ -34,6 +34,8 @@ trait Evaluator {
 
   def loss: Double
 
+  def accuracy: Double
+
   def summary: String
 }
 
@@ -59,14 +61,16 @@ class MeanLossEvaluator extends Evaluator {
 
   def loss: Double = lossSum / batchCounter
 
+  def accuracy: Double = accSum.toDouble / itemCounter
+
   def summary: String =
-    """Average loss %f, average accuracy %f""".format(lossSum / batchCounter, accSum.toDouble / itemCounter)
+    """Average loss %f, average accuracy %f""".format(loss, accuracy)
 }
 
 trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
   val logger = LoggerFactory.getLogger(getClass)
 
-  protected val trainHistory = new ArrayBuffer[(Double, Double)]
+  val trainHistory = new ArrayBuffer[(Double, Double, Double)]
 
   def getTrainSet: T
 
@@ -115,7 +119,7 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
       val trainLoss = getEvaluator.loss
       val testLoss = evaluate(testBatchSize)
 
-      trainHistory += ((trainLoss, testLoss))
+      trainHistory += ((trainLoss, testLoss, getEvaluator.accuracy))
 
       if (testLoss < bestLoss) {
         bestLoss = testLoss
