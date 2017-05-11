@@ -45,6 +45,7 @@ object Features {
   install(new Sortness(50))
   install(new Sortness(100))
   install(new Sortness(200))
+  install(AdjInvertPair)
 
   def install(fe: FeatureExtractor) = {
     extractors += fe
