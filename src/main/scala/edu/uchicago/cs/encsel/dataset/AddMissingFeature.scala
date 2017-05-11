@@ -22,7 +22,7 @@
 
 package edu.uchicago.cs.encsel.dataset
 
-import edu.uchicago.cs.encsel.dataset.feature.{Features, Filter, Sortness}
+import edu.uchicago.cs.encsel.dataset.feature.{AdjInvertPair, Features, Filter, Sortness}
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
 import org.slf4j.LoggerFactory
@@ -38,7 +38,7 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Seq(new Sortness(50), new Sortness(100), new Sortness(200), new Sortness(500))
+  val missed = Seq(AdjInvertPair)
 
   val prefix = args.length match {
     case gt if gt > 0 => args(0)
