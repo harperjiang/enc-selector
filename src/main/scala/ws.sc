@@ -1,6 +1,3 @@
-def x:(Int,Int) = (1,2)
+import org.nd4j.linalg.factory.Nd4j
 
-var a = 0
-var b = 0
-
-(a,b) = x
+println(Nd4j.create(Array(0.1,0.2,0.3)).reshape(3,-1).shape().mkString(" "))

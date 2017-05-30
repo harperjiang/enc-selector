@@ -27,7 +27,6 @@ import edu.uchicago.cs.encsel.classify.{EncSelNNGraph, EncselDataset}
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.ndnn._
 import edu.uchicago.cs.ndnn.figure.LineFigure
-import org.nd4j.linalg.api.ndarray.INDArray
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -45,11 +44,8 @@ object ClassifierForInt extends App {
   val testds = datasets(1)
 
   val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
-  val trainer = new SimpleTrainer[Dataset, EncSelNNGraph](trainds, testds, graph) {
-
-    {
-      paramStore = new FileStore("enc_nn_int_%smodel".format(prefix))
-    }
+  val trainer = new SimpleTrainer[Dataset, EncSelNNGraph](trainds, testds,
+    graph, "enc_nn_int_%smodel".format(prefix)) {
 
     override def setupGraph(graph: EncSelNNGraph, batch: Batch): Unit = {
       graph.x.set(batch.data)

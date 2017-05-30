@@ -72,7 +72,7 @@ class Batch(val size: Int, val data: Array[Data]) {
     Nd4j.create(data.map(_.feature()(piece)))
   }
 
-  def groundTruth(): INDArray = Nd4j.create(data.map(_.groundTruth()))
+  def groundTruth(): INDArray = Nd4j.create(data.map(_.groundTruth())).reshape(size, -1)
 }
 
 abstract class DefaultDataset extends Dataset {

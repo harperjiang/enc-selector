@@ -22,7 +22,8 @@
  */
 package edu.uchicago.cs.ndnn.example.mnist
 
-import edu.uchicago.cs.ndnn.Dataset
+import java.io.File
+import java.nio.file.{Files, Paths}
 
 object Mnist extends App {
   val folder = "/home/harper"
@@ -31,6 +32,9 @@ object Mnist extends App {
   val trainLabelFile = folder + "/dataset/mnist/train-labels.idx1-ubyte"
   val testDataFile = folder + "/dataset/mnist/t10k-images.idx3-ubyte"
   val testLabelFile = folder + "/dataset/mnist/t10k-labels.idx1-ubyte"
+
+  if (!Files.exists(Paths.get(new File(trainDataFile).toURI)))
+    throw new IllegalArgumentException("Cannot find dataset files")
 
   val trainset = new MnistDataset(trainDataFile, trainLabelFile)
   val testset = new MnistDataset(testDataFile, testLabelFile)
