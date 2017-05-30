@@ -26,9 +26,9 @@ import edu.uchicago.cs.ndnn.{Batch, SimpleTrainer}
 import org.nd4j.linalg.api.ndarray.INDArray
 
 class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
-  extends SimpleTrainer[INDArray, MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
+  extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
 
-  protected override def setupGraph(graph: MnistGraph, batch: Batch[INDArray]): Unit = {
+  protected override def setupGraph(graph: MnistGraph, batch: Batch): Unit = {
     graph.pixelInput.set(batch.data)
     graph.expect(batch.groundTruth)
   }

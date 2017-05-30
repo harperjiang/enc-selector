@@ -1,5 +1,5 @@
-from ndnn.node import Param, Input
 from ndnn.init import Xavier
+from ndnn.node import Param, Input
 
 
 class Graph(object):
@@ -10,6 +10,7 @@ class Graph(object):
         self.loss = loss
         self.update = update
         self.nodes = []
+        self.resetNum = 0
 
     def input(self):
         x = Input(self)
@@ -37,6 +38,20 @@ class Graph(object):
     def attach_node(self, node):
         self.nodes.append(node)
 
+    def reset(self):
+        toRemoves = self.nodes[self.resetNum:]
+        for tor in toRemoves:
+            try:
+                self.inputs.remove(tor)
+            except ValueError:
+                pass
+            try :
+                self.params.remove(tor)
+            except ValueError:
+                pass
+
+        del self.nodes[self.resetNum:]
+
     def train(self):
         # Forward
         for node in self.nodes:
@@ -56,11 +71,12 @@ class Graph(object):
         for node in self.nodes:
             node.forward()
         # Compute loss if a loss function is available
-        if self.out is not None:
-            loss_val = self.loss.loss(self.out.value, self.expect_val, True)
-            return loss_val, self.loss.accuracy()
-        else:
-            return -1, -1
+        loss_val = self.loss.loss(self.out.value, self.expect_val, True)
+        return loss_val, self.loss.accuracy()
+
+    def compute(self):
+        for node in self.nodes:
+            node.forward()
 
     def dump(self):
         return [p.value for p in self.params]

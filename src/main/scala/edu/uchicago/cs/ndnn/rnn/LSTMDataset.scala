@@ -26,68 +26,82 @@ import java.io.File
 import java.net.URI
 
 import edu.uchicago.cs.ndnn._
-import edu.uchicago.cs.ndnn.{Batch, DatasetBase}
 
 import scala.collection.mutable.{ArrayBuffer, Buffer, HashMap}
 import scala.io.Source
 
-object LSTMDataset {
-  val PAD = '@'
+trait LSTMTokenizer {
+  def tokenize(input: String): Iterable[String]
 }
 
-class LSTMDataset(file: URI, extdict: LSTMDataset) extends DatasetBase[Array[Array[Int]]] {
+class WordTokenizer extends LSTMTokenizer {
 
-  private var dict: HashMap[Char, Int] = _
-  private var inverseDict: Buffer[Char] = _
+  override def tokenize(input: String): Iterable[String] = {
+    return input.split("\\s+")
+  }
+}
 
-  def this(file: String)(implicit extdict: LSTMDataset = null) {
-    this(new File(file).toURI, extdict)
+class CharTokenizer extends LSTMTokenizer {
+
+  override def tokenize(input: String): Iterable[String] = {
+    return input.toCharArray.map(_.toString)
+  }
+}
+
+class LSTMData(data: Array[Double]) extends Data {
+  def length(): String = data.length.toString
+
+  def numPiece(): Int = 1
+
+  def feature(): Array[Array[Double]] = Array(data)
+
+  def groundTruth(): Double = 0d
+}
+
+class S2SData(from: Array[Double], to: Array[Double]) extends Data {
+
+  def length(): String = (from.length, to.length).toString()
+
+  def numPiece(): Int = 2
+
+  def feature(): Array[Array[Double]] = Array(from, to)
+
+  def groundTruth(): Double = 0d
+}
+
+
+class LSTMDataset(file: String, tokenizer: LSTMTokenizer, extdict: LSTMDataset = null) extends VarLenDataset {
+
+  private var dict: HashMap[String, Int] = _
+  private var inverseDict: Buffer[String] = _
+
+  def this(file: String) {
+    this(file, new WordTokenizer, null)
   }
 
-  def this(file: URI) {
-    this(file, null)
-  }
-
-  override protected def load(): (Array[Array[Double]], Array[Double]) = {
-    dict = new HashMap[Char, Int]
-    inverseDict = new ArrayBuffer[Char]
-    val strlines = Source.fromFile(file).getLines().map(line =>
-      "{%s}".format(line.trim.toLowerCase)).toBuffer
-    if (extdict == null) {
-      dict += ((LSTMDataset.PAD, 0))
-      inverseDict += LSTMDataset.PAD
-      strlines.foreach(line =>
-        line.toCharArray.foreach { c =>
-          dict.getOrElseUpdate(c, {
-            inverseDict += c
-            dict.size
-          })
-        })
-    } else {
-      dict ++= extdict.dict
-      inverseDict ++= extdict.inverseDict
+  override protected def load(): Array[Data] = {
+    dict = new HashMap[String, Int]
+    inverseDict = new ArrayBuffer[String]
+    val source = Source.fromFile(file)
+    try {
+      val content = source.getLines().map(line => tokenizer.tokenize(line)).toArray
+      if (extdict == null) {
+        content.map(line =>
+          new LSTMData(line.map(c =>
+            dict.getOrElseUpdate(c, {
+              inverseDict += c
+              dict.size
+            }).toDouble
+          ).toArray).asInstanceOf[Data])
+      } else {
+        dict ++= extdict.dict
+        inverseDict ++= extdict.inverseDict
+        content.map(line => new LSTMData(line.map(dict.getOrElse(_, 0).toDouble).toArray))
+      }
+    } finally {
+      source.close()
     }
-
-    // Second pass, replace characters with index
-    val lines = strlines.map(line =>
-      line.toCharArray.map(dict.getOrElse(_, 0).toDouble)).toArray
-    strlines.clear
-    (lines, Array.empty[Double])
   }
 
-  protected def construct(idices: Seq[Int]): Batch[Array[Array[Int]]] = {
-    val data = idices.map(datas(_).map(_.toInt))
-    val maxlength = data.map(_.length).max
-    val padded = data.map(_.padTo(maxlength, dict.getOrElse(LSTMDataset.PAD, -1)))
-    val transposed = (0 until maxlength).map(i => padded.map(_ (i)).toArray).toArray
-
-    new Batch[Array[Array[Int]]](idices.length, transposed.dropRight(1), transposed.drop(1))
-  }
-
-  def translate(input: String): Array[Int] =
-    input.toCharArray.map(dict.getOrElse(_, -1))
-
-  def translate(input: Double): Char = inverseDict(input.toInt)
-
-  def numChars: Int = dict.size
+  def dictSize: Int = dict.size
 }

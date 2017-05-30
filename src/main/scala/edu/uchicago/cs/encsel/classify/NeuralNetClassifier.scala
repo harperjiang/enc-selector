@@ -45,13 +45,13 @@ object ClassifierForInt extends App {
   val testds = datasets(1)
 
   val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
-  val trainer = new SimpleTrainer[INDArray, Dataset[INDArray], EncSelNNGraph](trainds, testds, graph) {
+  val trainer = new SimpleTrainer[Dataset, EncSelNNGraph](trainds, testds, graph) {
 
     {
       paramStore = new FileStore("enc_nn_int_%smodel".format(prefix))
     }
 
-    override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
+    override def setupGraph(graph: EncSelNNGraph, batch: Batch): Unit = {
       graph.x.set(batch.data)
       graph.expect(batch.groundTruth)
     }
@@ -86,13 +86,13 @@ object ClassifierForString extends App {
   val testds = datasets(1)
 
   val graph = new EncSelNNGraph(fullds.numFeature, fullds.numClass)
-  val trainer = new SimpleTrainer[INDArray, Dataset[INDArray], EncSelNNGraph](trainds, testds, graph) {
+  val trainer = new SimpleTrainer[Dataset, EncSelNNGraph](trainds, testds, graph) {
 
     {
       paramStore = new FileStore("enc_nn_string_%smodel".format(prefix))
     }
 
-    override def setupGraph(graph: EncSelNNGraph, batch: Batch[INDArray]): Unit = {
+    override def setupGraph(graph: EncSelNNGraph, batch: Batch): Unit = {
       graph.x.set(batch.data)
       graph.expect(batch.groundTruth)
     }
@@ -104,7 +104,7 @@ object DataAnalysis extends App {
 
   val fullds = new EncselDataset(DataType.INTEGER) {
     def analysis: Map[Int, Int] = {
-      this.expects.groupBy(_.toInt).map(f => (f._1, f._2.length))
+      this.datas.map(data => data.groundTruth()).groupBy(_.toInt).map(f => (f._1, f._2.length))
     }
   }
 
