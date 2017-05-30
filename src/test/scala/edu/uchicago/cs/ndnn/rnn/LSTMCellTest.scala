@@ -54,8 +54,8 @@ class LSTMCellTest {
 
     env.forward
 
-    val hout = cell._2.value
-    val cout = cell._1.value
+    val hout = cell._1.value
+    val cout = cell._2.value
 
     val cexpect = Nd4j.create(Array(Array(0.54790634, 0.52818812, 0.52007031), Array(0.54047421, 0.5254888, 0.52014528)))
     val hexpect = Nd4j.create(Array(Array(0.25571027, 0.24441732, 0.24246003), Array(0.25283897, 0.24337213, 0.24129505)))

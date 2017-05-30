@@ -134,15 +134,18 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
     enc_h0.set(Nd4j.zeros(batchSize, hiddenDim))
     enc_c0.set(Nd4j.zeros(batchSize, hiddenDim))
 
-    var h = enc_h0
-    var c = enc_c0
+    var h: Node = enc_h0
+    var c: Node = enc_c0
 
     for (i <- 0 until encLength) {
       val in_i = input("enc_in_%".format(i))
       in_i.set(encData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
       val embed = new Embed(in_i, enc_embed)
-      (h, c) = LSTMCell.build(enc_wf, enc_bf, enc_wi, enc_bi,
+
+      val (th, tc) = LSTMCell.build(enc_wf, enc_bf, enc_wi, enc_bi,
         enc_wc, enc_bc, enc_wo, enc_bo, embed, h, c)
+      h = th
+      c = tc
     }
 
     val outputs = new ArrayBuffer[Node]()
@@ -150,8 +153,10 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
       val in_i = input("dec_in_%".format(i))
       in_i.set(decData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
       val embed = new Embed(in_i, dec_embed)
-      (h, c) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
+      val (th, tc) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
         dec_wc, dec_bc, dec_wo, dec_bo, embed, h, c)
+      h = th
+      c = tc
       outputs += new SoftMax(new DotMul(h, dec_v2c))
     }
 
@@ -174,15 +179,17 @@ class LSTMDecodeGraph(dictSize: Int, hiddenDim: Int,
     enc_h0.set(Nd4j.zeros(batchSize, hiddenDim))
     enc_c0.set(Nd4j.zeros(batchSize, hiddenDim))
 
-    var h = enc_h0
-    var c = enc_c0
+    var h: Node = enc_h0
+    var c: Node = enc_c0
 
     for (i <- 0 until encLength) {
       val in_i = input("enc_in_%".format(i))
       in_i.set(encData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
       val embed = new Embed(in_i, enc_embed)
-      (h, c) = LSTMCell.build(enc_wf, enc_bf, enc_wi, enc_bi,
+      val (th, tc) = LSTMCell.build(enc_wf, enc_bf, enc_wi, enc_bi,
         enc_wc, enc_bc, enc_wo, enc_bo, embed, h, c)
+      h = th
+      c = tc
     }
 
     val dec_init_input = input("dec_in_start")
@@ -193,8 +200,10 @@ class LSTMDecodeGraph(dictSize: Int, hiddenDim: Int,
     val outputs = new ArrayBuffer[Node]
     for (i <- 0 until decodeLength) {
       val embed = new Embed(dec_input, dec_embed)
-      (h, c) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
+      val (th, tc) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
         dec_wc, dec_bc, dec_wo, dec_bo, embed, h, c)
+      h = th
+      c = tc
       dec_input = new ArgMax(new SoftMax(new DotMul(h, dec_v2c)))
       outputs += dec_input
     }
