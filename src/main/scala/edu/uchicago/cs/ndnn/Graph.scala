@@ -27,7 +27,7 @@ import scala.collection.mutable.ArrayBuffer
 
 import org.nd4j.linalg.api.ndarray.INDArray
 
-class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends NodeEnv {
+class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEnv {
 
   val initPolicy = ip
   val updatePolicy = up
@@ -35,7 +35,7 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
 
   protected val inputs = new ArrayBuffer[Input]
   protected val params = new ArrayBuffer[Param]
-  protected var expected: E = _
+  protected var expected: INDArray = _
   protected var out: Node = _
 
   def param(n: String, shape: Array[Int])(implicit usePolicy: InitPolicy = initPolicy): Param = {
@@ -51,14 +51,45 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
     newinput
   }
 
-  def expect(value: E) = expected = value
+  def expect(value: INDArray) = expected = value
+
   def output(node: Node): Unit = out = node
 
   def getInputs = inputs.clone()
+
   def getParams = params.clone()
+
   def getOutput = out
 
+  override def reset(): Unit = {
+    if (this.snapshotCount == -1)
+      return
+    nodeBuffer.slice(this.snapshotCount, nodeBuffer.length).foreach(item => {
+      item match {
+        case param: Param => params -= param
+        case input: Input => inputs -= input
+      }
+    })
+    super.reset()
+  }
+
+  /**
+    * Subclasses should override this method to setup the graph
+    *
+    * @param batch
+    * @return
+    */
+  def build(batch: Batch): Unit = Unit
+
   def train: Double = {
+    // Check environment
+    if (updatePolicy == null)
+      throw new IllegalArgumentException("Update Policy is missing")
+    if (out == null)
+      throw new IllegalArgumentException("No output nodes")
+    if (lossFunction == null)
+      throw new IllegalArgumentException("No loss function defined")
+
     forward()
     // Compute Loss
     val loss = lossFunction.loss(out.value, expected)
@@ -67,7 +98,9 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
     out.grad = lossFunction.gradient
     backward()
     // Update Parameters
-    params.foreach { updatePolicy.update }
+    params.foreach {
+      updatePolicy.update
+    }
     loss
   }
 
@@ -76,16 +109,18 @@ class Graph[E](ip: InitPolicy, up: UpdatePolicy, loss: LossFunction[E]) extends 
   }
 
   def test: (Double, Int) = {
+    if (out == null)
+      throw new IllegalArgumentException("No output nodes")
+    if (lossFunction == null)
+      throw new IllegalArgumentException("No loss function defined")
+
     forward()
     // Compute Loss
-    if (out != null && lossFunction != null) {
-      val loss = lossFunction.loss(out.value, expected, true)
-      (loss, lossFunction.accuracy)
-    } else {
-      (-1, -1)
-    }
+    val loss = lossFunction.loss(out.value, expected, true)
+    (loss, lossFunction.accuracy)
   }
 
-  def dump(): Array[INDArray] = this.params.map { _.value }.toArray
+  def dump(): Array[INDArray] = this.params.map(_.value).toArray
+
   def load(params: GenIterable[INDArray]) = this.params.zip(params).foreach(p => p._1.value = p._2)
 }

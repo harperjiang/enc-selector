@@ -31,7 +31,7 @@ import org.nd4j.linalg.ops.transforms.Transforms
 /**
   *
   */
-trait LossFunction[LT] {
+trait LossFunction {
   protected var grad: INDArray = _
   protected var acc: Int = -1
 
@@ -40,7 +40,7 @@ trait LossFunction[LT] {
   /**
     * @return average loss within a given batch
     */
-  def loss(actual: INDArray, expected: LT, fortest: Boolean = false): Double
+  def loss(actual: INDArray, expected: INDArray, fortest: Boolean = false): Double
 
   /**
     * @return the gradients correspond to each input. The gradient return here should
@@ -52,7 +52,7 @@ trait LossFunction[LT] {
   def accuracy: Int = acc
 }
 
-class SquareLoss extends LossFunction[INDArray] {
+class SquareLoss extends LossFunction {
 
   def forClassification = false
 
@@ -77,7 +77,7 @@ object SoftMaxLogLoss {
   val clip = 1e-12
 }
 
-class LogLoss extends LossFunction[INDArray] {
+class LogLoss extends LossFunction {
   def forClassification = true
 
   /**
@@ -113,7 +113,7 @@ class LogLoss extends LossFunction[INDArray] {
   }
 }
 
-class SoftMaxLogLoss extends LossFunction[INDArray] {
+class SoftMaxLogLoss extends LossFunction {
 
   def forClassification = true
 

@@ -25,9 +25,11 @@ package edu.uchicago.cs.ndnn.example.mnist
 import java.io.DataInputStream
 import java.io.FileInputStream
 
-import edu.uchicago.cs.ndnn.DefaultDataset
+import edu.uchicago.cs.ndnn.{Data, DefaultData, DefaultDataset}
 import org.nd4j.linalg.api.ndarray.INDArray
 import org.nd4j.linalg.factory.Nd4j
+
+import scala.collection.mutable.ArrayBuffer
 
 object MinstDataset {
   val DATA_MAGIC = 2051
@@ -36,7 +38,7 @@ object MinstDataset {
 
 class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) extends DefaultDataset {
 
-  def load(): (Array[Array[Double]], Array[Double]) = {
+  def load(): Array[Data] = {
     val datais = new DataInputStream(new FileInputStream(trainFile))
     val labelis = new DataInputStream(new FileInputStream(testFile))
     // Magic number
@@ -50,27 +52,28 @@ class MnistDataset(trainFile: String, testFile: String, sizeLimit: Int = -1) ext
     if (datacount != labelcount)
       throw new IllegalArgumentException("Incorrect number of records")
 
-    val dataSize = sizeLimit match { case -1 => datacount case _ => sizeLimit }
+    val dataSize = sizeLimit match {
+      case -1 => datacount
+      case _ => sizeLimit
+    }
 
     val rowcnt = datais.readInt()
     val colcnt = datais.readInt()
     if (rowcnt != 28 || colcnt != 28)
       throw new IllegalArgumentException("Incorrect row/col cnt")
 
-    val datas = new Array[Array[Double]](dataSize)
-    val labels = new Array[Double](dataSize)
+    val data = new ArrayBuffer[Data]
 
     for (i <- 0 until dataSize) {
       val databuffer = new Array[Double](rowcnt * colcnt)
       for (j <- databuffer.indices)
         databuffer(j) = datais.readUnsignedByte() / 255.toDouble
-      datas(i) = databuffer
-      labels(i) = labelis.readUnsignedByte().toDouble
+      data += new DefaultData(databuffer, labelis.readUnsignedByte().toDouble)
     }
 
     datais.close()
     labelis.close()
 
-    (datas, labels)
+    data.toArray
   }
 }

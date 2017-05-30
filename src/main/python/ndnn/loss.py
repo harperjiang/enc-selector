@@ -16,13 +16,16 @@ class Loss(object):
         return self.acc
 
 
-class EmptyLoss(Loss):
+class TrivialLoss(Loss):
     def __init__(self):
         super().__init__()
 
     def loss(self, actual, expect, fortest):
-        self.grad = None
-        return None
+        n = actual.shape[1]
+        if not fortest:
+            self.grad = np.ones_like(actual) / n
+        self.acc = (actual == expect).sum()
+        return actual.sum()
 
 
 class SquareLoss(Loss):
@@ -51,6 +54,7 @@ class LogLoss(Loss):
     Expect shape is [B,1]
     loss = -log(actual)*expect - log(1-actual)(1-expect)
     '''
+
     def loss(self, actual, expect, fortest):
         batch_size = expect.shape[0]
         clipped = np.maximum(actual, clip)

@@ -23,17 +23,17 @@
 package edu.uchicago.cs.ndnn.rnn
 
 import edu.uchicago.cs.ndnn._
+import org.nd4j.linalg.factory.Nd4j
+import org.nd4j.linalg.indexing.{NDArrayIndex, NDArrayIndexAll}
 
 import scala.collection.mutable.ArrayBuffer
 
-class LSTMGraph(numChar: Int, hiddenDim: Int,
-                updatePolicy: UpdatePolicy = new Adam(0.5, 0.95, 0.95, 0.95, 10))
-  extends Graph[Array[Array[Int]]](Xavier, updatePolicy, new LSTMLoss) {
+class LSTMGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: UpdatePolicy = new Adam())
+  extends Graph(Xavier, updatePolicy, new SoftMaxLogLoss) {
 
-  def hiddenDimension = hiddenDim
 
-  val c2v = param("c2v", Array(numChar, hiddenDim))
-  val v2c = param("v2c", Array(hiddenDim, numChar))
+  val c2v = param("c2v", Array(dictSize, hiddenDim))
+  val v2c = param("v2c", Array(hiddenDim, dictSize))
   val inputSize = 2 * hiddenDim
 
   val wf = param("wf", Array(inputSize, hiddenDim))
@@ -48,75 +48,160 @@ class LSTMGraph(numChar: Int, hiddenDim: Int,
   val h0 = input("h0")
   val c0 = input("c0")
 
-  val nodeWatermark = nodeBuffer.length
-
   val xs = new ArrayBuffer[Input]()
 
-  protected def clean(): Unit = {
-    // Remove all nodes above water mark
-    nodeBuffer.remove(nodeWatermark, nodeBuffer.length - nodeWatermark)
-    xs.clear
-    // Leave h0 and c0
-    inputs.remove(2, inputs.length - 2)
-  }
+  snapshot()
 
-  def build(length: Int): Unit = {
-    clean()
+  override def build(batch: Batch): Unit = {
+    reset()
+    // Shape B,L,H
+    val data = batch.feature(0)
+    val shape = data.shape()
+    val batchSize = shape(0)
+    val length = shape(1)
+    if (length <= 1)
+      throw new IllegalArgumentException()
+
+    h0.set(Nd4j.zeros(batchSize, hiddenDim))
+    c0.set(Nd4j.zeros(batchSize, hiddenDim))
 
     val collected = new ArrayBuffer[Node]()
     // Extend RNN to the expected size and build connections between cells
     var h: Node = h0
     var c: Node = c0
-    for (i <- 0 until length) {
+    for (i <- 0 until length - 1) {
       val in = input("%d".format(i))
+      in.set(data.get(NDArrayIndex.all(), NDArrayIndex.point(i)))
       val mapped = new Embed(in, c2v)
       xs += in
 
+      // H,C
       val newNode = LSTMCell.build(wf, bf, wi, bi,
         wc, bc, wo, bo, mapped, h, c)
-      collected += new SoftMax(new DotMul(newNode._2, v2c))
-      h = newNode._2
-      c = newNode._1
+      h = newNode._1
+      c = newNode._2
+      collected += new SoftMax(new DotMul(h, v2c))
     }
     output(new Collect(collected: _*))
+    expect(data.get(NDArrayIndex.all(), NDArrayIndex.interval(1, length), NDArrayIndex.newAxis()))
   }
 }
 
-class LSTMPredictGraph(numChar: Int, hiddenDim: Int)
-  extends LSTMGraph(numChar, hiddenDim) {
+class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: UpdatePolicy = new Adam())
+  extends Graph(Xavier, updatePolicy, new SoftMaxLogLoss) {
 
-  val predicts = new ArrayBuffer[Node]
+  val inputSize = 2 * hiddenDim
 
-  override def clean() = {
-    super.clean()
-    predicts.clear
-  }
+  val enc_embed = param("enc_embed", Array(dictSize, hiddenDim))
 
-  def build(length: Int, predictLength: Int): Unit = {
-    clean
+  val enc_wf = param("enc_wf", Array(inputSize, hiddenDim))
+  val enc_bf = param("enc_bf", Array(1, hiddenDim))(Zero)
+  val enc_wi = param("enc_wi", Array(inputSize, hiddenDim))
+  val enc_bi = param("enc_bi", Array(1, hiddenDim))(Zero)
+  val enc_wc = param("enc_wc", Array(inputSize, hiddenDim))
+  val enc_bc = param("enc_bc", Array(1, hiddenDim))(Zero)
+  val enc_wo = param("enc_wo", Array(inputSize, hiddenDim))
+  val enc_bo = param("enc_bo", Array(1, hiddenDim))(Zero)
 
-    var h: Node = h0
-    var c: Node = c0
-    // Extend RNN to the expected size and build connections between cells
-    for (i <- 0 until length) {
+  val enc_h0 = input("enc_h0")
+  val enc_c0 = input("enc_c0")
 
-      val in = i match {
-        case gt if gt >= predictLength => {
-          new ArgMax(new SoftMax(new DotMul(h, v2c)))
-        }
-        case _ => {
-          val realin = input("%d".format(i))
-          xs += realin
-          realin
-        }
-      }
-      predicts += in
-      val mapped = new Embed(in, c2v)
 
-      val newNode = LSTMCell.build(wf, bf, wi, bi,
-        wc, bc, wo, bo, mapped, h, c)
-      c = newNode._1
-      h = newNode._2
+  val dec_embed = param("dec_embed", Array(dictSize, hiddenDim))
+  val dec_v2c = param("dec_v2c", Array(hiddenDim, dictSize))
+
+  val dec_wf = param("dec_wf", Array(inputSize, hiddenDim))
+  val dec_bf = param("dec_bf", Array(1, hiddenDim))(Zero)
+  val dec_wi = param("dec_wi", Array(inputSize, hiddenDim))
+  val dec_bi = param("dec_bi", Array(1, hiddenDim))(Zero)
+  val dec_wc = param("dec_wc", Array(inputSize, hiddenDim))
+  val dec_bc = param("dec_bc", Array(1, hiddenDim))(Zero)
+  val dec_wo = param("dec_wo", Array(inputSize, hiddenDim))
+  val dec_bo = param("dec_bo", Array(1, hiddenDim))(Zero)
+
+  val dec_h0 = input("dec_h0")
+  val dec_c0 = input("dec_c0")
+
+  override def build(batch: Batch): Unit = {
+
+    val encData = batch.feature(0)
+    val decData = batch.feature(1)
+
+    val batchSize = encData.shape()(0)
+    val encLength = encData.shape()(1)
+    val decLength = decData.shape()(1)
+
+    enc_h0.set(Nd4j.zeros(batchSize, hiddenDim))
+    enc_c0.set(Nd4j.zeros(batchSize, hiddenDim))
+
+    var h = enc_h0
+    var c = enc_c0
+
+    for (i <- 0 until encLength) {
+      val in_i = input("enc_in_%".format(i))
+      in_i.set(encData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
+      val embed = new Embed(in_i, enc_embed)
+      (h, c) = LSTMCell.build(enc_wf, enc_bf, enc_wi, enc_bi,
+        enc_wc, enc_bc, enc_wo, enc_bo, embed, h, c)
     }
+
+    val outputs = new ArrayBuffer[Node]()
+    for (i <- 0 until decLength - 1) {
+      val in_i = input("dec_in_%".format(i))
+      in_i.set(decData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
+      val embed = new Embed(in_i, dec_embed)
+      (h, c) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
+        dec_wc, dec_bc, dec_wo, dec_bo, embed, h, c)
+      outputs += new SoftMax(new DotMul(h, dec_v2c))
+    }
+
+    output(new Collect(outputs: _*))
+    expect(decData.get(NDArrayIndex.all(), NDArrayIndex.interval(1, decLength)))
   }
+}
+
+class LSTMDecodeGraph(dictSize: Int, hiddenDim: Int,
+                      val decodeLength: Int, val decStartSymbol: Int)
+  extends LSTMEncodeGraph(dictSize, hiddenDim, null) {
+
+  override def build(batch: Batch): Unit = {
+
+    val encData = batch.feature(0)
+
+    val batchSize = encData.shape()(0)
+    val encLength = encData.shape()(1)
+
+    enc_h0.set(Nd4j.zeros(batchSize, hiddenDim))
+    enc_c0.set(Nd4j.zeros(batchSize, hiddenDim))
+
+    var h = enc_h0
+    var c = enc_c0
+
+    for (i <- 0 until encLength) {
+      val in_i = input("enc_in_%".format(i))
+      in_i.set(encData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
+      val embed = new Embed(in_i, enc_embed)
+      (h, c) = LSTMCell.build(enc_wf, enc_bf, enc_wi, enc_bi,
+        enc_wc, enc_bc, enc_wo, enc_bo, embed, h, c)
+    }
+
+    val dec_init_input = input("dec_in_start")
+    dec_init_input.set(Nd4j.createUninitialized(Array(batchSize, 1)).assign(decStartSymbol))
+
+    var dec_input: Node = dec_init_input
+
+    val outputs = new ArrayBuffer[Node]
+    for (i <- 0 until decodeLength) {
+      val embed = new Embed(dec_input, dec_embed)
+      (h, c) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
+        dec_wc, dec_bc, dec_wo, dec_bo, embed, h, c)
+      dec_input = new ArgMax(new SoftMax(new DotMul(h, dec_v2c)))
+      outputs += dec_input
+    }
+    output(new Collect(outputs: _*))
+  }
+}
+
+class BiLSTMEncodeGraph {
+
 }

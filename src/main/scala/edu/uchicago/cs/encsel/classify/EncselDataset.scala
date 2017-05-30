@@ -26,7 +26,7 @@ package edu.uchicago.cs.encsel.classify
 import edu.uchicago.cs.encsel.dataset.feature.EncFileSize
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.model.DataType
-import edu.uchicago.cs.ndnn.DefaultDataset
+import edu.uchicago.cs.ndnn.{Data, DefaultData, DefaultDataset}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -73,7 +73,7 @@ class EncselDataset(val dataType: DataType, val prefix: String = "") extends Def
 
   protected var _numClass: Int = _
 
-  override def load(): (Array[Array[Double]], Array[Double]) = {
+  override def load(): Array[Data] = {
 
     val typeMap = new mutable.HashMap[String, Int]
 
@@ -81,6 +81,8 @@ class EncselDataset(val dataType: DataType, val prefix: String = "") extends Def
     val labels = new ArrayBuffer[Double]
 
     val mapping = EncselDataset.featureMap.getOrElse(dataType, Array.empty[(String, String)])
+
+    val datas = new ArrayBuffer[Data]
 
     Persistence.get.lookup(dataType).foreach(column => {
       val feature = mapping.map(m => {
@@ -97,12 +99,11 @@ class EncselDataset(val dataType: DataType, val prefix: String = "") extends Def
         val minName = encoded.minBy(_.value).name
         val label = typeMap.getOrElseUpdate(minName, typeMap.size)
 
-        features += feature
-        labels += label
+        datas += new DefaultData(feature,label)
       }
     })
     _numClass = typeMap.size
-    (features.toArray, labels.toArray)
+    datas.toArray
   }
 
   def numFeature = EncselDataset.featureMap.getOrElse(dataType, Array.empty).length

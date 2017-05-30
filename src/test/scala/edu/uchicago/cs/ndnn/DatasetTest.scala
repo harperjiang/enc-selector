@@ -1,22 +1,20 @@
 package edu.uchicago.cs.ndnn
 
 
-import scala.collection.mutable.HashSet
+import scala.collection.mutable.{ArrayBuffer, HashSet}
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DummyDataset extends DefaultDataset {
   def permuteIdx4Test = permuteIdx
 
-  def load(): (Array[Array[Double]], Array[Double]) = {
-    val data = new Array[Array[Double]](100)
-    val gt = new Array[Double](100)
+  def load(): Array[Data] = {
 
+    val data = new ArrayBuffer[Data]
     for (i <- 0 until 100) {
-      data(i) = (0 to 11).map(_ => i.toDouble).toArray
-      gt(i) = i
+      data += new DefaultData((0 to 11).map(_ => i.toDouble).toArray, i.toDouble)
     }
-    (data, gt)
+    data.toArray
   }
 }
 
@@ -38,10 +36,10 @@ class DatasetTest {
     array.foreach { batch => {
       (0 until batch.size).foreach {
         i => {
-          val fromdata = batch.data.getDouble(i, 0)
+          val fromdata = batch.feature(0).getDouble(i, 0)
           distinct += fromdata
           for (k <- 0 to 11) {
-            assertEquals(batch.groundTruth.getDouble(i), batch.data.getDouble(i, k), 0.01)
+            assertEquals(batch.groundTruth.getDouble(i), batch.feature(0).getDouble(i, k), 0.01)
           }
         }
       }
@@ -64,11 +62,11 @@ class DatasetTest {
     array.foreach { batch => {
       (0 until batch.size).foreach {
         i => {
-          val fromdata = batch.data.getDouble(i, 0)
+          val fromdata = batch.feature(0).getDouble(i, 0)
           distinct += fromdata
           assertEquals(fromdata, batch.groundTruth.getDouble(i), 0.01)
           for (j <- 0 to 11) {
-            assertEquals(fromdata, batch.data.getDouble(i, j), 0.01)
+            assertEquals(fromdata, batch.feature(0).getDouble(i, j), 0.01)
           }
 
         }
@@ -98,8 +96,8 @@ class DatasetTest {
 
 class SplitDatasetForTest(value: Array[Array[Double]], label: Array[Double])
   extends DefaultDataset {
-  override def load(): (Array[Array[Double]], Array[Double]) = {
-    (value, label)
+  override def load(): Array[Data] = {
+    value.zip(label).map(pair => new DefaultData(pair._1, pair._2))
   }
 }
 

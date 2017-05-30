@@ -30,7 +30,7 @@ import scala.util.control.Breaks._
 trait Evaluator {
   def init(): Unit
 
-  def record[D](batch: Batch[D], loss: Double, acc: Int): Unit
+  def record(batch: Batch, loss: Double, acc: Int): Unit
 
   def loss: Double
 
@@ -52,7 +52,7 @@ class MeanLossEvaluator extends Evaluator {
     accSum = 0
   }
 
-  def record[D](batch: Batch[D], loss: Double, acc: Int) = {
+  def record(batch: Batch, loss: Double, acc: Int) = {
     batchCounter += 1
     itemCounter += batch.size
     lossSum += loss
@@ -67,7 +67,7 @@ class MeanLossEvaluator extends Evaluator {
     """Average loss %f, average accuracy %f""".format(loss, accuracy)
 }
 
-trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
+trait Trainer[T <: Dataset, G <: Graph] {
   val logger = LoggerFactory.getLogger(getClass)
 
   val trainHistory = new ArrayBuffer[(Double, Double, Double)]
@@ -81,8 +81,6 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
   protected def getParamStore: ParamStore = EmptyStore
 
   protected def getEvaluator: Evaluator
-
-  protected def setupGraph(graph: G, batch: Batch[D])
 
   protected def earlyStop = false
 
@@ -110,7 +108,7 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
 
       getEvaluator.init()
       trainset.batches(trainBatchSize).foreach(batch => {
-        setupGraph(graph, batch)
+        graph.build(batch)
         val loss = graph.train
         getEvaluator.record(batch, loss, -1)
       })
@@ -150,20 +148,25 @@ trait Trainer[D, T <: Dataset[D], G <: Graph[D]] {
 
     testset.batches(testBatchSize).foreach {
       batch => {
-        setupGraph(graph, batch)
+        graph.build(batch)
         val (loss, acc) = graph.test
         evaluator.record(batch, loss, acc)
       }
     }
     evaluator.loss
   }
+
+  protected def setupGraph(graph: G, batch: Batch): Unit = {
+    graph.build(batch)
+  }
 }
 
-abstract class SimpleTrainer[D, T <: Dataset[D], G <: Graph[D]](trainset: T, testset: T, graph: G)
-  extends Trainer[D, T, G] {
+abstract class SimpleTrainer[T <: Dataset, G <: Graph]
+(trainset: T, testset: T, graph: G, val modelName: String = "model")
+  extends Trainer[T, G] {
 
   protected var evaluator: Evaluator = new MeanLossEvaluator()
-  protected var paramStore: ParamStore = new FileStore("model")
+  protected var paramStore: ParamStore = new FileStore(modelName)
 
   def getTrainSet: T = trainset
 

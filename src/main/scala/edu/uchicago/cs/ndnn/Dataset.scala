@@ -32,40 +32,67 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-trait Dataset[D] {
+trait Data {
 
-  def batches(batchSize: Int): Iterator[Batch[D]]
+  def length(): String
+
+  def numPiece(): Int
+
+  def feature(): Array[Array[Double]]
+
+  def groundTruth(): Double
+}
+
+class DefaultData(val data: Array[Double], val gt: Double) extends Data {
+
+  def length() = data.length.toString
+
+  def numPiece(): Int = 1
+
+  def feature(): Array[Array[Double]] = Array(data)
+
+  def groundTruth(): Double = gt
+}
+
+trait Dataset {
+
+  def batches(batchSize: Int): Iterator[Batch]
 
   def numBatch: Int
 
   def dataSize: Int
 }
 
-class Batch[D](val size: Int, val data: D, val groundTruth: D)
+class Batch(val size: Int, val data: Array[Data]) {
 
-abstract class DatasetBase[D] extends Dataset[D] {
+  def feature(piece: Int): INDArray = {
+    val sample = data(0)
+    if (piece >= sample.numPiece())
+      throw new IllegalArgumentException("%d: invalid index".format(piece))
+    Nd4j.create(data.map(_.feature()(piece)))
+  }
+
+  def groundTruth(): INDArray = Nd4j.create(data.map(_.groundTruth()))
+}
+
+abstract class DefaultDataset extends Dataset {
 
   protected val logger = LoggerFactory.getLogger(getClass())
 
-  protected var datas: Array[Array[Double]] = _
-  protected var expects: Array[Double] = _
+  protected var datas: Array[Data] = _
   protected var permuteIdx: mutable.Buffer[Int] = _
   var numBatch = 0
 
   {
-    val loaded = load()
-    datas = loaded._1
-    expects = loaded._2
+    datas = load()
     permuteIdx = datas.indices.toBuffer
   }
 
   def dataSize = datas.length
 
-  protected def load(): (Array[Array[Double]], Array[Double])
+  protected def load(): Array[Data]
 
-  protected def construct(idices: Seq[Int]): Batch[D]
-
-  def batches(batchSize: Int): Iterator[Batch[D]] = {
+  def batches(batchSize: Int): Iterator[Batch] = {
     Collections.shuffle(permuteIdx)
 
     if (batchSize <= 0)
@@ -78,16 +105,19 @@ abstract class DatasetBase[D] extends Dataset[D] {
       construct(idices)
     })
   }
-}
 
-abstract class DefaultDataset extends DatasetBase[INDArray] {
-
-  protected def construct(idices: Seq[Int]): Batch[INDArray] = {
-    new Batch[INDArray](idices.length, Nd4j.create(idices.map(datas(_)).toArray),
-      Nd4j.create(idices.map(expects(_)).toArray).reshape(idices.length, -1))
+  protected def construct(idices: Seq[Int]): Batch = {
+    new Batch(idices.length, idices.map(datas(_)).toArray)
   }
 
-  def split(ratio: Seq[Double]): Seq[Dataset[INDArray]] = {
+  /**
+    * Generate a new dataset by fetching some records from current dataset.
+    * Used for creating training / dev / test set
+    *
+    * @param ratio
+    * @return
+    */
+  def split(ratio: Seq[Double]): Seq[Dataset] = {
 
     val length = this.datas.length
     val permutation = (0 until length).toBuffer
@@ -101,56 +131,43 @@ abstract class DefaultDataset extends DatasetBase[INDArray] {
     var pointer = 0
 
     slice.map(cnt => {
-      val result = fetchSub(permutation, pointer, pointer + cnt)
+      val data = new ArrayBuffer[Data]
+      (pointer until pointer + cnt).foreach(idx => {
+        data += this.datas(permutation(idx))
+      })
       pointer += cnt
-      result
+      new PreparedDataset(data.toArray)
     })
-  }
-
-  protected def fetchSub(permutation: Seq[Int], from: Int, to: Int): Dataset[INDArray] = {
-    val data = new ArrayBuffer[Array[Double]]
-    val label = new ArrayBuffer[Double]
-    (from until to).foreach(idx => {
-      data += this.datas(permutation(idx))
-      label += this.expects(permutation(idx))
-    })
-    new PreparedDataset(data.toArray, label.toArray)
   }
 }
 
-class PreparedDataset(val features: Array[Array[Double]],
-                      val expect: Array[Double])
+class PreparedDataset(val data: Array[Data])
   extends DefaultDataset {
 
-  override def load(): (Array[Array[Double]], Array[Double]) = (features, expect)
+  override def load(): (Array[Data]) = data
 }
 
 
-abstract class VarLenDatasetBase[D] extends Dataset[D] {
+abstract class VarLenDataset extends Dataset {
 
-  protected var datas: Array[Array[Double]] = _
-  protected var expects: Array[Double] = _
+  protected var datas: Array[Data] = _
   protected var groupByLength: Array[Array[Int]] = _
   protected var permuteIdx: mutable.Buffer[Int] = _
 
   var numBatch = 0
 
   {
-    val loaded = load()
-    datas = loaded._1
-    expects = loaded._2
-    groupByLength = loaded._1.zipWithIndex.map(d => (d._1.length, d._2)).groupBy(_._1)
+    datas = load()
+    groupByLength = datas.zipWithIndex.map(d => (d._1.length(), d._2)).groupBy(_._1)
       .values.map(_.map(_._2)).toArray
     permuteIdx = groupByLength.indices.toBuffer
   }
 
   def dataSize = datas.length
 
-  protected def load(): (Array[Array[Double]], Array[Double])
+  protected def load(): Array[Data]
 
-  protected def construct(idices: Seq[Int]): Batch[D]
-
-  def batches(batchSize: Int): Iterator[Batch[D]] = {
+  def batches(batchSize: Int): Iterator[Batch] = {
     Collections.shuffle(permuteIdx)
 
     if (batchSize <= 0)
@@ -165,12 +182,9 @@ abstract class VarLenDatasetBase[D] extends Dataset[D] {
       })
     }).toIterator
   }
-}
 
-abstract class DefaultVarLenDataset extends VarLenDatasetBase[INDArray] {
-
-  protected def construct(idices: Seq[Int]): Batch[INDArray] = {
-    new Batch[INDArray](idices.length, Nd4j.create(idices.map(datas(_)).toArray),
-      Nd4j.create(idices.map(expects(_)).toArray))
+  protected def construct(idices: Seq[Int]): Batch = {
+    new Batch(idices.length, idices.map(datas(_)).toArray)
   }
 }
+

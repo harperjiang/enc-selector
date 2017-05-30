@@ -64,6 +64,16 @@ trait NodeEnv {
     newinput.setEnv(this)
     newinput
   }
+
+  protected var snapshotCount = -1
+
+  def snapshot(): Unit = {
+    this.snapshotCount = nodeBuffer.size
+  }
+
+  def reset(): Unit = {
+    nodeBuffer.remove(this.snapshotCount, nodeBuffer.length - this.snapshotCount)
+  }
 }
 
 abstract class Node(is: Node*) {
@@ -262,20 +272,16 @@ class Concat(left: Node, right: Node, idx: Int = 1) extends Node(left, right) {
 
 class Collect(nodes: Node*) extends Node(nodes: _*) {
   def compute(): Unit = {
-    /*
-    val valueList = nodes.map(n => {
-      n.value.get((NDArrayIndex.newAxis() +: NDArrayIndex.allFor(n.value)): _*)
-    })
-    this.value = Nd4j.concat(0, valueList.toArray: _*)*/
-    this.value = Nd4j.create(nodes.map(_.value).toList, nodes.length +: nodes(0).value.shape())
+    this.value = Nd4j.concat(1,
+      nodes.map(_.value.get(NDArrayIndex.all(),
+        NDArrayIndex.newAxis(),
+        NDArrayIndex.all())): _*)
   }
 
   def updateGrad() = {
-    val total = this.grad.shape.length - 1
-    nodes.zipWithIndex.foreach { n => {
-      n._1.grad = this.grad.get(Index.point(total + 1, 0, n._2): _*)
-    }
-    }
+    nodes.zipWithIndex.foreach(n => {
+      n._1.grad = this.grad.get(Index.point(3, 1, n._2): _*)
+    })
   }
 }
 
@@ -289,10 +295,7 @@ class Embed(idx: Node, map: Node) extends Node(idx, map) {
 
   def compute(): Unit = {
 
-    val indexval = idx match {
-      case input: Input => input.get[Array[Int]]
-      case _ => NDArrayUtil.toInts(idx.value)
-    }
+    val indexval = NDArrayUtil.toInts(idx.value)
     val mapsize = map.value.shape()
     if (fwdmap == null || !fwdmap.shape().sameElements(Array(indexval, mapsize(0)))) {
       fwdmap = Nd4j.zeros(indexval.length, mapsize(0))

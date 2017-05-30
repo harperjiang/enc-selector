@@ -13,13 +13,11 @@ class LSTMDatasetTest {
     val ds = new LSTMDataset(file)
 
     assertEquals(8, ds.dataSize)
+    assertEquals(20, ds.dictSize)
 
     val batches = ds.batches(3).toArray
-    assertEquals(3, batches.length)
-    assertEquals(3, batches(0).size)
-    assertEquals(3, batches(1).size)
-    assertEquals(2, batches(2).size)
-    assertEquals(24, ds.numChars)
+    assertEquals(5, batches.length)
 
+    assertEquals(8, batches.map(_.size).sum)
   }
 }

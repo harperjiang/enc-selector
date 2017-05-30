@@ -36,6 +36,6 @@ object LSTMCell {
 
     val co = new Add(new Mul(c, fgate), cgate)
     val ho = new Mul(new Tanh(co), ogate)
-    (co, ho)
+    (ho, co)
   }
 }
