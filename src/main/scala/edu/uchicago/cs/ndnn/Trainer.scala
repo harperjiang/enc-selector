@@ -25,7 +25,6 @@ package edu.uchicago.cs.ndnn
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
-import scala.util.control.Breaks._
 
 trait Evaluator {
   def init(): Unit
@@ -108,7 +107,7 @@ trait Trainer[T <: Dataset, G <: Graph] {
 
       getEvaluator.init()
       trainset.batches(trainBatchSize).foreach(batch => {
-        graph.build(batch)
+        setupGraph(graph, batch)
         val loss = graph.train
         getEvaluator.record(batch, loss, -1)
       })
@@ -148,7 +147,7 @@ trait Trainer[T <: Dataset, G <: Graph] {
 
     testset.batches(testBatchSize).foreach {
       batch => {
-        graph.build(batch)
+        setupGraph(graph, batch)
         val (loss, acc) = graph.test
         evaluator.record(batch, loss, acc)
       }

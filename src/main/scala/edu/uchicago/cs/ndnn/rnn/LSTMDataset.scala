@@ -105,3 +105,5 @@ class LSTMDataset(file: String, tokenizer: LSTMTokenizer, extdict: LSTMDataset =
 
   def dictSize: Int = dict.size
 }
+
+class S2SDataset(file:String, tokenizer:LSTMTokenizer, separator)
