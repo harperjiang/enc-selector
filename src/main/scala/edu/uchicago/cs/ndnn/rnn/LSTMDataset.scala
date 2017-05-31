@@ -135,20 +135,28 @@ class LSTMDataset(file: String, val tokenizer: LSTMTokenizer,
 
 class S2SDataset(file: String, tokenizer: LSTMTokenizer,
                  val bosSymbol: String, val eosSymbol: String,
-                 extdict: LSTMDict = null)
+                 extEncDict: LSTMDict = null, extDecDict: LSTMDict = null)
   extends VarLenDataset {
 
-  var dict: LSTMDict = _
+  var encDict: LSTMDict = _
+  var decDict: LSTMDict = _
 
   override protected def load(): Array[Data] = {
     val source = Source.fromFile(file)
     try {
-      if (extdict == null) {
-        dict = new LSTMDict()
-        dict.update(bosSymbol)
-        dict.update(eosSymbol)
+      if (extEncDict == null) {
+        encDict = new LSTMDict()
+        encDict.update(bosSymbol)
+        encDict.update(eosSymbol)
       }
-      else dict = extdict
+      else encDict = extEncDict
+
+      if (extDecDict == null) {
+        decDict = new LSTMDict()
+        decDict.update(bosSymbol)
+        decDict.update(eosSymbol)
+      }
+      else decDict = extDecDict
 
       source.getLines().map(line => {
         val tokens = tokenizer.tokenize(line).toArray
@@ -156,7 +164,7 @@ class S2SDataset(file: String, tokenizer: LSTMTokenizer,
           throw new IllegalArgumentException("Invalid start/stop symbol")
         }
         // look for stop/start symbols
-        val nextbos = tokens.drop(1).indexOf(bosSymbol)
+        val nextbos = tokens.drop(1).indexOf(bosSymbol) + 1
         if (nextbos == -1)
           throw new IllegalArgumentException()
         val firsteos = nextbos - 1
@@ -166,21 +174,19 @@ class S2SDataset(file: String, tokenizer: LSTMTokenizer,
         val seq1 = tokens.slice(0, nextbos)
         val seq2 = tokens.slice(nextbos, tokens.length)
 
-        (extdict == null) match {
-          case true =>
-            new S2SData(
-              seq1.map(dict.update(_).toDouble),
-              seq2.map(dict.update(_).toDouble)
-            )
-          case false => new S2SData(
-            seq1.map(dict.lookup(_).toDouble),
-            seq2.map(dict.lookup(_).toDouble)
-          )
-        }
+        new S2SData(
+          seq1.map(encDict.update(_).toDouble),
+          seq2.map(decDict.update(_).toDouble)
+        )
       }).toArray
     }
+
     finally {
       source.close()
     }
   }
+
+  def encDictSize = encDict.size
+
+  def decDictSize = decDict.size
 }
