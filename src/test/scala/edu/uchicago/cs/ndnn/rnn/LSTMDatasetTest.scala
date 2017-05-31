@@ -1,19 +1,17 @@
 package edu.uchicago.cs.ndnn.rnn
 
-import edu.uchicago.cs.ndnn.Index
-import org.junit.Test
 import org.junit.Assert._
-import org.nd4j.linalg.indexing.NDArrayIndex
+import org.junit.Test
 
 class LSTMDatasetTest {
 
   @Test
   def testLoad: Unit = {
     val file = "src/test/resource/rnn/lstm_sample_ds"
-    val ds = new LSTMDataset(file)
+    val ds = new LSTMDataset(file, new WordTokenizer(), "<s>", "</s>")
 
     assertEquals(8, ds.dataSize)
-    assertEquals(20, ds.dictSize)
+    assertEquals(22, ds.dictSize)
 
     val batches = ds.batches(3).toArray
     assertEquals(5, batches.length)
