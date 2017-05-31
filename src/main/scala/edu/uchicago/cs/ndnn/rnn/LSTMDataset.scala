@@ -22,14 +22,15 @@
  */
 package edu.uchicago.cs.ndnn.rnn
 
-import java.io.File
-import java.net.URI
-
 import edu.uchicago.cs.ndnn._
 
 import scala.collection.mutable.{ArrayBuffer, Buffer, HashMap}
 import scala.io.Source
 
+/**
+  * An instance of <code>LSTMTokenizer</code> split input string into
+  * tokens
+  */
 trait LSTMTokenizer {
   def tokenize(input: String): Iterable[String]
 }
@@ -69,41 +70,117 @@ class S2SData(from: Array[Double], to: Array[Double]) extends Data {
   def groundTruth(): Double = 0d
 }
 
+class LSTMDict {
+  private val dict: HashMap[String, Int] = new HashMap[String, Int]
+  private val inverseDict: Buffer[String] = new ArrayBuffer[String]
 
-class LSTMDataset(file: String, tokenizer: LSTMTokenizer, extdict: LSTMDataset = null) extends VarLenDataset {
-
-  private var dict: HashMap[String, Int] = _
-  private var inverseDict: Buffer[String] = _
-
-  def this(file: String) {
-    this(file, new WordTokenizer, null)
+  def update(word: String): Int = {
+    dict.getOrElseUpdate(word, {
+      inverseDict += word
+      dict.size
+    })
   }
 
+  def lookup(word: String): Int = {
+    dict.getOrElse(word, -1)
+  }
+
+  def size = dict.size
+}
+
+class LSTMDataset(file: String, val tokenizer: LSTMTokenizer,
+                  val bosSymbol: String, val eosSymbol: String,
+                  extdict: LSTMDict = null) extends VarLenDataset {
+
+  protected var dict: LSTMDict = _
+
   override protected def load(): Array[Data] = {
-    dict = new HashMap[String, Int]
-    inverseDict = new ArrayBuffer[String]
+    dict = new LSTMDict()
     val source = Source.fromFile(file)
     try {
-      val content = source.getLines().map(line => tokenizer.tokenize(line)).toArray
+      val content = source.getLines().map(line => tokenizer.tokenize(line))
       if (extdict == null) {
-        content.map(line =>
-          new LSTMData(line.map(c =>
-            dict.getOrElseUpdate(c, {
-              inverseDict += c
-              dict.size
-            }).toDouble
-          ).toArray).asInstanceOf[Data])
+        dict.update(bosSymbol)
+        dict.update(eosSymbol)
+        content.map(parse(_, true)).toArray
       } else {
-        dict ++= extdict.dict
-        inverseDict ++= extdict.inverseDict
-        content.map(line => new LSTMData(line.map(dict.getOrElse(_, 0).toDouble).toArray))
+        dict = extdict
+        content.map(parse(_, false)).toArray
       }
     } finally {
       source.close()
     }
   }
 
+  protected def parse(input: Iterable[String], append: Boolean): Data = {
+    var data = input.toArray
+    if (!bosSymbol.equals(data(0))) {
+      data = bosSymbol +: data
+    }
+    if (!eosSymbol.equals(data.last)) {
+      data = data :+ eosSymbol
+    }
+    new LSTMData(append match {
+      case true => {
+        data.map(dict.update(_).toDouble)
+      }
+      case false => {
+        data.map(dict.lookup(_).toDouble)
+      }
+    })
+  }
+
   def dictSize: Int = dict.size
 }
 
-class S2SDataset(file:String, tokenizer:LSTMTokenizer, separator)
+class S2SDataset(file: String, tokenizer: LSTMTokenizer,
+                 val bosSymbol: String, val eosSymbol: String,
+                 extdict: LSTMDict = null)
+  extends VarLenDataset {
+
+  var dict: LSTMDict = _
+
+  override protected def load(): Array[Data] = {
+    val source = Source.fromFile(file)
+    try {
+      if (extdict == null) {
+        dict = new LSTMDict()
+        dict.update(bosSymbol)
+        dict.update(eosSymbol)
+      }
+      else dict = extdict
+
+      source.getLines().map(line => {
+        val tokens = tokenizer.tokenize(line).toArray
+        if (!(tokens(0).equals(bosSymbol) && tokens.last.equals(eosSymbol))) {
+          throw new IllegalArgumentException("Invalid start/stop symbol")
+        }
+        // look for stop/start symbols
+        val nextbos = tokens.drop(1).indexOf(bosSymbol)
+        if (nextbos == -1)
+          throw new IllegalArgumentException()
+        val firsteos = nextbos - 1
+        if (!tokens(firsteos).equals(eosSymbol))
+          throw new IllegalArgumentException()
+
+        val seq1 = tokens.slice(0, nextbos)
+        val seq2 = tokens.slice(nextbos, tokens.length)
+
+        (extdict == null) match {
+          case true =>
+            new S2SData(
+              seq1.map(dict.update(_).toDouble),
+              seq2.map(dict.update(_).toDouble)
+            )
+          case false => new S2SData(
+            seq1.map(dict.lookup(_).toDouble),
+            seq2.map(dict.lookup(_).toDouble)
+          )
+        }
+      }).toArray
+    }
+    finally {
+      source.close()
+    }
+  }
+}
