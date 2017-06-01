@@ -31,15 +31,31 @@ import scala.util.Random
 /**
   * Created by harper on 5/31/17.
   */
-class DataGen extends App {
+object DataGen extends App {
+
 
   def range(from: Int, to: Int, padding: Int): IndexedSeq[String] = {
-    val format = "%0" + padding + "d"
+    val format = padding match {
+      case -1 => "%d"
+      case _ => "%0" + padding + "d"
+    }
     (from to to).map(format.format(_))
   }
 
-  def pattern(data: String, pattern: String): String = {
+  def randUpper(): String = {
+    ('A' + Random.nextInt(26)).toChar.toString
+  }
 
+  def randLower(): String = {
+    ('a' + Random.nextInt(26)).toChar.toString
+  }
+
+  def randNum(): String = {
+    Random.nextInt(10).toString
+  }
+
+  def pattern(data: String, pattern: String): String = {
+    "<s> %s </s> <s> %s </s>".format(data.toCharArray.map(_.toString).mkString(" "), pattern)
   }
 
   def genDate(copy: Int): Iterable[String] = {
@@ -58,34 +74,79 @@ class DataGen extends App {
       val result = new ArrayBuffer[String]()
 
       // pattern 1, yyyy-mm-dd
-      val ptn1 = "%d-%d-%d".format(longyear, month, day)
+      val ptn1 = "%s-%s-%s".format(longyear, month, day)
       result += pattern(ptn1, "<NUM> - <NUM> - <NUM>")
       // pattern 2, mm/dd/yyyy
-      val ptn2 = "%d/%d/%d".format(month, day, longyear)
+      val ptn2 = "%s/%s/%s".format(month, day, longyear)
       result += pattern(ptn2, "<NUM> / <NUM> / <NUM>")
       // pattern 3, mm/dd/yy
-      val ptn3 = "%d/%d/%d".format(month, day, shortyear)
+      val ptn3 = "%s/%s/%s".format(month, day, shortyear)
       result += pattern(ptn3, "<NUM> / <NUM> / <NUM>")
       result
     })
   }
 
-  def genTimestamp(copy: Int): Iterable[String] = {
-
+  def genTime(copy: Int): IndexedSeq[String] = {
+    // hh:mm:ss
+    val hours = range(0, 23, 2)
+    val mins = range(0, 59, 2)
+    val secs = range(0, 59, 2)
+    (0 until copy).map(i => {
+      val hour = hours(Random.nextInt(24))
+      val min = mins(Random.nextInt(60))
+      val sec = secs(Random.nextInt(60))
+      pattern("%s:%s:%s".format(hour, min, sec), "<NUM> : <NUM> : <NUM>")
+    })
   }
 
-  def genIpAddress(copy: Int): Iterable[String] = {
+  def genPhone(copy: Int): IndexedSeq[String] = {
+    val as = range(0, 999, 3)
+    val bs = range(0, 999, 3)
+    val cs = range(0, 9999, 4)
 
+    (0 until copy).flatMap(i => {
+      val a = as(Random.nextInt(1000))
+      val b = bs(Random.nextInt(1000))
+      val c = cs(Random.nextInt(10000))
+      Array(
+        pattern("(%s)%s-%s".format(a, b, c), "( <NUM> ) <NUM> - <NUM>"),
+        pattern("%s-%s-%s".format(a, b, c), "<NUM> - <NUM> - <NUM>")
+      )
+    })
   }
 
+  def genIpAddress(copy: Int): IndexedSeq[String] = {
+    val seq = range(0, 255, -1)
+    (0 until copy).map(i => {
+      val ip1 = seq(Random.nextInt(256))
+      val ip2 = seq(Random.nextInt(256))
+      val ip3 = seq(Random.nextInt(256))
+      val ip4 = seq(Random.nextInt(256))
+      pattern("%s.%s.%s.%s".format(ip1, ip2, ip3, ip4), "<NUM> . <NUM> . <NUM> . <NUM>")
+    })
+  }
+
+  def genString(copy: Int): IndexedSeq[String] = {
+
+    (0 until copy).map(i => {
+      val b = new StringBuilder()
+      b.append(randUpper())
+      b.append(randUpper())
+      for (j <- 0 to 5)
+        b.append(randNum())
+      pattern(b.toString(), "<WORD> <NUM>")
+    })
+  }
 
   val output = "pattern.train"
 
   val writer = new PrintWriter(new FileWriter(output))
 
   genDate(5000).foreach(writer.println)
-  genTimestamp(5000).foreach(writer.println)
+  genTime(5000).foreach(writer.println)
   genIpAddress(5000).foreach(writer.println)
+  genPhone(5000).foreach(writer.println)
+  //  genString(1000).foreach(writer.println)
 
   writer.close()
 }
