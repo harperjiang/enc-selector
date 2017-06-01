@@ -22,10 +22,10 @@
  */
 package edu.uchicago.cs.ndnn
 
+import org.nd4j.linalg.api.ndarray.INDArray
+
 import scala.collection.GenIterable
 import scala.collection.mutable.ArrayBuffer
-
-import org.nd4j.linalg.api.ndarray.INDArray
 
 class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEnv {
 
@@ -68,6 +68,7 @@ class Graph(ip: InitPolicy, up: UpdatePolicy, loss: LossFunction) extends NodeEn
       item match {
         case param: Param => params -= param
         case input: Input => inputs -= input
+        case _ => Unit
       }
     })
     super.reset()
