@@ -126,13 +126,15 @@ object DataGen extends App {
     })
   }
 
-  def genString(copy: Int): IndexedSeq[String] = {
+  def genPrefixString(copy: Int): IndexedSeq[String] = {
 
     (0 until copy).map(i => {
       val b = new StringBuilder()
-      b.append(randUpper())
-      b.append(randUpper())
-      for (j <- 0 to 5)
+      val cmax = Random.nextInt(3) + 2
+      for (j <- 0 to cmax)
+        b.append(randUpper())
+      val max = Random.nextInt(5) + 5
+      for (j <- 0 to max)
         b.append(randNum())
       pattern(b.toString(), "<WORD> <NUM>")
     })
@@ -142,11 +144,11 @@ object DataGen extends App {
 
   val writer = new PrintWriter(new FileWriter(output))
 
-  genDate(5000).foreach(writer.println)
-  genTime(5000).foreach(writer.println)
-  genIpAddress(5000).foreach(writer.println)
-  genPhone(5000).foreach(writer.println)
-  //  genString(1000).foreach(writer.println)
+  genDate(2000).foreach(writer.println)
+  genTime(2000).foreach(writer.println)
+  genIpAddress(2000).foreach(writer.println)
+  genPhone(2000).foreach(writer.println)
+  genPrefixString(2000).foreach(writer.println)
 
   writer.close()
 }

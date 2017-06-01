@@ -24,7 +24,7 @@ package edu.uchicago.cs.ndnn.rnn
 
 import edu.uchicago.cs.ndnn._
 import org.nd4j.linalg.factory.Nd4j
-import org.nd4j.linalg.indexing.{NDArrayIndex, NDArrayIndexAll}
+import org.nd4j.linalg.indexing.NDArrayIndex
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -122,8 +122,10 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
   val dec_h0 = input("dec_h0")
   val dec_c0 = input("dec_c0")
 
-  override def build(batch: Batch): Unit = {
+  snapshot()
 
+  override def build(batch: Batch): Unit = {
+    reset()
     val encData = batch.feature(0)
     val decData = batch.feature(1)
 
@@ -138,7 +140,7 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
     var c: Node = enc_c0
 
     for (i <- 0 until encLength) {
-      val in_i = input("enc_in_%".format(i))
+      val in_i = input("enc_in_%d".format(i))
       in_i.set(encData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
       val embed = new Embed(in_i, enc_embed)
 
@@ -150,7 +152,7 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
 
     val outputs = new ArrayBuffer[Node]()
     for (i <- 0 until decLength - 1) {
-      val in_i = input("dec_in_%".format(i))
+      val in_i = input("dec_in_%d".format(i))
       in_i.set(decData.get(Index.point(2, 1, i): _*).reshape(batchSize, 1))
       val embed = new Embed(in_i, dec_embed)
       val (th, tc) = LSTMCell.build(dec_wf, dec_bf, dec_wi, dec_bi,
@@ -170,7 +172,7 @@ class LSTMDecodeGraph(dictSize: Int, hiddenDim: Int,
   extends LSTMEncodeGraph(dictSize, hiddenDim, null) {
 
   override def build(batch: Batch): Unit = {
-
+    reset()
     val encData = batch.feature(0)
 
     val batchSize = encData.shape()(0)
