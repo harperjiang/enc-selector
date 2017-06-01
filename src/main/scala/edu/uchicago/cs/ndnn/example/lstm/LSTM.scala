@@ -43,7 +43,7 @@ object LSTM extends App {
   val testds = new S2SDataset("/home/harper/dataset/bobsue-data/bobsue.seq2seq.test.tsv",
     new WordTokenizer(), "<s>", "</s>", dict, dict)
 
-  val graph = new LSTMEncodeGraph(dict.size, 200, new Adam(0.001, 0.9, 0.999))
+  val graph = new LSTMEncodeGraph(dict.size, 200, new Adam(0.01, 0.9, 0.999))
 
   val trainer = new LSTMTrainer(trainds, testds, graph, "lstm_encoder")
   trainer.train(30)
