@@ -28,7 +28,7 @@ object LSTMCell {
 
   def build(wf: Param, bf: Param, wi: Param, bi: Param, wc: Param, bc: Param,
             wo: Param, bo: Param, in: Node, h: Node, c: Node): (Node, Node) = {
-    val concat = new Concat(in, h)
+    val concat = new Concat(h, in)
     val fgate = new Sigmoid(new Add(new DotMul(concat, wf), bf))
     val igate = new Sigmoid(new Add(new DotMul(concat, wi), bi))
     val cgate = new Mul(new Tanh(new Add(new DotMul(concat, wc), bc)), igate)
