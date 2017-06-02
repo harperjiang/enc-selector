@@ -1,21 +1,19 @@
 import numpy as np
+
 from ndnn.store import ParamStore
 
-
-store = ParamStore('model_LSTM.pkl')
+store = ParamStore('s2s_lstm.mdl')
 
 params = store.load()
 
-np.savetxt("c2v.npy", params[0], delimiter='\t')
-np.savetxt('wf.npy', params[1], delimiter='\t')
-np.savetxt('bf.npy', params[2], delimiter='\t')
-np.savetxt('wi.npy', params[3], delimiter='\t')
-np.savetxt('bi.npy', params[4], delimiter='\t')
-np.savetxt('wc.npy', params[5], delimiter='\t')
-np.savetxt('bc.npy', params[6], delimiter='\t')
-np.savetxt('wo.npy', params[7], delimiter='\t')
-np.savetxt('bo.npy', params[8], delimiter='\t')
-np.savetxt('v.npy', params[9], delimiter='\t')
+name = ['enc_embed', 'enc_wf', 'enc_bf', 'enc_wi', 'enc_bi',
+        'enc_wc', 'enc_bc', 'enc_wo', 'enc_bo', 'enc_v2c',
+        'dec_embed', 'dec_wf', 'dec_bf', 'dec_wi', 'dec_bi',
+        'dec_wc', 'dec_bc', 'dec_wo', 'dec_bo', 'dec_v2c']
+
+for i, n in enumerate(name):
+    np.savetxt(n + ".npy", params[i], delimiter='\t')
+
 """
 self.C2V = self.param_of((num_char, hidden_dim))
 self.wf = self.param_of((2 * hidden_dim, hidden_dim))

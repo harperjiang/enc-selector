@@ -87,12 +87,13 @@ class LSTMGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: UpdatePolic
   }
 }
 
-class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: UpdatePolicy = new Adam())
+class LSTMEncodeGraph(val encDictSize: Int, val decDictSize: Int,
+                      val hiddenDim: Int, updatePolicy: UpdatePolicy = new Adam())
   extends Graph(Xavier, updatePolicy, new SoftMaxLogLoss) {
 
   val inputSize = 2 * hiddenDim
 
-  val enc_embed = param("enc_embed", Array(dictSize, hiddenDim))
+  val enc_embed = param("enc_embed", Array(encDictSize, hiddenDim))
 
   val enc_wf = param("enc_wf", Array(inputSize, hiddenDim))
   val enc_bf = param("enc_bf", Array(1, hiddenDim))(Zero)
@@ -103,12 +104,13 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
   val enc_wo = param("enc_wo", Array(inputSize, hiddenDim))
   val enc_bo = param("enc_bo", Array(1, hiddenDim))(Zero)
 
+  val enc_v2c = param("enc_v2c", Array(hiddenDim, encDictSize))
+
   val enc_h0 = input("enc_h0")
   val enc_c0 = input("enc_c0")
 
 
-  val dec_embed = param("dec_embed", Array(dictSize, hiddenDim))
-  val dec_v2c = param("dec_v2c", Array(hiddenDim, dictSize))
+  val dec_embed = param("dec_embed", Array(decDictSize, hiddenDim))
 
   val dec_wf = param("dec_wf", Array(inputSize, hiddenDim))
   val dec_bf = param("dec_bf", Array(1, hiddenDim))(Zero)
@@ -118,6 +120,8 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
   val dec_bc = param("dec_bc", Array(1, hiddenDim))(Zero)
   val dec_wo = param("dec_wo", Array(inputSize, hiddenDim))
   val dec_bo = param("dec_bo", Array(1, hiddenDim))(Zero)
+
+  val dec_v2c = param("dec_v2c", Array(hiddenDim, decDictSize))
 
   val dec_h0 = input("dec_h0")
   val dec_c0 = input("dec_c0")
@@ -167,9 +171,9 @@ class LSTMEncodeGraph(val dictSize: Int, val hiddenDim: Int, updatePolicy: Updat
   }
 }
 
-class LSTMDecodeGraph(dictSize: Int, hiddenDim: Int,
+class LSTMDecodeGraph(encDictSize: Int, decDictSize: Int, hiddenDim: Int,
                       val decodeLength: Int, val decStartSymbol: Int)
-  extends LSTMEncodeGraph(dictSize, hiddenDim, null) {
+  extends LSTMEncodeGraph(encDictSize, decDictSize, hiddenDim, null) {
 
   override def build(batch: Batch): Unit = {
     reset()
@@ -213,6 +217,3 @@ class LSTMDecodeGraph(dictSize: Int, hiddenDim: Int,
   }
 }
 
-class BiLSTMEncodeGraph {
-
-}
