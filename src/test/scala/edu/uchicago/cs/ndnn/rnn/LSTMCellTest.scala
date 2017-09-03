@@ -57,8 +57,13 @@ class LSTMCellTest {
     val hout = cell._1.value
     val cout = cell._2.value
 
-    val cexpect = Nd4j.create(Array(Array(0.54790634, 0.52818812, 0.52007031), Array(0.54047421, 0.5254888, 0.52014528)))
-    val hexpect = Nd4j.create(Array(Array(0.25571027, 0.24441732, 0.24246003), Array(0.25283897, 0.24337213, 0.24129505)))
+    // This value is when concat seq is in,h
+    //val cexpect = Nd4j.create(Array(Array(0.54790634, 0.52818812, 0.52007031), Array(0.54047421, 0.5254888, 0.52014528)))
+    //val hexpect = Nd4j.create(Array(Array(0.25571027, 0.24441732, 0.24246003), Array(0.25283897, 0.24337213, 0.24129505)))
+
+    // This value is when concat seq is h,in
+    val hexpect = Nd4j.create(Array(Array(0.25037327,0.24015875,0.2463134),Array(0.25160626,0.24850409,0.24254814)))
+    val cexpect = Nd4j.create(Array(Array(0.54047424,0.52029526,0.533103),Array(0.54047424,0.53881097,0.52029526)))
 
     assertArrayEquals(Array(2, 3), hout.shape)
     assertArrayEquals(Array(2, 3), cout.shape)
