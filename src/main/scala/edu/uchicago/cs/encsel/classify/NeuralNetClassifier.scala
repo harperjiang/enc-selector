@@ -26,7 +26,7 @@ package edu.uchicago.cs.encsel.classify.nn
 import edu.uchicago.cs.encsel.classify.{EncSelNNGraph, EncselDataset}
 import edu.uchicago.cs.encsel.model.DataType
 import edu.uchicago.cs.ndnn._
-import edu.uchicago.cs.ndnn.figure.LineFigure
+//import edu.uchicago.cs.ndnn.figure.LineFigure
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -64,11 +64,11 @@ object ClassifierForInt extends App {
     accuracy += ((item._2, item._1._3))
   })
 
-  new LineFigure().title("").xLabel("Epoch").yLabel("")
-    .addPlot(trainLoss, "Training Loss")
-    .addPlot(testLoss, "Test Loss")
-    .addPlot(accuracy, "Test Accuracy")
-    .show()
+//  new LineFigure().title("").xLabel("Epoch").yLabel("")
+//    .addPlot(trainLoss, "Training Loss")
+//    .addPlot(testLoss, "Test Loss")
+//    .addPlot(accuracy, "Test Accuracy")
+//    .show()
 }
 
 object ClassifierForString extends App {
