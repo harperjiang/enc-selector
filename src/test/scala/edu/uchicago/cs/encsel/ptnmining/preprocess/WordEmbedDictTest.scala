@@ -15,14 +15,14 @@ class WordEmbedDictTest {
   @Test
   def testOutput: Unit = {
     if (Files.exists(Paths.get(new File(WordEmbedDictTest.file).toURI))) {
-      val words = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
+      val words = new WordEmbedDict(WordEmbedDictTest.file)
     }
   }
 
   @Test
   def testFind: Unit = {
     if (Files.exists(Paths.get(new File(WordEmbedDictTest.file).toURI))) {
-      val words = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
+      val words = new WordEmbedDict(WordEmbedDictTest.file)
 
       assertTrue(words.find("st.").isDefined)
     }
@@ -31,7 +31,7 @@ class WordEmbedDictTest {
   @Test
   def testCompare: Unit = {
     if (Files.exists(Paths.get(new File(WordEmbedDictTest.file).toURI))) {
-      val words = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
+      val words = new WordEmbedDict(WordEmbedDictTest.file)
 
       assertTrue(0.5 < words.compare("street", "avenue"))
     }
@@ -40,7 +40,7 @@ class WordEmbedDictTest {
   @Test
   def testAddPhrase: Unit = {
     if (Files.exists(Paths.get(new File(WordEmbedDictTest.file).toURI))) {
-      val words = new WordEmbedDict("/home/harper/Downloads/glove.840B.300d.txt")
+      val words = new WordEmbedDict(WordEmbedDictTest.file)
 
       assertTrue(words.find("good man").isEmpty)
 

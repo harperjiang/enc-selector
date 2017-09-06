@@ -48,7 +48,7 @@ object ClassifierForInt extends App {
     graph, "enc_nn_int_%smodel".format(prefix)) {
 
     override def setupGraph(graph: EncSelNNGraph, batch: Batch): Unit = {
-      graph.x.set(batch.data)
+      graph.x.set(batch.feature(0))
       graph.expect(batch.groundTruth)
     }
   }

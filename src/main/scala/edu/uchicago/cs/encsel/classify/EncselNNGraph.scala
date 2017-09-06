@@ -29,7 +29,7 @@ import edu.uchicago.cs.ndnn._
   * Created by harper on 4/21/17.
   */
 object EncSelNNGraph {
-  val hiddenDim = 400
+  val hiddenDim = 800
 }
 
 class EncSelNNGraph(numFeature: Int, numClass: Int)
