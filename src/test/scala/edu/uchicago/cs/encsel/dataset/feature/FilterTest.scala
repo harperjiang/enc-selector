@@ -22,8 +22,8 @@ class FilterTest {
   def testIidSamplingFilter: Unit = {
     val input = (0 to 5000).map(_.toString).toIterator
     val filtered = Filter.iidSamplingFilter(0.1)(input).toArray
-    assertTrue(450 <= filtered.size)
-    assertTrue(filtered.size <= 550)
+    assertTrue(400 <= filtered.size)
+    assertTrue(filtered.size <= 600)
     filtered.foreach(i => {
       assertTrue(i.toInt >= 0)
       assertTrue(i.toInt <= 5000)
