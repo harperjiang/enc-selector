@@ -84,6 +84,8 @@ class JMSChannelTest {
     channel.send("test string 2")
     channel.send("test string 3")
 
+    Thread.sleep(1000)
+
     assertEquals(3, buffer.size)
     assertEquals("test string 1", buffer(0))
     assertEquals("test string 2", buffer(1))
