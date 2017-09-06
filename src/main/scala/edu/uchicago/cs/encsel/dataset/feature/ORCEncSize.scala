@@ -20,6 +20,7 @@
  *     Hao Jiang - initial API and implementation
  *
  */
+
 package edu.uchicago.cs.encsel.dataset.feature
 
 import java.io.File
@@ -29,11 +30,11 @@ import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.model._
 
 /**
-  * Encode files using Parquet
+  *  Compute Encoded File Size using Apache ORC
   */
-object EncFileSize extends FeatureExtractor {
+object ORCEncSize extends FeatureExtractor {
 
-  def featureType = "EncFileSize"
+  def featureType = "ORCEncSize"
 
   def supportFilter: Boolean = false
 
@@ -79,5 +80,4 @@ object EncFileSize extends FeatureExtractor {
       case DataType.BOOLEAN => Iterable[Feature]() // Ignore BOOLEAN type
     }
   }
-
 }

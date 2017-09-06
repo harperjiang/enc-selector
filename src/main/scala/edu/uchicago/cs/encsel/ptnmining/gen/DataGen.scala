@@ -42,20 +42,26 @@ object DataGen extends App {
     (from to to).map(format.format(_))
   }
 
-  def randUpper(): String = {
-    ('A' + Random.nextInt(26)).toChar.toString
+  def randUpper(copy: Int): String = {
+    (0 until copy).map(i => {
+      ('A' + Random.nextInt(26)).toChar.toString
+    }).mkString("")
   }
 
-  def randLower(): String = {
-    ('a' + Random.nextInt(26)).toChar.toString
+  def randLower(copy: Int): String = {
+    (0 until copy).map(i => {
+      ('a' + Random.nextInt(26)).toChar.toString
+    }).mkString("")
   }
 
-  def randNum(): String = {
-    Random.nextInt(10).toString
+  def randNum(copy: Int): String = {
+    (0 until copy).map(i => {
+      Random.nextInt(10).toString
+    }).mkString("")
   }
 
   def pattern(data: String, pattern: String): String = {
-    "<s> %s </s> <s> %s </s>".format(data.toCharArray.map(_.toString).mkString(" "), pattern)
+    "<s> %s </s>\t<s> %s </s>".format(data.toCharArray.map(_.toString).mkString(" "), pattern)
   }
 
   def genDate(copy: Int): Iterable[String] = {
@@ -131,24 +137,61 @@ object DataGen extends App {
     (0 until copy).map(i => {
       val b = new StringBuilder()
       val cmax = Random.nextInt(3) + 2
-      for (j <- 0 to cmax)
-        b.append(randUpper())
+      b.append(randUpper(cmax))
       val max = Random.nextInt(5) + 5
-      for (j <- 0 to max)
-        b.append(randNum())
+      b.append(randNum(max))
       pattern(b.toString(), "<WORD> <NUM>")
     })
   }
 
-  val output = "pattern.train"
+  def genDashString(copy: Int): IndexedSeq[String] = {
+    (0 until copy).flatMap(i => {
+      val cmax = Random.nextInt(3) + 2
+      val cmax2 = Random.nextInt(3) + 2
+      val max = Random.nextInt(5) + 5
+      Array(pattern("%s-%s".format(randUpper(cmax), randUpper(cmax2)), "<WORD> - <WORD>"),
+        pattern("%s-%s".format(randUpper(cmax), randNum(max)), "<WORD> - <NUM>"))
+    })
+  }
 
-  val writer = new PrintWriter(new FileWriter(output))
+  // Separator is -
+  def genSeparateString(copy: Int): IndexedSeq[String] = {
+    (0 until copy).map(i => {
+      val b = new StringBuilder()
+      val cmax1 = Random.nextInt(2) + 2
+      val cmax2 = Random.nextInt(3) + 2
+      val nmax1 = Random.nextInt(3) + 3
+      val nmax2 = Random.nextInt(5) + 2
 
-  genDate(2000).foreach(writer.println)
-  genTime(2000).foreach(writer.println)
-  genIpAddress(2000).foreach(writer.println)
-  genPhone(2000).foreach(writer.println)
-  genPrefixString(2000).foreach(writer.println)
+      b.append(randUpper(cmax1)).append("-").append(randUpper(cmax2))
+        .append(randNum(nmax1)).append("-").append(randNum(nmax2))
+      pattern(b.toString(), "<WORD> - <WORD> <NUM> - <NUM>")
+    })
+  }
 
-  writer.close()
+  def genPart: Unit = {
+    val output = "part.train"
+
+    val writer = new PrintWriter(new FileWriter(output))
+
+    genDate(5000).foreach(writer.println)
+    genTime(5000).foreach(writer.println)
+    genIpAddress(5000).foreach(writer.println)
+    genPhone(5000).foreach(writer.println)
+    genPrefixString(5000).foreach(writer.println)
+    genDashString(5000).foreach(writer.println)
+    writer.close()
+  }
+
+  def genWhole: Unit = {
+    val output = "whole.test"
+
+    val writer = new PrintWriter(new FileWriter(output))
+
+    genSeparateString(1000).foreach(writer.println)
+
+    writer.close()
+  }
+
+  genPart
 }
