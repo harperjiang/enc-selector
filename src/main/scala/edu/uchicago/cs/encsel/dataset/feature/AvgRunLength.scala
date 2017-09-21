@@ -45,9 +45,13 @@ object AvgRunLength extends FeatureExtractor {
         if (current.equals(line)) {
           currentCount += 1;
         } else {
-          rlength += currentCount;
+          if (currentCount != 0) {
+            rlength += currentCount;
+          }
           currentCount = 1;
+
           current = line;
+
         }
       });
       rlength += currentCount;
