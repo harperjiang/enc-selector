@@ -14,7 +14,7 @@ class EncFileSizeTest {
     val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.INTEGER)
     col.colFile = new File("src/test/resource/test_col_int.data").toURI
 
-    val feature = EncFileSize.extract(col)
+    val feature = ParquetEncFileSize.extract(col)
     assertEquals(5, feature.size)
     val fa = feature.toArray
 
@@ -44,7 +44,7 @@ class EncFileSizeTest {
     val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.LONG)
     col.colFile = new File("src/test/resource/test_col_long.data").toURI
 
-    val feature = EncFileSize.extract(col)
+    val feature = ParquetEncFileSize.extract(col)
     assertEquals(3, feature.size)
     val fa = feature.toArray
 
@@ -67,7 +67,7 @@ class EncFileSizeTest {
     val col = new Column(new File("src/test/resource/test_columner.csv").toURI, 0, "id", DataType.DOUBLE)
     col.colFile = new File("src/test/resource/test_col_double.data").toURI
 
-    val feature = EncFileSize.extract(col)
+    val feature = ParquetEncFileSize.extract(col)
     assertEquals(2, feature.size)
     val fa = feature.toArray
 
