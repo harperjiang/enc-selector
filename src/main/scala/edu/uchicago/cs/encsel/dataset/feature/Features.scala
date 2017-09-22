@@ -37,7 +37,7 @@ object Features {
   val logger = LoggerFactory.getLogger(getClass)
   val extractors = new ArrayBuffer[FeatureExtractor]()
 
-  install(EncFileSize)
+  install(ParquetEncFileSize)
   install(Sparsity)
   install(Entropy)
   install(Length)

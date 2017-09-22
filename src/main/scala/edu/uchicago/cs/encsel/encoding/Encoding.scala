@@ -14,30 +14,22 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.classify
+package edu.uchicago.cs.encsel.encoding
 
-import edu.uchicago.cs.encsel.dataset.feature.Feature
-import edu.uchicago.cs.encsel.model.IntEncoding
+import java.net.URI
 
-class AbadiDecisionTree {
+import edu.uchicago.cs.encsel.dataset.column.Column
 
-  def classifyInt(arl: Feature, card: Feature, sort: Feature): IntEncoding = {
-    if (arl.value >= 4) {
-      return IntEncoding.RLE;
-    }
-    if (card.value >= 50000) {
-      return IntEncoding.PLAIN;
-    } else if (card.value > 50) {
-      return IntEncoding.DICT;
-    } else {
-      return IntEncoding.BITVECTOR;
-    }
-  }
+/**
+  * Common trait for custom encoding methods
+  */
+trait Encoding {
+
+  def encode(input: Column, output: URI);
 }
