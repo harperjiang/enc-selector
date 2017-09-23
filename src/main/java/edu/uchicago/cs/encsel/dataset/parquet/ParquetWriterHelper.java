@@ -46,7 +46,7 @@ import edu.uchicago.cs.encsel.model.StringEncoding;
 
 public class ParquetWriterHelper {
 
-	protected static File genOutput(URI input, String suffix) {
+	public static File genOutput(URI input, String suffix) {
 		try {
 			if (input.getPath().endsWith("\\.data")) {
 				return new File(new URI(input.toString().replaceFirst("data$", suffix)));
