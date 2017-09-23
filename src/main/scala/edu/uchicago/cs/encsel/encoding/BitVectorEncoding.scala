@@ -121,6 +121,8 @@ class BitVectorEncoding extends Encoding {
       case DataType.INTEGER => IntEncoding.BITVECTOR.name()
       case DataType.FLOAT => FloatEncoding.BITVECTOR.name()
       case DataType.STRING => StringEncoding.BITVECTOR.name()
+      case DataType.DOUBLE => FloatEncoding.BITVECTOR.name()
+      case DataType.LONG => IntEncoding.BITVECTOR.name()
       case _ => throw new UnsupportedOperationException
     }
   }
