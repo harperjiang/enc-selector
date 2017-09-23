@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets
 import com.google.gson.{Gson, JsonObject}
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.model.{DataType, FloatEncoding, IntEncoding, StringEncoding}
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.io.{BufferedSource, Source}
@@ -88,23 +89,27 @@ class BitVectorEncoding extends Encoding {
       var offset = 0l
       source2.getLines().foreach(line => {
         val idx = dict.getOrElse(line, -1)
-
-        val byteOffset = idx * bitvecSize + offset / 8
-        val bitOffset = offset % 8
-
-        if (byteOffset < pos || byteOffset >= pos + size) {
-          // Write back
-          buffer.force()
-          // Load new buffer
-          pos = bitmapOffset + (byteOffset / size) * size
-          buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size)
-          buffer.load()
+        if (-1 == idx) {
+          // This should not happen
+          LoggerFactory.getLogger(getClass).warn("Data not found in dict " + line)
         }
+        else {
+          val byteOffset = idx * bitvecSize + offset / 8
+          val bitOffset = offset % 8
 
-        val bufferOffset = byteOffset % size
-        val byte = buffer.get(bufferOffset.toInt)
-        buffer.put(bufferOffset.toInt, (byte | (1 << bitOffset)).toByte)
+          if (byteOffset < pos || byteOffset >= pos + size) {
+            // Write back
+            buffer.force()
+            // Load new buffer
+            pos = bitmapOffset + (byteOffset / size) * size
+            buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size)
+            buffer.load()
+          }
 
+          val bufferOffset = byteOffset % size
+          val byte = buffer.get(bufferOffset.toInt)
+          buffer.put(bufferOffset.toInt, (byte | (1 << bitOffset)).toByte)
+        }
         offset += 1
       })
       outputFile.setLength(fileSize)
