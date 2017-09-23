@@ -58,7 +58,7 @@ class BitVectorEncoding extends Encoding {
       var dictbytes = dictstr.getBytes(StandardCharsets.UTF_8)
 
       // Compute file size, allocate space
-      val bitvecSize = Math.ceil(counter.toDouble / 8).toInt
+      val bitvecSize = Math.ceil(counter.toDouble / 8).toLong
       val bitmapSize = bitvecSize * dict.size
       val outputFile = new RandomAccessFile(new File(output), "rw")
 
@@ -66,7 +66,7 @@ class BitVectorEncoding extends Encoding {
       // 64 bit for number of items
       // bitmap
       // dictionary
-      val bitmapOffset = 8 + 8L
+      val bitmapOffset: Long = 8 + 8L
       // Write dictionary
       val fileSize = bitmapOffset + bitmapSize + dictbytes.length
 
@@ -80,36 +80,30 @@ class BitVectorEncoding extends Encoding {
       dictBuffer.force()
 
       // Second pass, write bit vectors
-      var pos = bitmapOffset;
-      val size = 1024 * 1024;
+      var pos: Long = bitmapOffset;
+      val size: Long = 1024 * 1024;
       var buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size);
       buffer.load();
 
 
       var offset = 0l
       source2.getLines().foreach(line => {
-        val idx = dict.getOrElse(line, -1)
-        if (-1 == idx) {
-          // This should not happen
-          LoggerFactory.getLogger(getClass).warn("Data not found in dict " + line)
-        }
-        else {
-          val byteOffset = idx * bitvecSize + offset / 8
-          val bitOffset = offset % 8
+        val idx: Int = dict.getOrElse(line, -1)
+        val byteOffset: Long = idx * bitvecSize + offset / 8
+        val bitOffset = offset % 8
 
-          if (byteOffset < pos || byteOffset >= pos + size) {
-            // Write back
-            buffer.force()
-            // Load new buffer
-            pos = bitmapOffset + (byteOffset / size) * size
-            buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size)
-            buffer.load()
-          }
-
-          val bufferOffset = byteOffset % size
-          val byte = buffer.get(bufferOffset.toInt)
-          buffer.put(bufferOffset.toInt, (byte | (1 << bitOffset)).toByte)
+        if (byteOffset < pos || byteOffset >= pos + size) {
+          // Write back
+          buffer.force()
+          // Load new buffer
+          pos = bitmapOffset + (byteOffset / size) * size
+          buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size)
+          buffer.load()
         }
+
+        val bufferOffset = byteOffset % size
+        val byte = buffer.get(bufferOffset.toInt)
+        buffer.put(bufferOffset.toInt, (byte | (1 << bitOffset)).toByte)
         offset += 1
       })
       outputFile.setLength(fileSize)
