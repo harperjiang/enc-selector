@@ -20,19 +20,27 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.encoding
+package edu.uchicago.cs.encsel.dataset.feature
 
-import java.net.URI
+import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.column.Column
-import edu.uchicago.cs.encsel.model.DataType
+import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
+import edu.uchicago.cs.encsel.encoding.Encoding
+import org.apache.parquet.hadoop.ParquetWriter
 
-/**
-  * Common trait for custom encoding methods
-  */
-trait Encoding {
+class MiscEncFileSize(enc: Encoding) extends FeatureExtractor {
+  override def featureType = "EncFileSize"
 
-  def enctype(dt: DataType): String
+  override def supportFilter = false
 
-  def encode(input: Column, output: URI): Unit
+  override def extract(input: Column, prefix: String) = {
+    val enctype = enc.enctype(input.dataType)
+
+    val outputFile = ParquetWriterHelper.genOutput(input.colFile, enctype);
+
+    enc.encode(input, outputFile.toURI)
+
+    Iterable(new Feature(featureType, "%s_file_size".format(enctype), outputFile.length))
+  }
 }

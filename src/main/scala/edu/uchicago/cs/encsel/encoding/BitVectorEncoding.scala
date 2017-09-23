@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets
 
 import com.google.gson.{Gson, JsonObject}
 import edu.uchicago.cs.encsel.dataset.column.Column
+import edu.uchicago.cs.encsel.model.{DataType, FloatEncoding, IntEncoding, StringEncoding}
 
 import scala.collection.mutable
 import scala.io.{BufferedSource, Source}
@@ -112,6 +113,15 @@ class BitVectorEncoding extends Encoding {
     } finally {
       source.close();
       source2.close();
+    }
+  }
+
+  override def enctype(dt: DataType): String = {
+    dt match {
+      case DataType.INTEGER => IntEncoding.BITVECTOR.name()
+      case DataType.FLOAT => FloatEncoding.BITVECTOR.name()
+      case DataType.STRING => StringEncoding.BITVECTOR.name()
+      case _ => throw new UnsupportedOperationException
     }
   }
 }

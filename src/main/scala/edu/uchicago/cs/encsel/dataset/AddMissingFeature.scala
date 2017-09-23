@@ -22,9 +22,11 @@
 
 package edu.uchicago.cs.encsel.dataset
 
-import edu.uchicago.cs.encsel.dataset.feature.{AdjInvertPair, Features, Filter, Sortness}
+import edu.uchicago.cs.encsel.dataset.feature._
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.dataset.persist.jpa.JPAPersistence
+import edu.uchicago.cs.encsel.encoding.BitVectorEncoding
+import jdk.nashorn.internal.runtime.BitVector
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
@@ -38,7 +40,7 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Seq(AdjInvertPair)
+  val missed = Seq(new MiscEncFileSize(new BitVectorEncoding))
 
   val prefix = args.length match {
     case gt if gt > 0 => args(0)
