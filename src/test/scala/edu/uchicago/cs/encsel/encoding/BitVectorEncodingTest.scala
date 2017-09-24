@@ -42,27 +42,27 @@ class BitVectorEncodingTest {
     val numEntry = encodedData.readLong()
 
     assertEquals(22, numEntry)
-    assertEquals(70, dictOffset)
+    assertEquals(28, dictOffset)
 
     val buffer = new Array[Byte](3);
 
     encodedData.read(buffer);
 
-    assertEquals(5, buffer(0));
-    assertEquals(0,buffer(1));
-    assertEquals(0,buffer(2));
+    assertEquals(0x45, buffer(0));
+    assertEquals(0x68,buffer(1));
+    assertEquals(0x20,buffer(2));
 
     encodedData.read(buffer)
 
     assertEquals(2, buffer(0));
     assertEquals(0,buffer(1));
-    assertEquals(0,buffer(2));
+    assertEquals(4,buffer(2));
 
     encodedData.read(buffer)
 
     assertEquals(8, buffer(0));
-    assertEquals(0,buffer(1));
-    assertEquals(0,buffer(2));
+    assertEquals(0x82.toByte,buffer(1));
+    assertEquals(3,buffer(2));
 
     encodedData.close
   }
