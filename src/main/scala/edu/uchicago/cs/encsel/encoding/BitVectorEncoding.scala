@@ -84,7 +84,7 @@ class BitVectorEncoding extends Encoding {
 
 
       // Early stop if this encoding is bad
-      if (fileSize > plainSize) {
+      if (fileSize > 2 * plainSize) {
         throw new IllegalArgumentException("Encoded size exceed plain size");
       }
 
