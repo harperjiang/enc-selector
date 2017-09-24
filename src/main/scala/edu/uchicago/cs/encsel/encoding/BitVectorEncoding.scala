@@ -70,6 +70,15 @@ class BitVectorEncoding extends Encoding {
       // Write dictionary
       val fileSize = bitmapOffset + bitmapSize + dictbytes.length
 
+      val plainSize = new File(input.colFile).length();
+
+      // Early stop if this encoding is bad
+      if(fileSize > plainSize) {
+        outputFile.setLength(fileSize+1);
+        outputFile.close();
+        return;
+      }
+
       outputFile.seek(0)
       outputFile.writeLong(bitmapOffset + bitmapSize)
       outputFile.writeLong(counter)
@@ -84,7 +93,6 @@ class BitVectorEncoding extends Encoding {
       val size: Long = 1024 * 1024;
       var buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size);
       buffer.load();
-
 
       var offset = 0l
       source2.getLines().foreach(line => {
