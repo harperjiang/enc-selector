@@ -74,7 +74,7 @@ class BitVectorEncoding extends Encoding {
 
       // Early stop if this encoding is bad
       if(fileSize > plainSize) {
-        outputFile.setLength(fileSize+1);
+        outputFile.setLength(plainSize+1);
         outputFile.close();
         return;
       }
