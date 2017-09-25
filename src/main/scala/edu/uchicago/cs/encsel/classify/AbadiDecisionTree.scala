@@ -26,6 +26,7 @@ package edu.uchicago.cs.encsel.classify
 import edu.uchicago.cs.encsel.dataset.feature.Feature
 import edu.uchicago.cs.encsel.dataset.persist.Persistence
 import edu.uchicago.cs.encsel.model.{DataType, IntEncoding, StringEncoding}
+import org.slf4j.LoggerFactory
 
 class AbadiDecisionTree {
 
@@ -58,23 +59,26 @@ object AbadiDecisionTree extends App {
     val card = col.findFeature("Distinct", "count")
     val sort = col.findFeature("Sortness", "ivpair_500")
 
-    val smallestSize = col.findFeatures("EncFileSize").filter(_.value >= 0).minBy(_.value)
+    col.dataType match {
+      case DataType.INTEGER => {
+        if (avl.isDefined && card.isDefined) {
+          val encodedSize = col.findFeatures("EncFileSize").toList
+          val validSize = encodedSize.filter(_.value >= 0)
+          if (validSize.isEmpty) {
+            LoggerFactory.getLogger(getClass).warn("Invalid context for column:%s".format(col.colFile))
+          } else {
+            val smallestSize = validSize.minBy(_.value)
+            counter += 1
+            val treeDecision = decTree.classifyInt(avl.get, card.get, null)
 
-    if (avl.isDefined && card.isDefined) {
-
-
-      col.dataType match {
-        case DataType.INTEGER => {
-          counter += 1
-          val treeDecision = decTree.classifyInt(avl.get, card.get, null)
-
-          if ("%s_file_size".format(treeDecision.name()).equals(smallestSize.name)) {
-            success += 1
+            if ("%s_file_size".format(treeDecision.name()).equals(smallestSize.name)) {
+              success += 1
+            }
           }
         }
-        case _ => {
+      }
+      case _ => {
 
-        }
       }
     }
   })
