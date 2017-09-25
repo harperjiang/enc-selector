@@ -24,7 +24,8 @@
 package edu.uchicago.cs.encsel.classify
 
 import edu.uchicago.cs.encsel.dataset.feature.Feature
-import edu.uchicago.cs.encsel.model.IntEncoding
+import edu.uchicago.cs.encsel.dataset.persist.Persistence
+import edu.uchicago.cs.encsel.model.{DataType, IntEncoding, StringEncoding}
 
 class AbadiDecisionTree {
 
@@ -40,4 +41,43 @@ class AbadiDecisionTree {
       return IntEncoding.BITVECTOR;
     }
   }
+
+}
+
+object AbadiDecisionTree extends App {
+
+  val store = Persistence.get
+
+  var counter = 0;
+  var success = 0;
+
+  val decTree = new AbadiDecisionTree
+
+  store.load().foreach(col => {
+    val avl = col.findFeature("AvgRunLength", "value")
+    val card = col.findFeature("Distinct", "count")
+    val sort = col.findFeature("Sortness", "ivpair_500")
+
+    val smallestSize = col.findFeatures("EncFileSize").filter(_.value >= 0).minBy(_.value)
+
+    if (avl.isDefined && card.isDefined) {
+
+
+      col.dataType match {
+        case DataType.INTEGER => {
+          counter += 1
+          val treeDecision = decTree.classifyInt(avl.get, card.get, null)
+
+          if ("%s_file_size".format(treeDecision.name()).equals(smallestSize.name)) {
+            success += 1
+          }
+        }
+        case _ => {
+
+        }
+      }
+    }
+  })
+
+  System.out.println("Success Rate: %d/%d", success, counter)
 }
