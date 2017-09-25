@@ -40,7 +40,8 @@ object AddMissingFeature extends App {
 
   val persist = new JPAPersistence
 
-  val missed = Seq(new MiscEncFileSize(new BitVectorEncoding))
+  // val missed = Seq(new MiscEncFileSize(new BitVectorEncoding))
+  val missed = Seq(AvgRunLength)
 
   val prefix = args.length match {
     case gt if gt > 0 => args(0)
@@ -70,13 +71,11 @@ object AddMissingFeature extends App {
   columns.foreach(column => {
     counter += 1
     System.out.println("Processing %d / %d : %s".format(counter, size, column.colFile))
-    if (column.findFeature("EncFileSize", "BITVECTOR_file_size").isEmpty) {
-      if (filter == null) {
-        column.features ++= Features.extract(column)
-      } else {
-        column.features ++= Features.extract(column, filter, prefix)
-      }
-      persistence.save(Seq(column))
+    if (filter == null) {
+      column.features ++= Features.extract(column)
+    } else {
+      column.features ++= Features.extract(column, filter, prefix)
     }
+    persistence.save(Seq(column))
   })
 }

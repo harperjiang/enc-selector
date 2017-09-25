@@ -49,9 +49,7 @@ object AvgRunLength extends FeatureExtractor {
             rlength += currentCount;
           }
           currentCount = 1;
-
           current = line;
-
         }
       });
       rlength += currentCount;
