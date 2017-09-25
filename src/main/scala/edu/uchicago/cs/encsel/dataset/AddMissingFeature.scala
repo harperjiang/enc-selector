@@ -64,12 +64,19 @@ object AddMissingFeature extends App {
   Features.extractors ++= missed
 
   val persistence = Persistence.get
-  persistence.load().foreach(column => {
-    if (filter == null) {
-      column.features ++= Features.extract(column)
-    } else {
-      column.features ++= Features.extract(column, filter, prefix)
+  val columns = persistence.load()
+  val size = columns.size
+  var counter = 0
+  columns.foreach(column => {
+    counter += 1
+    System.out.println("Processing %d / %d".format(counter, size))
+    if (column.findFeature("EncFileSize", "BITVECTOR_file_size").isEmpty) {
+      if (filter == null) {
+        column.features ++= Features.extract(column)
+      } else {
+        column.features ++= Features.extract(column, filter, prefix)
+      }
+      persistence.save(Seq(column))
     }
-    persistence.save(Seq(column))
   })
 }

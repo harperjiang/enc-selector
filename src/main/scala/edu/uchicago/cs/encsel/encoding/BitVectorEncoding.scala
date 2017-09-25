@@ -59,7 +59,9 @@ class BitVectorEncoding extends Encoding {
         dict.getOrElseUpdate(l, dict.size)
         sizeCounter += 4 + l.length
         if (sizeCounter >= BitVectorEncoding.DICT_MAX_SIZE) {
-          throw new IllegalArgumentException("Dict size exceed maximal allowed");
+//          throw new IllegalArgumentException("Dict size exceed maximal allowed");
+          outputFile.setLength(plainSize+2);
+          return
         }
       })
       // Store dict as json object
@@ -85,7 +87,9 @@ class BitVectorEncoding extends Encoding {
 
       // Early stop if this encoding is bad
       if (fileSize > 2 * plainSize) {
-        throw new IllegalArgumentException("Encoded size exceed plain size");
+        //throw new IllegalArgumentException("Encoded size exceed plain size");
+        outputFile.setLength(plainSize+1)
+        return;
       }
 
       outputFile.seek(0)
