@@ -3,7 +3,7 @@
 # Backup Database
 cd `dirname $0`
 cd ../sql
-SQL_DUMP = backup_`date +%Y%m%d`.sql
+SQL_DUMP=backup_`date +%Y%m%d`.sql
 mysqldump -u encsel -pencsel encsel > ${SQL_DUMP}
 
 tar cvzf ${SQL_DUMP}.tar.gz ${SQL_DUMP}
