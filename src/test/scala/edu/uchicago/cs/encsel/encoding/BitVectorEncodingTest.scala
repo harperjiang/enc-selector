@@ -49,22 +49,30 @@ class BitVectorEncodingTest {
     encodedData.read(buffer);
 
     assertEquals(0x45, buffer(0));
-    assertEquals(0x68,buffer(1));
-    assertEquals(0x20,buffer(2));
+    assertEquals(0x68, buffer(1));
+    assertEquals(0x20, buffer(2));
 
     encodedData.read(buffer)
 
     assertEquals(2, buffer(0));
-    assertEquals(0,buffer(1));
-    assertEquals(4,buffer(2));
+    assertEquals(0, buffer(1));
+    assertEquals(4, buffer(2));
 
     encodedData.read(buffer)
 
     assertEquals(8, buffer(0));
-    assertEquals(0x82.toByte,buffer(1));
-    assertEquals(3,buffer(2));
+    assertEquals(0x82.toByte, buffer(1));
+    assertEquals(3, buffer(2));
 
     encodedData.close
+  }
+
+  @Test
+  def testEncodingLargeFile: Unit = {
+    val dummyColumn = new Column
+    dummyColumn.colFile = new File("src/test/resource/encoding/bitvector_input2").toURI
+    val encodedFile = new File("src/test/resource/encoding/bitvector_encoded2")
+    new BitVectorEncoding().encode(dummyColumn, encodedFile.toURI)
   }
 }
 

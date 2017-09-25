@@ -26,7 +26,7 @@ import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
-import edu.uchicago.cs.encsel.encoding.Encoding
+import edu.uchicago.cs.encsel.encoding.{Encoding, EncodingException}
 import org.apache.commons.lang.StringUtils
 import org.apache.parquet.hadoop.ParquetWriter
 
@@ -39,10 +39,16 @@ class MiscEncFileSize(enc: Encoding) extends FeatureExtractor {
     try {
       val enctype = enc.enctype(input.dataType)
       val outputFile = ParquetWriterHelper.genOutput(input.colFile, enctype);
+      try {
+        enc.encode(input, outputFile.toURI)
+        Iterable(new Feature(featureType, "%s_file_size".format(enctype), outputFile.length))
+      } catch {
+        case e: EncodingException => {
+          // Error occurred when doing encoding
+          Iterable(new Feature(featureType, "%s_file_size".format(enctype), -1))
+        }
+      }
 
-      enc.encode(input, outputFile.toURI)
-
-      Iterable(new Feature(featureType, "%s_file_size".format(enctype), outputFile.length))
     } catch {
       case e: UnsupportedOperationException => Iterable[Feature]()
     }
