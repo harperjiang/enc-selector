@@ -38,6 +38,7 @@ import scala.io.{BufferedSource, Source}
 
 object BitVectorEncoding {
   val DICT_MAX_SIZE = 500 * 1024 * 1024;
+  val MEM_MAX_SIZE = 2 * 1024 * 1024 * 1024;
 }
 
 class BitVectorEncoding extends Encoding {
@@ -59,9 +60,7 @@ class BitVectorEncoding extends Encoding {
         dict.getOrElseUpdate(l, dict.size)
         sizeCounter += 4 + l.length
         if (sizeCounter >= BitVectorEncoding.DICT_MAX_SIZE) {
-//          throw new IllegalArgumentException("Dict size exceed maximal allowed");
-          outputFile.setLength(plainSize+2);
-          return
+          throw new EncodingException("Dict size exceed maximal allowed")
         }
       })
       // Store dict as json object
@@ -87,9 +86,7 @@ class BitVectorEncoding extends Encoding {
 
       // Early stop if this encoding is bad
       if (fileSize > 2 * plainSize) {
-        //throw new IllegalArgumentException("Encoded size exceed plain size");
-        outputFile.setLength(plainSize+1)
-        return;
+        throw new EncodingException("Encoded size exceed plain size");
       }
 
       outputFile.seek(0)
@@ -103,7 +100,7 @@ class BitVectorEncoding extends Encoding {
 
       // Second pass, write bit vectors
       var pos: Long = bitmapOffset;
-      val size: Long = 1024 * 1024 * 100;
+      val size: Long = bitmapSize;
       var buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size);
       buffer.load();
 
@@ -112,15 +109,6 @@ class BitVectorEncoding extends Encoding {
         val idx: Int = dict.getOrElse(line, -1)
         val byteOffset: Long = idx * bitvecSize + offset / 8
         val bitOffset = offset % 8
-
-        if (byteOffset < pos || byteOffset >= pos + size) {
-          // Write back
-          buffer.force()
-          // Load new buffer
-          pos = bitmapOffset + (byteOffset / size) * size
-          buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size)
-          buffer.load()
-        }
 
         val bufferOffset = byteOffset % size
         val byte = buffer.get(bufferOffset.toInt)
