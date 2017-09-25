@@ -69,7 +69,7 @@ object AddMissingFeature extends App {
   var counter = 0
   columns.foreach(column => {
     counter += 1
-    System.out.println("Processing %d / %d".format(counter, size))
+    System.out.println("Processing %d / %d : %s".format(counter, size, column.colFile))
     if (column.findFeature("EncFileSize", "BITVECTOR_file_size").isEmpty) {
       if (filter == null) {
         column.features ++= Features.extract(column)
