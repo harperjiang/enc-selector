@@ -99,7 +99,7 @@ class BitVectorEncoding extends Encoding {
 
       // Second pass, write bit vectors
       var pos: Long = bitmapOffset;
-      val size: Long = 1024 * 1024;
+      val size: Long = 1024 * 1024 * 100;
       var buffer = outputFile.getChannel.map(MapMode.READ_WRITE, pos, size);
       buffer.load();
 
