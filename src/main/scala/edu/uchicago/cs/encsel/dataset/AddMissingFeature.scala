@@ -64,7 +64,7 @@ object AddMissingFeature extends App {
   Features.extractors ++= missed
 
   val persistence = Persistence.get
-  val columns = persistence.load()
+  val columns = persistence.load().toList
   val size = columns.size
   var counter = 0
   columns.foreach(column => {
