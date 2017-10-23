@@ -28,8 +28,12 @@ import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.model._
 import edu.uchicago.cs.encsel.tool.MemoryMonitor
+import org.slf4j.LoggerFactory
 
 object ResourceUsage extends FeatureExtractor {
+
+  val logger = LoggerFactory.getLogger(getClass)
+
   def featureType = "ResourceUsage"
 
   def supportFilter: Boolean = false
@@ -56,7 +60,8 @@ object ResourceUsage extends FeatureExtractor {
           } catch {
             case ile: IllegalArgumentException => {
               // Unsupported Encoding, ignore
-              null
+              logger.warn("Exception when applying Encoding",ile.getMessage)
+              Iterable()
             }
           }
         }
@@ -79,7 +84,8 @@ object ResourceUsage extends FeatureExtractor {
             )
           } catch {
             case ile: IllegalArgumentException => {
-              null
+              logger.warn("Exception when applying Encoding",ile.getMessage)
+              Iterable()
             }
           }
         }
@@ -102,7 +108,8 @@ object ResourceUsage extends FeatureExtractor {
             )
           } catch {
             case ile: IllegalArgumentException => {
-              null
+              logger.warn("Exception when applying Encoding",ile.getMessage)
+              Iterable()
             }
           }
         }
@@ -125,7 +132,8 @@ object ResourceUsage extends FeatureExtractor {
             )
           } catch {
             case ile: IllegalArgumentException => {
-              null
+              logger.warn("Exception when applying Encoding",ile.getMessage)
+              Iterable()
             }
           }
         }
@@ -148,7 +156,8 @@ object ResourceUsage extends FeatureExtractor {
             )
           } catch {
             case ile: IllegalArgumentException => {
-              null
+              logger.warn("Exception when applying Encoding",ile.getMessage)
+              Iterable()
             }
           }
         }
