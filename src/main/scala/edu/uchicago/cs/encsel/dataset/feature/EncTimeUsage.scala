@@ -22,69 +22,64 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
-import java.io.File
+
+import java.lang.management.ManagementFactory
 
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.model._
-import edu.uchicago.cs.encsel.tool.MemoryMonitor
 import org.slf4j.LoggerFactory
 
-object ResourceUsage extends FeatureExtractor {
+object EncTimeUsage extends FeatureExtractor {
 
   val logger = LoggerFactory.getLogger(getClass)
 
-  def featureType = "ResourceUsage"
+  def featureType = "EncTimeUsage"
 
   def supportFilter: Boolean = false
 
   def extract(col: Column, prefix: String): Iterable[Feature] = {
+    val threadBean = ManagementFactory.getThreadMXBean
     // Ignore filter
     val fType = "%s%s".format(prefix, featureType)
     col.dataType match {
       case DataType.STRING => {
         StringEncoding.values().flatMap { e => {
           try {
-            MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
-
+            val startcpu = threadBean.getCurrentThreadCpuTime
             val f = ParquetWriterHelper.singleColumnString(col.colFile, e)
-
-            val memstat = MemoryMonitor.INSTANCE.stop()
             val elapseTime = System.currentTimeMillis() - startTime
-
+            val elapsecpu = threadBean.getCurrentThreadCpuTime - startcpu
             Iterable(
-              new Feature(fType, "%s_time".format(e.name()), elapseTime),
-              new Feature(fType, "%s_memory".format(e.name()), memstat.max)
+              new Feature(fType, "%s_wctime".format(e.name()), elapseTime),
+              new Feature(fType, "%s_cputime".format(e.name()), elapsecpu)
             )
           } catch {
             case ile: IllegalArgumentException => {
               // Unsupported Encoding, ignore
-              logger.warn("Exception when applying Encoding",ile.getMessage)
+              logger.warn("Exception when applying Encoding", ile.getMessage)
               Iterable()
             }
           }
         }
-        }.toIterable.filter(_ != null)
+        }.filter(_ != null)
       }
       case DataType.LONG => {
         LongEncoding.values().flatMap { e => {
           try {
-            MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
-
+            val startcpu = threadBean.getCurrentThreadCpuTime
             val f = ParquetWriterHelper.singleColumnLong(col.colFile, e)
-
-            val memstat = MemoryMonitor.INSTANCE.stop()
             val elapseTime = System.currentTimeMillis() - startTime
-
+            val elapsecpu = threadBean.getCurrentThreadCpuTime - startcpu
             Iterable(
-              new Feature(fType, "%s_time".format(e.name()), elapseTime),
-              new Feature(fType, "%s_memory".format(e.name()), memstat.max)
+              new Feature(fType, "%s_wctime".format(e.name()), elapseTime),
+              new Feature(fType, "%s_cputime".format(e.name()), elapsecpu)
             )
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding",ile.getMessage)
+              logger.warn("Exception when applying Encoding", ile.getMessage)
               Iterable()
             }
           }
@@ -94,21 +89,18 @@ object ResourceUsage extends FeatureExtractor {
       case DataType.INTEGER => {
         IntEncoding.values().flatMap { e => {
           try {
-            MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
-
+            val startcpu = threadBean.getCurrentThreadCpuTime
             val f = ParquetWriterHelper.singleColumnInt(col.colFile, e)
-
-            val memstat = MemoryMonitor.INSTANCE.stop()
             val elapseTime = System.currentTimeMillis() - startTime
-
+            val elapsecpu = threadBean.getCurrentThreadCpuTime - startcpu
             Iterable(
-              new Feature(fType, "%s_time".format(e.name()), elapseTime),
-              new Feature(fType, "%s_memory".format(e.name()), memstat.max)
+              new Feature(fType, "%s_wctime".format(e.name()), elapseTime),
+              new Feature(fType, "%s_cputime".format(e.name()), elapsecpu)
             )
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding",ile.getMessage)
+              logger.warn("Exception when applying Encoding", ile.getMessage)
               Iterable()
             }
           }
@@ -118,21 +110,18 @@ object ResourceUsage extends FeatureExtractor {
       case DataType.FLOAT => {
         FloatEncoding.values().flatMap { e => {
           try {
-            MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
-
+            val startcpu = threadBean.getCurrentThreadCpuTime
             val f = ParquetWriterHelper.singleColumnFloat(col.colFile, e)
-
-            val memstat = MemoryMonitor.INSTANCE.stop()
             val elapseTime = System.currentTimeMillis() - startTime
-
+            val elapsecpu = threadBean.getCurrentThreadCpuTime - startcpu
             Iterable(
-              new Feature(fType, "%s_time".format(e.name()), elapseTime),
-              new Feature(fType, "%s_memory".format(e.name()), memstat.max)
+              new Feature(fType, "%s_wctime".format(e.name()), elapseTime),
+              new Feature(fType, "%s_cputime".format(e.name()), elapsecpu)
             )
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding",ile.getMessage)
+              logger.warn("Exception when applying Encoding", ile.getMessage)
               Iterable()
             }
           }
@@ -142,21 +131,18 @@ object ResourceUsage extends FeatureExtractor {
       case DataType.DOUBLE => {
         FloatEncoding.values().flatMap { e => {
           try {
-            MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
-
+            val startcpu = threadBean.getCurrentThreadCpuTime
             val f = ParquetWriterHelper.singleColumnDouble(col.colFile, e)
-
-            val memstat = MemoryMonitor.INSTANCE.stop()
             val elapseTime = System.currentTimeMillis() - startTime
-
+            val elapsecpu = threadBean.getCurrentThreadCpuTime - startcpu
             Iterable(
-              new Feature(fType, "%s_time".format(e.name()), elapseTime),
-              new Feature(fType, "%s_memory".format(e.name()), memstat.max)
+              new Feature(fType, "%s_wctime".format(e.name()), elapseTime),
+              new Feature(fType, "%s_cputime".format(e.name()), elapsecpu)
             )
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding",ile.getMessage)
+              logger.warn("Exception when applying Encoding", ile.getMessage)
               Iterable()
             }
           }
