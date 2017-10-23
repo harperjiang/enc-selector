@@ -39,7 +39,7 @@ class ResourceUsage extends FeatureExtractor {
     val fType = "%s%s".format(prefix, featureType)
     col.dataType match {
       case DataType.STRING => {
-        StringEncoding.values().map { e => {
+        StringEncoding.values().flatMap { e => {
           try {
             MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
@@ -60,10 +60,10 @@ class ResourceUsage extends FeatureExtractor {
             }
           }
         }
-        }.flatten.toIterable.filter(_ != null)
+        }.toIterable.filter(_ != null)
       }
       case DataType.LONG => {
-        LongEncoding.values().map { e => {
+        LongEncoding.values().flatMap { e => {
           try {
             MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
@@ -83,10 +83,10 @@ class ResourceUsage extends FeatureExtractor {
             }
           }
         }
-        }.flatten.filter(_ != null)
+        }.filter(_ != null)
       }
       case DataType.INTEGER => {
-        IntEncoding.values().map { e => {
+        IntEncoding.values().flatMap { e => {
           try {
             MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
@@ -106,10 +106,10 @@ class ResourceUsage extends FeatureExtractor {
             }
           }
         }
-        }.flatten.filter(_ != null)
+        }.filter(_ != null)
       }
       case DataType.FLOAT => {
-        FloatEncoding.values().map { e => {
+        FloatEncoding.values().flatMap { e => {
           try {
             MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
@@ -129,10 +129,10 @@ class ResourceUsage extends FeatureExtractor {
             }
           }
         }
-        }.flatten.filter(_ != null)
+        }.filter(_ != null)
       }
       case DataType.DOUBLE => {
-        FloatEncoding.values().map { e => {
+        FloatEncoding.values().flatMap { e => {
           try {
             MemoryMonitor.INSTANCE.start
             val startTime = System.currentTimeMillis()
@@ -152,7 +152,7 @@ class ResourceUsage extends FeatureExtractor {
             }
           }
         }
-        }.flatten.filter(_ != null)
+        }.filter(_ != null)
       }
       case DataType.BOOLEAN => Iterable[Feature]() // Ignore BOOLEAN type
     }
