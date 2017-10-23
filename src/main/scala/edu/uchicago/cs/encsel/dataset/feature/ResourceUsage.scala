@@ -29,7 +29,7 @@ import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.model._
 import edu.uchicago.cs.encsel.tool.MemoryMonitor
 
-class ResourceUsage extends FeatureExtractor {
+object ResourceUsage extends FeatureExtractor {
   def featureType = "ResourceUsage"
 
   def supportFilter: Boolean = false
