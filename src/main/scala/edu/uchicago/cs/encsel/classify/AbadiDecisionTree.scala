@@ -83,5 +83,5 @@ object AbadiDecisionTree extends App {
     }
   })
 
-  System.out.println("Success Rate: %d/%d", success, counter)
+  System.out.println("Success Rate: %d/%d".format(success, counter))
 }
