@@ -131,7 +131,9 @@ object EncMemoryUsage extends FeatureExtractor {
       "-Xmx8G", "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.asInstanceOf[ColumnWrapper].id.toString, encoding)
     val process = pb.start()
-    val pid = process.getClass.getDeclaredField("pid").get(process).toString
+    val pidfield = process.getClass.getDeclaredField("pid")
+    pidfield.setAccessible(true)
+    val pid = pidfield.get(process).toString
 
     // Attach VM and obtain MemoryMXBean
     val vm = VirtualMachine.attach(pid)
