@@ -34,6 +34,6 @@ class EncMemoryUsageTest {
     val column = new ColumnWrapper
     column.id = 17
 
-    val memoryUsage = EncMemoryUsage.executeAndMonitor(column, StringEncoding.DICT.name())
+//    val memoryUsage = EncMemoryUsage.executeAndMonitor(column, StringEncoding.DICT.name())
   }
 }
