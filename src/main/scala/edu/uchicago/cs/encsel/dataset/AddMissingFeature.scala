@@ -71,13 +71,19 @@ object AddMissingFeature extends App {
   columns.foreach(column => {
     counter += 1
     System.out.println("Processing %d / %d : %s".format(counter, size, column.colFile))
-    if(!column.hasFeature(EncTimeUsage.featureType)) {
-      if (filter == null) {
-        column.features ++= Features.extract(column)
-      } else {
-        column.features ++= Features.extract(column, filter, prefix)
+    if (!column.hasFeature(EncTimeUsage.featureType)) {
+      try {
+        if (filter == null) {
+          column.features ++= Features.extract(column)
+        } else {
+          column.features ++= Features.extract(column, filter, prefix)
+        }
+        persistence.save(Seq(column))
+      } catch {
+        case e: Exception => {
+          logger.warn("Failed during processing", e)
+        }
       }
-      persistence.save(Seq(column))
     }
   })
 }

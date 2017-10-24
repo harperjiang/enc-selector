@@ -127,7 +127,7 @@ object EncMemoryUsage extends FeatureExtractor {
   def executeAndMonitor(col: Column, encoding: String): Long = {
     // Create Process
     val pb = new ProcessBuilder("/usr/bin/java",
-      "-cp", "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar",
+      "-cp", "/home/harper/IdeaProjects/enc-selector/target/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar",
       "-Xmx8G", "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.asInstanceOf[ColumnWrapper].id.toString, encoding)
     val process = pb.start()
@@ -174,8 +174,12 @@ object EncMemoryUsageProcess extends App {
   val emf = JPAPersistence.emf
   val em = emf.createEntityManager()
 
+  // Wait for the agent to connect
+  Thread.sleep(10000l);
+
   try {
-    val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper]).setParameter("id", colId).getSingleResult
+    val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper])
+      .setParameter("id", colId.toInt).getSingleResult
     col.dataType match {
       case DataType.INTEGER => {
         val e = IntEncoding.valueOf(encoding)

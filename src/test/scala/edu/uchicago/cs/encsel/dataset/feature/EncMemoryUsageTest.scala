@@ -23,17 +23,19 @@
 package edu.uchicago.cs.encsel.dataset.feature
 
 import edu.uchicago.cs.encsel.dataset.persist.jpa.ColumnWrapper
-import edu.uchicago.cs.encsel.model.StringEncoding
+import edu.uchicago.cs.encsel.model.{IntEncoding}
 import org.junit.Test
 
 class EncMemoryUsageTest {
 
   @Test
-  def testExecuteAndMonitor:Unit={
+  def testExecuteAndMonitor: Unit = {
 
     val column = new ColumnWrapper
-    column.id = 17
+    column.id = 93
 
-//    val memoryUsage = EncMemoryUsage.executeAndMonitor(column, StringEncoding.DICT.name())
+    //    println(System.getProperty("java.home"))
+//    val memoryUsage = EncMemoryUsage.executeAndMonitor(column, IntEncoding.DICT.name())
+//    println(memoryUsage)
   }
 }
