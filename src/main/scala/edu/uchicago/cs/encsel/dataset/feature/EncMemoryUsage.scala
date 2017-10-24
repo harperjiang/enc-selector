@@ -168,8 +168,8 @@ object EncMemoryUsage extends FeatureExtractor {
   */
 object EncMemoryUsageProcess extends App {
 
-  val colId = args(1)
-  val encoding = args(2)
+  val colId = args(0)
+  val encoding = args(1)
 
   val emf = JPAPersistence.emf
   val em = emf.createEntityManager()
