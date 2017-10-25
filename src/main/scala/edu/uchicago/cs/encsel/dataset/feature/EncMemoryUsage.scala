@@ -53,32 +53,33 @@ object EncMemoryUsage extends FeatureExtractor {
         StringEncoding.values().map { e => {
           new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
-        }.filter(_ != null)
+        }
       }
       case DataType.LONG => {
         LongEncoding.values().map { e => {
           new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
-        }.filter(_ != null)
+        }
       }
       case DataType.INTEGER => {
         IntEncoding.values().map { e => {
           new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
-        }.filter(_ != null)
+        }
       }
       case DataType.FLOAT => {
         FloatEncoding.values().map { e => {
           new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
-        }.filter(_ != null)
+        }
       }
       case DataType.DOUBLE => {
         FloatEncoding.values().map { e => {
           new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
-        }.filter(_ != null)
+        }
       }
+
       case DataType.BOOLEAN => Iterable[Feature]() // Ignore BOOLEAN type
     }
   }
@@ -112,14 +113,15 @@ object EncMemoryUsage extends FeatureExtractor {
       var maxMemory = 0l
 
       while (process.isAlive) {
-        Thread.sleep(200l);
         val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
         memoryUsage match {
           case Some(mu) => {
             maxMemory = Math.max(mu.getUsed, maxMemory)
           }
-          case None => {}
+          case None => {
+          }
         }
+        Thread.sleep(100l)
       }
       return maxMemory
     } catch {
@@ -186,4 +188,5 @@ object EncMemoryUsageProcess extends App {
 
     }
   }
+
 }
