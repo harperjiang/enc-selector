@@ -24,7 +24,6 @@
 package edu.uchicago.cs.encsel.dataset.feature
 
 import java.net.URI
-import javax.persistence.NoResultException
 
 import com.sun.tools.attach.{AttachNotSupportedException, VirtualMachine}
 import edu.uchicago.cs.encsel.dataset.column.Column
@@ -145,41 +144,34 @@ object EncMemoryUsageRun extends App {
   * encode it using one encoding. Parent application will monitor the
   * memory usage using JMX and record the result
   */
-object EncMemoryUsageProcess extends App {
+object EncMemoryUsageProcess2 extends App {
 
   val colFile = new URI(args(0))
   val colDataType = DataType.valueOf(args(1))
   val encoding = args(2)
 
-  try {
-    colDataType match {
-      case DataType.INTEGER => {
-        val e = IntEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnInt(colFile, e)
-      }
-      case DataType.LONG => {
-        val e = LongEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnLong(colFile, e)
-      }
-      case DataType.STRING => {
-        val e = StringEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnString(colFile, e)
-      }
-      case DataType.DOUBLE => {
-        val e = FloatEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnDouble(colFile, e)
-      }
-      case DataType.FLOAT => {
-        val e = FloatEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnFloat(colFile, e)
-      }
-      case _ => {
-
-      }
+  colDataType match {
+    case DataType.INTEGER => {
+      val e = IntEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnInt(colFile, e)
     }
-  }
-  catch {
-    case e: NoResultException => {
+    case DataType.LONG => {
+      val e = LongEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnLong(colFile, e)
+    }
+    case DataType.STRING => {
+      val e = StringEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnString(colFile, e)
+    }
+    case DataType.DOUBLE => {
+      val e = FloatEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnDouble(colFile, e)
+    }
+    case DataType.FLOAT => {
+      val e = FloatEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnFloat(colFile, e)
+    }
+    case _ => {
 
     }
   }
