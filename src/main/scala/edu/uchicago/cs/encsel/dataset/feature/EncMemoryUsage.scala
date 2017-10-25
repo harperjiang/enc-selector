@@ -29,11 +29,13 @@ import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}
 import javax.management.{JMX, ObjectName}
 import javax.persistence.NoResultException
 
+import scala.collection.JavaConversions._
 import com.sun.tools.attach.VirtualMachine
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
 import edu.uchicago.cs.encsel.model._
+import edu.uchicago.cs.encsel.tool.mem.JMXMemoryMonitor
 import org.slf4j.LoggerFactory
 
 object EncMemoryUsage extends FeatureExtractor {
@@ -127,34 +129,34 @@ object EncMemoryUsage extends FeatureExtractor {
   def executeAndMonitor(col: Column, encoding: String): Long = {
     // Create Process
     val pb = new ProcessBuilder("/usr/bin/java",
-      "-cp", "/home/harper/IdeaProjects/enc-selector/target/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar",
-      "-Xmx8G", "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
+      "-Xmx2G",
+      "-cp",
+      "/home/harper/IdeaProjects/enc-selector/target/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/jdk1.8.0/lib/tools.jar",
+       "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.asInstanceOf[ColumnWrapper].id.toString, encoding)
     val process = pb.start()
+
     val pidfield = process.getClass.getDeclaredField("pid")
     pidfield.setAccessible(true)
     val pid = pidfield.get(process).toString
 
     // Attach VM and obtain MemoryMXBean
     val vm = VirtualMachine.attach(pid)
-    var connectorAddr = vm.getAgentProperties.getProperty("com.sun.management.jmxremote.localConnectorAddress")
-    if (connectorAddr == null) {
-      val agent = vm.getSystemProperties.getProperty("java.home") + File.separator + "lib" + File.separator + "management-agent.jar"
-      vm.loadAgent(agent)
-      connectorAddr = vm.getAgentProperties.getProperty("com.sun.management.jmxremote.localConnectorAddress")
-    }
-    val serviceURL = new JMXServiceURL(connectorAddr)
-    val connector = JMXConnectorFactory.connect(serviceURL)
-    val mbsc = connector.getMBeanServerConnection
-    val mbeanName = new ObjectName(ManagementFactory.MEMORY_MXBEAN_NAME)
-    val memoryMXBean = JMX.newMXBeanProxy(mbsc, mbeanName, classOf[MemoryMXBean])
+
+    val jmxMemoryMonitor = new JMXMemoryMonitor(vm)
 
     var maxMemory = 0l
 
     while (process.isAlive) {
-      Thread.sleep(200l);
-      val memoryUsage = memoryMXBean.getHeapMemoryUsage.getUsed
-      maxMemory = Math.max(memoryUsage, maxMemory);
+      Thread.sleep(100l);
+      val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
+      memoryUsage match {
+        case Some(mu) => {
+          maxMemory = Math.max(mu.getUsed, maxMemory)
+        }
+        case None => {}
+      }
+      println(maxMemory)
     }
 
     return maxMemory
@@ -165,7 +167,8 @@ object EncMemoryUsageRun extends App {
   val colId = args(0).toInt
   val col = new ColumnWrapper
   col.id = colId
-  EncMemoryUsage.executeAndMonitor(col,"DICT")
+  val maxMemory = EncMemoryUsage.executeAndMonitor(col, args(1))
+  println(maxMemory)
 }
 
 /**
@@ -180,9 +183,6 @@ object EncMemoryUsageProcess extends App {
 
   val emf = JPAPersistence.emf
   val em = emf.createEntityManager()
-
-  // Wait for the agent to connect
-  Thread.sleep(10000l);
 
   try {
     val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper])
