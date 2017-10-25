@@ -87,6 +87,7 @@ object EncMemoryUsage extends FeatureExtractor {
     * @return
     */
   def executeAndMonitor(col: Column, encoding: String): Long = {
+    var maxMemory = 0l
     try {
       // Create Process
       val pb = new ProcessBuilder("/usr/bin/java",
@@ -105,8 +106,6 @@ object EncMemoryUsage extends FeatureExtractor {
 
       val jmxMemoryMonitor = new JMXMemoryMonitor(vm)
 
-      var maxMemory = 0l
-
       while (process.isAlive) {
         val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
         memoryUsage match {
@@ -122,7 +121,7 @@ object EncMemoryUsage extends FeatureExtractor {
     } catch {
       // The VM may end early due to invalid parameter
       case e: AttachNotSupportedException => {
-        return 0l;
+        return maxMemory;
       }
     }
   }
