@@ -20,7 +20,7 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.tool
+package edu.uchicago.cs.encsel.tool.mem
 
 import java.lang.management.ManagementFactory
 

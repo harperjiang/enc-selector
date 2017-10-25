@@ -22,6 +22,8 @@
 
 package edu.uchicago.cs.encsel.tool
 
+import edu.uchicago.cs.encsel.tool.mem.MemoryMonitor
+
 import scala.collection.mutable.ArrayBuffer
 import org.junit.Assert._
 import org.junit.Test
@@ -45,9 +47,6 @@ class MemoryMonitorTest {
 //    System.gc()
 //    Thread.sleep(5000l)
 
-    println("Max"+stat.max)
-    println("Min"+stat.min)
-
     MemoryMonitor.INSTANCE.start()
 
     //    val list2 = new ArrayBuffer[String]
@@ -58,7 +57,5 @@ class MemoryMonitorTest {
     assertTrue(stat2.max > 100)
     assertTrue(0 < stat2.min)
 
-    println("Max"+stat2.max)
-    println("Min"+stat2.min)
   }
 }
