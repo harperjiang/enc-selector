@@ -56,7 +56,6 @@ object EncMemoryUsage extends FeatureExtractor {
           } catch {
             case ile: IllegalArgumentException => {
               // Unsupported Encoding, ignore
-              logger.warn("Exception when applying Encoding", ile.getMessage)
               null
             }
           }
@@ -69,7 +68,6 @@ object EncMemoryUsage extends FeatureExtractor {
             new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding", ile.getMessage)
               null
             }
           }
@@ -82,7 +80,6 @@ object EncMemoryUsage extends FeatureExtractor {
             new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding", ile.getMessage)
               null
             }
           }
@@ -95,7 +92,6 @@ object EncMemoryUsage extends FeatureExtractor {
             new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding", ile.getMessage)
               null
             }
           }
@@ -108,7 +104,6 @@ object EncMemoryUsage extends FeatureExtractor {
             new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
           } catch {
             case ile: IllegalArgumentException => {
-              logger.warn("Exception when applying Encoding", ile.getMessage)
               null
             }
           }
@@ -129,10 +124,9 @@ object EncMemoryUsage extends FeatureExtractor {
   def executeAndMonitor(col: Column, encoding: String): Long = {
     // Create Process
     val pb = new ProcessBuilder("/usr/bin/java",
-      "-Xmx2G",
       "-cp",
       "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
-       "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
+      "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.asInstanceOf[ColumnWrapper].id.toString, encoding)
     val process = pb.start()
 
@@ -148,7 +142,7 @@ object EncMemoryUsage extends FeatureExtractor {
     var maxMemory = 0l
 
     while (process.isAlive) {
-      Thread.sleep(100l);
+      Thread.sleep(200l);
       val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
       memoryUsage match {
         case Some(mu) => {
@@ -156,7 +150,6 @@ object EncMemoryUsage extends FeatureExtractor {
         }
         case None => {}
       }
-      println(maxMemory)
     }
 
     return maxMemory
