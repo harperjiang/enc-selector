@@ -71,7 +71,7 @@ object AddMissingFeature extends App {
   columns.foreach(column => {
     counter += 1
     System.out.println("Processing %d / %d : %s".format(counter, size, column.colFile))
-    if (!column.hasFeature(EncTimeUsage.featureType)) {
+    if (!column.hasFeature(EncMemoryUsage.featureType)) {
       try {
         if (filter == null) {
           column.features ++= Features.extract(column)
