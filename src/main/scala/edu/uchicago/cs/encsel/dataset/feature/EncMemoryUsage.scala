@@ -133,7 +133,7 @@ object EncMemoryUsageRun extends App {
   val colId = args(0).toInt
   val em = JPAPersistence.emf.createEntityManager()
 
-  val col = em.createQuery("select c from ColumnWrapper c where c.id = :id", classOf[ColumnWrapper])
+  val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper])
     .setParameter("id", colId).getSingleResult
 
   val maxMemory = EncMemoryUsage.executeAndMonitor(col, args(1))
