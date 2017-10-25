@@ -131,7 +131,7 @@ object EncMemoryUsage extends FeatureExtractor {
     val pb = new ProcessBuilder("/usr/bin/java",
       "-Xmx2G",
       "-cp",
-      "/local/hajiang/enc-selector/target/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
+      "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
        "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.asInstanceOf[ColumnWrapper].id.toString, encoding)
     val process = pb.start()
