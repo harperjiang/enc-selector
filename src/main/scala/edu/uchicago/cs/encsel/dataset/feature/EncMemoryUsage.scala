@@ -30,7 +30,7 @@ import javax.management.{JMX, ObjectName}
 import javax.persistence.NoResultException
 
 import scala.collection.JavaConversions._
-import com.sun.tools.attach.VirtualMachine
+import com.sun.tools.attach.{AttachNotSupportedException, VirtualMachine}
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
@@ -51,62 +51,31 @@ object EncMemoryUsage extends FeatureExtractor {
     col.dataType match {
       case DataType.STRING => {
         StringEncoding.values().map { e => {
-          try {
-            new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
-          } catch {
-            case ile: IllegalArgumentException => {
-              // Unsupported Encoding, ignore
-              null
-            }
-          }
+          new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
         }.filter(_ != null)
       }
       case DataType.LONG => {
         LongEncoding.values().map { e => {
-          try {
-            new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
-          } catch {
-            case ile: IllegalArgumentException => {
-              null
-            }
-          }
+          new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
         }.filter(_ != null)
       }
       case DataType.INTEGER => {
         IntEncoding.values().map { e => {
-          try {
-            new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
-          } catch {
-            case ile: IllegalArgumentException => {
-              null
-            }
-          }
+          new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
         }.filter(_ != null)
       }
       case DataType.FLOAT => {
         FloatEncoding.values().map { e => {
-          try {
-            new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
-          } catch {
-            case ile: IllegalArgumentException => {
-              null
-            }
-          }
+          new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
         }.filter(_ != null)
       }
       case DataType.DOUBLE => {
         FloatEncoding.values().map { e => {
-          try {
-            new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
-          } catch {
-            case ile: IllegalArgumentException => {
-              null
-            }
-          }
+          new Feature(fType, "%s_maxheap".format(e.name()), executeAndMonitor(col, e.name()))
         }
         }.filter(_ != null)
       }
@@ -122,37 +91,43 @@ object EncMemoryUsage extends FeatureExtractor {
     * @return
     */
   def executeAndMonitor(col: Column, encoding: String): Long = {
-    // Create Process
-    val pb = new ProcessBuilder("/usr/bin/java",
-      "-cp",
-      "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
-      "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
-      col.asInstanceOf[ColumnWrapper].id.toString, encoding)
-    val process = pb.start()
+    try {
+      // Create Process
+      val pb = new ProcessBuilder("/usr/bin/java",
+        "-cp",
+        "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
+        "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
+        col.asInstanceOf[ColumnWrapper].id.toString, encoding)
+      val process = pb.start()
 
-    val pidfield = process.getClass.getDeclaredField("pid")
-    pidfield.setAccessible(true)
-    val pid = pidfield.get(process).toString
+      val pidfield = process.getClass.getDeclaredField("pid")
+      pidfield.setAccessible(true)
+      val pid = pidfield.get(process).toString
 
-    // Attach VM and obtain MemoryMXBean
-    val vm = VirtualMachine.attach(pid)
+      // Attach VM and obtain MemoryMXBean
+      val vm = VirtualMachine.attach(pid)
 
-    val jmxMemoryMonitor = new JMXMemoryMonitor(vm)
+      val jmxMemoryMonitor = new JMXMemoryMonitor(vm)
 
-    var maxMemory = 0l
+      var maxMemory = 0l
 
-    while (process.isAlive) {
-      Thread.sleep(200l);
-      val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
-      memoryUsage match {
-        case Some(mu) => {
-          maxMemory = Math.max(mu.getUsed, maxMemory)
+      while (process.isAlive) {
+        Thread.sleep(200l);
+        val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
+        memoryUsage match {
+          case Some(mu) => {
+            maxMemory = Math.max(mu.getUsed, maxMemory)
+          }
+          case None => {}
         }
-        case None => {}
+      }
+      return maxMemory
+    } catch {
+      // The VM may end early due to invalid parameter
+      case e: AttachNotSupportedException => {
+        return 0l;
       }
     }
-
-    return maxMemory
   }
 }
 
