@@ -161,6 +161,13 @@ object EncMemoryUsage extends FeatureExtractor {
   }
 }
 
+object EncMemoryUsageRun extends App {
+  val colId = args(0).toInt
+  val col = new ColumnWrapper
+  col.id = colId
+  EncMemoryUsage.executeAndMonitor(col,"DICT")
+}
+
 /**
   * This is the main entry to load a column from database and
   * encode it using one encoding. Parent application will monitor the
