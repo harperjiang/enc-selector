@@ -23,13 +23,8 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
-import java.io.File
-import java.lang.management.{ManagementFactory, MemoryMXBean}
-import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}
-import javax.management.{JMX, ObjectName}
-import javax.persistence.NoResultException
+import java.net.URI
 
-import scala.collection.JavaConversions._
 import com.sun.tools.attach.{AttachNotSupportedException, VirtualMachine}
 import edu.uchicago.cs.encsel.dataset.column.Column
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
@@ -92,13 +87,14 @@ object EncMemoryUsage extends FeatureExtractor {
     * @return
     */
   def executeAndMonitor(col: Column, encoding: String): Long = {
+    var maxMemory = 0l
     try {
       // Create Process
       val pb = new ProcessBuilder("/usr/bin/java",
         "-cp",
         "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
         "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
-        col.asInstanceOf[ColumnWrapper].id.toString, encoding)
+        col.colFile.toString, col.dataType.name(), encoding)
       val process = pb.start()
 
       val pidfield = process.getClass.getDeclaredField("pid")
@@ -109,8 +105,6 @@ object EncMemoryUsage extends FeatureExtractor {
       val vm = VirtualMachine.attach(pid)
 
       val jmxMemoryMonitor = new JMXMemoryMonitor(vm)
-
-      var maxMemory = 0l
 
       while (process.isAlive) {
         val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
@@ -127,7 +121,7 @@ object EncMemoryUsage extends FeatureExtractor {
     } catch {
       // The VM may end early due to invalid parameter
       case e: AttachNotSupportedException => {
-        return 0l;
+        return maxMemory;
       }
     }
   }
@@ -135,10 +129,17 @@ object EncMemoryUsage extends FeatureExtractor {
 
 object EncMemoryUsageRun extends App {
   val colId = args(0).toInt
-  val col = new ColumnWrapper
-  col.id = colId
-  val maxMemory = EncMemoryUsage.executeAndMonitor(col, args(1))
-  println(maxMemory)
+  val em = JPAPersistence.emf.createEntityManager()
+
+  val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper])
+    .setParameter("id", colId).getSingleResult
+
+
+  val memories = EncMemoryUsage.extract(col)
+
+  memories.foreach(memory => {
+    println(memory.name + " " + memory.value)
+  })
 }
 
 /**
@@ -146,47 +147,35 @@ object EncMemoryUsageRun extends App {
   * encode it using one encoding. Parent application will monitor the
   * memory usage using JMX and record the result
   */
-object EncMemoryUsageProcess extends App {
+object EncMemoryUsageProcess2 extends App {
 
-  val colId = args(0)
-  val encoding = args(1)
+  val colFile = new URI(args(0))
+  val colDataType = DataType.valueOf(args(1))
+  val encoding = args(2)
 
-  val emf = JPAPersistence.emf
-  val em = emf.createEntityManager()
-
-  try {
-    val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper])
-      .setParameter("id", colId.toInt).getSingleResult
-    col.dataType match {
-      case DataType.INTEGER => {
-        val e = IntEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnInt(col.colFile, e)
-      }
-      case DataType.LONG => {
-        val e = LongEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnLong(col.colFile, e)
-      }
-      case DataType.STRING => {
-        val e = StringEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnString(col.colFile, e)
-      }
-      case DataType.DOUBLE => {
-        val e = FloatEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnDouble(col.colFile, e)
-      }
-      case DataType.FLOAT => {
-        val e = FloatEncoding.valueOf(encoding)
-        ParquetWriterHelper.singleColumnFloat(col.colFile, e)
-      }
-      case _ => {
-
-      }
+  colDataType match {
+    case DataType.INTEGER => {
+      val e = IntEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnInt(colFile, e)
     }
-  }
-  catch {
-    case e: NoResultException => {
+    case DataType.LONG => {
+      val e = LongEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnLong(colFile, e)
+    }
+    case DataType.STRING => {
+      val e = StringEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnString(colFile, e)
+    }
+    case DataType.DOUBLE => {
+      val e = FloatEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnDouble(colFile, e)
+    }
+    case DataType.FLOAT => {
+      val e = FloatEncoding.valueOf(encoding)
+      ParquetWriterHelper.singleColumnFloat(colFile, e)
+    }
+    case _ => {
 
     }
   }
-
 }
