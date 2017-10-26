@@ -36,7 +36,6 @@ class MemoryMonitor private {
   def stop(): MemoryStat = {
     thread.monitorStop = true;
     thread.join()
-    System.gc()
     return new MemoryStat(thread.memoryMin, thread.memoryMax)
   }
 
@@ -52,7 +51,10 @@ class MemoryMonitorThread extends Thread {
   var memoryMin = Long.MaxValue;
   var memoryMax = 0l;
 
-  var interval = 500l;
+  var interval = 200l;
+
+  setName("MemoryMonitorThread")
+  setDaemon(true)
 
   override def run(): Unit = {
     while (!monitorStop) {
