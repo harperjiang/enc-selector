@@ -134,8 +134,12 @@ object EncMemoryUsageRun extends App {
   val col = em.createQuery("select c from Column c where c.id = :id", classOf[ColumnWrapper])
     .setParameter("id", colId).getSingleResult
 
-  val maxMemory = EncMemoryUsage.executeAndMonitor(col, args(1))
-  println(maxMemory)
+
+  val memories = EncMemoryUsage.extract(col)
+
+  memories.foreach(memory => {
+    println(memory.name + " " + memory.value)
+  })
 }
 
 /**
