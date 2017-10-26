@@ -23,6 +23,7 @@
 
 package edu.uchicago.cs.encsel.dataset.feature
 
+import java.lang.reflect.Field
 import java.net.URI
 
 import com.sun.tools.attach.{AttachNotSupportedException, VirtualMachine}
@@ -31,7 +32,11 @@ import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 import edu.uchicago.cs.encsel.dataset.persist.jpa.{ColumnWrapper, JPAPersistence}
 import edu.uchicago.cs.encsel.model._
 import edu.uchicago.cs.encsel.tool.mem.JMXMemoryMonitor
+import org.apache.commons.io.IOUtils
+import org.apache.commons.io.output.StringBuilderWriter
 import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConversions._
 
 object EncMemoryUsage extends FeatureExtractor {
   val logger = LoggerFactory.getLogger(getClass)
@@ -88,40 +93,26 @@ object EncMemoryUsage extends FeatureExtractor {
     */
   def executeAndMonitor(col: Column, encoding: String): Long = {
     var maxMemory = 0l
+    // Create Process
+    val pb = new ProcessBuilder("/usr/bin/java",
+      "-cp",
+      "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/jdk1.8.0/lib/tools.jar",
+      "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
+      col.colFile.toString, col.dataType.name(), encoding)
+    val process = pb.start()
+
+    process.waitFor();
+
+    val buffer = new StringBuilderWriter()
+    IOUtils.copy(process.getInputStream, buffer)
+
+    buffer.close()
+    val data = buffer.toString
     try {
-      // Create Process
-      val pb = new ProcessBuilder("/usr/bin/java",
-        "-cp",
-        "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/java-8-oracle/lib/tools.jar",
-        "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
-        col.colFile.toString, col.dataType.name(), encoding)
-      val process = pb.start()
-
-      val pidfield = process.getClass.getDeclaredField("pid")
-      pidfield.setAccessible(true)
-      val pid = pidfield.get(process).toString
-
-      // Attach VM and obtain MemoryMXBean
-      val vm = VirtualMachine.attach(pid)
-
-      val jmxMemoryMonitor = new JMXMemoryMonitor(vm)
-
-      while (process.isAlive) {
-        val memoryUsage = jmxMemoryMonitor.getHeapMemoryUsage
-        memoryUsage match {
-          case Some(mu) => {
-            maxMemory = Math.max(mu.getUsed, maxMemory)
-          }
-          case None => {
-          }
-        }
-        Thread.sleep(100l)
-      }
-      return maxMemory
+      return data.trim.toInt
     } catch {
-      // The VM may end early due to invalid parameter
-      case e: AttachNotSupportedException => {
-        return maxMemory;
+      case e: Exception => {
+        return 0
       }
     }
   }

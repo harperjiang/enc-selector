@@ -25,40 +25,48 @@ package edu.uchicago.cs.encsel.dataset.feature;
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper;
 import edu.uchicago.cs.encsel.model.*;
+import edu.uchicago.cs.encsel.tool.mem.MemoryMonitor;
+import edu.uchicago.cs.encsel.tool.mem.MemoryStat;
 
 import java.net.URI;
 
 public class EncMemoryUsageProcess {
 
     public static void main(String[] args) throws Exception {
+        MemoryMonitor.INSTANCE().start();
         URI colFile = new URI(args[0]);
         DataType colDataType = DataType.valueOf(args[1]);
         String encoding = args[2];
+        try {
+            switch (colDataType) {
+                case INTEGER: {
+                    IntEncoding e = IntEncoding.valueOf(encoding);
+                    ParquetWriterHelper.singleColumnInt(colFile, e);
+                }
+                case LONG: {
+                    LongEncoding e = LongEncoding.valueOf(encoding);
+                    ParquetWriterHelper.singleColumnLong(colFile, e);
+                }
+                case STRING: {
+                    StringEncoding e = StringEncoding.valueOf(encoding);
+                    ParquetWriterHelper.singleColumnString(colFile, e);
+                }
+                case DOUBLE: {
+                    FloatEncoding e = FloatEncoding.valueOf(encoding);
+                    ParquetWriterHelper.singleColumnDouble(colFile, e);
+                }
+                case FLOAT: {
+                    FloatEncoding e = FloatEncoding.valueOf(encoding);
+                    ParquetWriterHelper.singleColumnFloat(colFile, e);
+                }
+                default: {
 
-        switch(colDataType)  {
-            case INTEGER :{
-                IntEncoding e = IntEncoding.valueOf(encoding);
-                ParquetWriterHelper.singleColumnInt(colFile, e);
+                }
             }
-            case LONG : {
-                LongEncoding e = LongEncoding.valueOf(encoding);
-                ParquetWriterHelper.singleColumnLong(colFile, e);
-            }
-            case STRING : {
-                StringEncoding e = StringEncoding.valueOf(encoding);
-                ParquetWriterHelper.singleColumnString(colFile, e);
-            }
-            case DOUBLE : {
-                FloatEncoding e = FloatEncoding.valueOf(encoding);
-                ParquetWriterHelper.singleColumnDouble(colFile, e);
-            }
-            case FLOAT : {
-                FloatEncoding e = FloatEncoding.valueOf(encoding);
-                ParquetWriterHelper.singleColumnFloat(colFile, e);
-            }
-            default: {
-
-            }
+        } finally {
+            MemoryStat stat = MemoryMonitor.INSTANCE().stop();
+            System.out.println(stat.max());
+            System.exit(0);
         }
     }
 }
