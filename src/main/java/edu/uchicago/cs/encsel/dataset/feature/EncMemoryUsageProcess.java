@@ -42,25 +42,30 @@ public class EncMemoryUsageProcess {
                 case INTEGER: {
                     IntEncoding e = IntEncoding.valueOf(encoding);
                     ParquetWriterHelper.singleColumnInt(colFile, e);
+                    break;
                 }
                 case LONG: {
                     LongEncoding e = LongEncoding.valueOf(encoding);
                     ParquetWriterHelper.singleColumnLong(colFile, e);
+                    break;
                 }
                 case STRING: {
                     StringEncoding e = StringEncoding.valueOf(encoding);
                     ParquetWriterHelper.singleColumnString(colFile, e);
+                    break;
                 }
                 case DOUBLE: {
                     FloatEncoding e = FloatEncoding.valueOf(encoding);
                     ParquetWriterHelper.singleColumnDouble(colFile, e);
+                    break;
                 }
                 case FLOAT: {
                     FloatEncoding e = FloatEncoding.valueOf(encoding);
                     ParquetWriterHelper.singleColumnFloat(colFile, e);
+                    break;
                 }
                 default: {
-
+                    break;
                 }
             }
         } finally {
