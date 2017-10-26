@@ -51,14 +51,13 @@ class MemoryMonitorThread extends Thread {
   var memoryMin = Long.MaxValue;
   var memoryMax = 0l;
 
-  var interval = 200l;
+  var interval = 100l;
 
   setName("MemoryMonitorThread")
   setDaemon(true)
 
   override def run(): Unit = {
     while (!monitorStop) {
-
       val memory = ManagementFactory.getMemoryMXBean.getHeapMemoryUsage.getUsed
 
       memoryMax = Math.max(memoryMax, memory)
@@ -66,6 +65,9 @@ class MemoryMonitorThread extends Thread {
 
       Thread.sleep(interval)
     }
+    val memory = ManagementFactory.getMemoryMXBean.getHeapMemoryUsage.getUsed
+    memoryMax = Math.max(memoryMax, memory)
+    memoryMin = Math.min(memoryMin, memory)
   }
 }
 

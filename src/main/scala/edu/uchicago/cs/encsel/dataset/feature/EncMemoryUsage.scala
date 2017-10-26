@@ -99,6 +99,7 @@ object EncMemoryUsage extends FeatureExtractor {
       "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/jdk1.8.0/lib/tools.jar",
       "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.colFile.toString, col.dataType.name(), encoding)
+//    pb.redirectErrorStream(true)
     val process = pb.start()
 
     process.waitFor();
@@ -108,6 +109,7 @@ object EncMemoryUsage extends FeatureExtractor {
 
     buffer.close()
     val data = buffer.toString
+    println(data)
     try {
       return data.trim.toInt
     } catch {
