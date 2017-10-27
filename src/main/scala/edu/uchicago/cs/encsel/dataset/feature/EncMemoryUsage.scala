@@ -95,8 +95,7 @@ object EncMemoryUsage extends FeatureExtractor {
     var maxMemory = 0l
     // Create Process
     val pb = new ProcessBuilder("/usr/bin/java",
-      "-cp",
-      "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/usr/lib/jvm/jdk1.8.0/lib/tools.jar",
+      "-cp", "/local/hajiang/enc-selector-0.0.1-SNAPSHOT-jar-with-dependencies.jar",
       "edu.uchicago.cs.encsel.dataset.feature.EncMemoryUsageProcess",
       col.colFile.toString, col.dataType.name(), encoding)
 //    pb.redirectErrorStream(true)
@@ -109,7 +108,7 @@ object EncMemoryUsage extends FeatureExtractor {
 
     buffer.close()
     val data = buffer.toString
-    println(data)
+
     try {
       return data.trim.toInt
     } catch {
