@@ -31,6 +31,7 @@ import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.ParquetEncodingException;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
+import org.apache.parquet.schema.EncMessageType;
 import org.apache.parquet.schema.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 public class StringWriteSupport extends WriteSupport<List<String>> {
 	Logger logger = LoggerFactory.getLogger(getClass());
 	MessageType schema;
+	EncMessageType esm;
 	RecordConsumer recordConsumer;
 	List<ColumnDescriptor> cols;
 
@@ -45,6 +47,12 @@ public class StringWriteSupport extends WriteSupport<List<String>> {
 		this.schema = schema;
 		this.cols = schema.getColumns();
 	}
+
+	public StringWriteSupport(EncMessageType esm) {
+	   this(esm.asMessageType());
+	   this.esm = esm;
+	   this.cols = esm.getColumns();
+    }
 
 	@Override
 	public WriteContext init(Configuration config) {
