@@ -22,6 +22,20 @@
  */
 package edu.uchicago.cs.encsel.dataset.parquet;
 
+import edu.uchicago.cs.encsel.dataset.parquet.AdaptiveValuesWriterFactory.EncodingSetting;
+import edu.uchicago.cs.encsel.model.FloatEncoding;
+import edu.uchicago.cs.encsel.model.IntEncoding;
+import edu.uchicago.cs.encsel.model.LongEncoding;
+import edu.uchicago.cs.encsel.model.StringEncoding;
+import org.apache.hadoop.fs.Path;
+import org.apache.parquet.column.values.factory.EncValuesWriterFactory;
+import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.schema.EncMessageType;
+import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
+import org.apache.parquet.schema.Type.Repetition;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -31,246 +45,253 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.uchicago.cs.encsel.model.LongEncoding;
-import org.apache.hadoop.fs.Path;
-import org.apache.parquet.hadoop.ParquetWriter;
-import org.apache.parquet.schema.MessageType;
-import org.apache.parquet.schema.PrimitiveType;
-import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
-import org.apache.parquet.schema.Type.Repetition;
-
-import edu.uchicago.cs.encsel.dataset.parquet.AdaptiveValuesWriterFactory.EncodingSetting;
-import edu.uchicago.cs.encsel.model.FloatEncoding;
-import edu.uchicago.cs.encsel.model.IntEncoding;
-import edu.uchicago.cs.encsel.model.StringEncoding;
-
 public class ParquetWriterHelper {
 
-	public static File genOutput(URI input, String suffix) {
-		try {
-			if (input.getPath().endsWith("\\.data")) {
-				return new File(new URI(input.toString().replaceFirst("data$", suffix)));
-			}
-			return new File(new URI(input.toString() + "." + suffix));
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public static File genOutput(URI input, String suffix) {
+        try {
+            if (input.getPath().endsWith("\\.data")) {
+                return new File(new URI(input.toString().replaceFirst("data$", suffix)));
+            }
+            return new File(new URI(input.toString() + "." + suffix));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	/**
-	 * Scan the file containing integer/long and determine the bit length
-	 * 
-	 * @param input the file to scan
-	 * @return correct int bit length
-	 */
-	public static int scanIntBitLength(URI input) {
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(new File(input)));
-			int maxBitLength = 0;
-			String line;
-			while ((line = br.readLine()) != null) {
-				line = line.trim();
-				if (line.isEmpty())
-					continue;
-				int number = Integer.parseInt(line);
-				int bitLength = 32 - Integer.numberOfLeadingZeros(number);
-				if (bitLength > maxBitLength)
-					maxBitLength = bitLength;
-			}
-			br.close();
-			return maxBitLength;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    /**
+     * Scan the file containing integer/long and determine the bit length
+     *
+     * @param input the file to scan
+     * @return correct int bit length
+     */
+    public static int scanIntBitLength(URI input) {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(new File(input)));
+            int maxBitLength = 0;
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty())
+                    continue;
+                int number = Integer.parseInt(line);
+                int bitLength = 32 - Integer.numberOfLeadingZeros(number);
+                if (bitLength > maxBitLength)
+                    maxBitLength = bitLength;
+            }
+            br.close();
+            return maxBitLength;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public static int scanLongBitLength(URI input) {
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(new File(input)));
-			int maxBitLength = 0;
-			String line;
-			while ((line = br.readLine()) != null) {
-				line = line.trim();
-				if (line.isEmpty())
-					continue;
-				long number = Long.parseLong(line);
-				int bitLength = 64 - Long.numberOfLeadingZeros(number);
-				if (bitLength > maxBitLength)
-					maxBitLength = bitLength;
-			}
-			br.close();
-			return maxBitLength;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    public static int scanLongBitLength(URI input) {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(new File(input)));
+            int maxBitLength = 0;
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty())
+                    continue;
+                long number = Long.parseLong(line);
+                int bitLength = 64 - Long.numberOfLeadingZeros(number);
+                if (bitLength > maxBitLength)
+                    maxBitLength = bitLength;
+            }
+            br.close();
+            return maxBitLength;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public static URI singleColumnBoolean(URI input) throws IOException {
-		File output = genOutput(input, "BOOLEAN");
-		if (output.exists())
-			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+    public static void write(URI input, EncMessageType schema, URI output) throws IOException {
+        File outfile = new File(output);
+        if (outfile.exists())
+            outfile.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value"));
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output), schema, new EncValuesWriterFactory());
 
-		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema, false);
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
 
-		String line;
-		List<String> holder = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			holder.add(line.trim());
-			writer.write(holder);
-			holder.clear();
-		}
+        reader.close();
+        writer.close();
+    }
 
-		reader.close();
-		writer.close();
+    public static URI singleColumnBoolean(URI input) throws IOException {
+        File output = genOutput(input, "BOOLEAN");
+        if (output.exists())
+            output.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		return output.toURI();
-	}
+        MessageType schema = new MessageType("record",
+                new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BOOLEAN, "value"));
 
-	public static URI singleColumnInt(URI input, IntEncoding encoding) throws IOException {
-		File output = genOutput(input, encoding.name());
-		if (output.exists())
-			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema, false);
 
-		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT32, "value"));
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
 
-		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
-		es.intEncoding = encoding;
-		es.intBitLength = scanIntBitLength(input);
+        reader.close();
+        writer.close();
 
-		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				encoding == IntEncoding.DICT);
+        return output.toURI();
+    }
 
-		String line;
-		List<String> holder = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			holder.add(line.trim());
-			writer.write(holder);
-			holder.clear();
-		}
+    public static URI singleColumnInt(URI input, IntEncoding encoding) throws IOException {
+        File output = genOutput(input, encoding.name());
+        if (output.exists())
+            output.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		reader.close();
-		writer.close();
+        MessageType schema = new MessageType("record",
+                new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT32, "value"));
 
-		return output.toURI();
-	}
+        EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
+        es.intEncoding = encoding;
+        es.intBitLength = scanIntBitLength(input);
 
-	public static URI singleColumnLong(URI input, LongEncoding encoding) throws IOException {
-		File output = genOutput(input, encoding.name());
-		if (output.exists())
-			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+                encoding == IntEncoding.DICT);
 
-		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT64, "value"));
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
 
-		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
-		es.longEncoding = encoding;
-		es.longBitLength = scanLongBitLength(input);
+        reader.close();
+        writer.close();
 
-		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				encoding == LongEncoding.DICT);
+        return output.toURI();
+    }
 
-		String line;
-		List<String> holder = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			holder.add(line.trim());
-			writer.write(holder);
-			holder.clear();
-		}
+    public static URI singleColumnLong(URI input, LongEncoding encoding) throws IOException {
+        File output = genOutput(input, encoding.name());
+        if (output.exists())
+            output.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		reader.close();
-		writer.close();
+        MessageType schema = new MessageType("record",
+                new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.INT64, "value"));
 
-		return output.toURI();
-	}
+        EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
+        es.longEncoding = encoding;
+        es.longBitLength = scanLongBitLength(input);
 
-	public static URI singleColumnString(URI input, StringEncoding encoding) throws IOException {
-		File output = genOutput(input, encoding.name());
-		if (output.exists())
-			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+                encoding == LongEncoding.DICT);
 
-		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BINARY, "value"));
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
 
-		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
-		es.stringEncoding = encoding;
-		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				encoding == StringEncoding.DICT);
+        reader.close();
+        writer.close();
 
-		String line;
-		List<String> holder = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			holder.add(line.trim());
-			writer.write(holder);
-			holder.clear();
-		}
+        return output.toURI();
+    }
 
-		reader.close();
-		writer.close();
+    public static URI singleColumnString(URI input, StringEncoding encoding) throws IOException {
+        File output = genOutput(input, encoding.name());
+        if (output.exists())
+            output.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		return output.toURI();
-	}
+        MessageType schema = new MessageType("record",
+                new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.BINARY, "value"));
 
-	public static URI singleColumnDouble(URI input, FloatEncoding encoding) throws IOException {
-		File output = genOutput(input, encoding.name());
-		if (output.exists())
-			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+        EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
+        es.stringEncoding = encoding;
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+                encoding == StringEncoding.DICT);
 
-		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.DOUBLE, "value"));
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
 
-		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
-		es.floatEncoding = encoding;
-		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				encoding == FloatEncoding.DICT);
+        reader.close();
+        writer.close();
 
-		String line;
-		List<String> holder = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			holder.add(line.trim());
-			writer.write(holder);
-			holder.clear();
-		}
+        return output.toURI();
+    }
 
-		reader.close();
-		writer.close();
+    public static URI singleColumnDouble(URI input, FloatEncoding encoding) throws IOException {
+        File output = genOutput(input, encoding.name());
+        if (output.exists())
+            output.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		return output.toURI();
-	}
+        MessageType schema = new MessageType("record",
+                new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.DOUBLE, "value"));
 
-	public static URI singleColumnFloat(URI input, FloatEncoding encoding) throws IOException {
-		File output = genOutput(input, encoding.name());
-		if (output.exists())
-			output.delete();
-		BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
+        EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
+        es.floatEncoding = encoding;
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+                encoding == FloatEncoding.DICT);
 
-		MessageType schema = new MessageType("record",
-				new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.FLOAT, "value"));
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
 
-		EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
-		es.floatEncoding = encoding;
-		ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
-				encoding == FloatEncoding.DICT);
+        reader.close();
+        writer.close();
 
-		String line;
-		List<String> holder = new ArrayList<>();
-		while ((line = reader.readLine()) != null) {
-			holder.add(line.trim());
-			writer.write(holder);
-			holder.clear();
-		}
+        return output.toURI();
+    }
 
-		reader.close();
-		writer.close();
+    public static URI singleColumnFloat(URI input, FloatEncoding encoding) throws IOException {
+        File output = genOutput(input, encoding.name());
+        if (output.exists())
+            output.delete();
+        BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-		return output.toURI();
-	}
+        MessageType schema = new MessageType("record",
+                new PrimitiveType(Repetition.OPTIONAL, PrimitiveTypeName.FLOAT, "value"));
+
+        EncodingSetting es = AdaptiveValuesWriterFactory.encodingSetting.get();
+        es.floatEncoding = encoding;
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output.toURI()), schema,
+                encoding == FloatEncoding.DICT);
+
+        String line;
+        List<String> holder = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            holder.add(line.trim());
+            writer.write(holder);
+            holder.clear();
+        }
+
+        reader.close();
+        writer.close();
+
+        return output.toURI();
+    }
 }

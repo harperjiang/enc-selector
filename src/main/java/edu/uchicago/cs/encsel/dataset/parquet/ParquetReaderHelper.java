@@ -51,6 +51,7 @@ public class ParquetReaderHelper {
                         while (colReader.getTotalValueCount() > counter++) {
                            colReader.consume();
                            colReader.getDouble();
+
                         }
                     }
                 }

@@ -29,10 +29,12 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ParquetProperties;
+import org.apache.parquet.column.values.factory.ValuesWriterFactory;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter.Builder;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+import org.apache.parquet.schema.EncMessageType;
 import org.apache.parquet.schema.MessageType;
 
 public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBuilder> {
@@ -52,6 +54,18 @@ public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBui
 		}
 		getEncodingPropertiesBuilder().withValuesWriterFactory(new AdaptiveValuesWriterFactory());
 	}
+
+	public ParquetWriterBuilder(Path file, EncMessageType schema, ValuesWriterFactory factory) {
+		super(file);
+		writeSupport = new StringWriteSupport(schema);
+		try {
+			field = Builder.class.getDeclaredField("encodingPropsBuilder");
+			field.setAccessible(true);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+        getEncodingPropertiesBuilder().withValuesWriterFactory(factory);
+    }
 
 	@Override
 	protected ParquetWriterBuilder self() {
@@ -80,4 +94,14 @@ public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBui
 				.withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
 				.withDictionaryPageSize(500 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
 	}
+
+    public static ParquetWriter<List<String>> buildDefault(Path file, EncMessageType schema, ValuesWriterFactory factory)
+            throws IOException {
+        ParquetWriterBuilder builder = new ParquetWriterBuilder(file, schema,factory);
+
+        return builder.withValidation(false).withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
+                .withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)
+                .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
+                .withDictionaryPageSize(500 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
+    }
 }
