@@ -94,14 +94,4 @@ public class ParquetWriterBuilder extends Builder<List<String>, ParquetWriterBui
 				.withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
 				.withDictionaryPageSize(500 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
 	}
-
-    public static ParquetWriter<List<String>> buildDefault(Path file, EncMessageType schema, ValuesWriterFactory factory)
-            throws IOException {
-        ParquetWriterBuilder builder = new ParquetWriterBuilder(file, schema,factory);
-
-        return builder.withValidation(false).withCompressionCodec(CompressionCodecName.UNCOMPRESSED)
-                .withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)
-                .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)
-                .withDictionaryPageSize(500 * ParquetWriter.DEFAULT_PAGE_SIZE).build();
-    }
 }

@@ -45,14 +45,8 @@ public class ParquetReaderHelper {
                 for (ColumnChunkMetaData ccMeta : blockMeta.getColumns()) {
                     for (ColumnDescriptor cd : cols) {
                         PageReader pageReader = rowGroup.getPageReader(cd);
-                        ColumnReader colReader = new ColumnReaderImpl(cd, pageReader, new RowFieldPrimitiveConverter(index++), version);
 
-                        int counter = 0;
-                        while (colReader.getTotalValueCount() > counter++) {
-                           colReader.consume();
-                           colReader.getDouble();
 
-                        }
                     }
                 }
 
