@@ -28,9 +28,7 @@ import edu.uchicago.cs.encsel.model.IntEncoding;
 import edu.uchicago.cs.encsel.model.LongEncoding;
 import edu.uchicago.cs.encsel.model.StringEncoding;
 import org.apache.hadoop.fs.Path;
-import org.apache.parquet.column.values.factory.EncValuesWriterFactory;
 import org.apache.parquet.hadoop.ParquetWriter;
-import org.apache.parquet.schema.EncMessageType;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
@@ -43,6 +41,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ParquetWriterHelper {
@@ -106,20 +105,19 @@ public class ParquetWriterHelper {
         }
     }
 
-    public static void write(URI input, EncMessageType schema, URI output) throws IOException {
+    public static void write(URI input, MessageType schema, URI output, boolean useDict, String split) throws IOException {
         File outfile = new File(output);
         if (outfile.exists())
             outfile.delete();
         BufferedReader reader = new BufferedReader(new FileReader(new File(input)));
 
-        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output), schema, new EncValuesWriterFactory());
+        ParquetWriter<List<String>> writer = ParquetWriterBuilder.buildDefault(new Path(output), schema, useDict);
 
         String line;
-        List<String> holder = new ArrayList<>();
         while ((line = reader.readLine()) != null) {
-            holder.add(line.trim());
-            writer.write(holder);
-            holder.clear();
+            String[] dataArray = line.trim().split(split);
+            List<String> data = Arrays.asList(dataArray);
+            writer.write(data);
         }
 
         reader.close();
