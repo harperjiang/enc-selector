@@ -38,6 +38,8 @@ object HorizontalScan extends App {
     var rowGroup: PageReadStore = null;
     var dataPage: DataPage = null
 
+    val start = System.currentTimeMillis()
+
     rowGroup = fileReader.readNextRowGroup()
     while (rowGroup != null) {
       val blockMeta = footer.getParquetMetadata.getBlocks.get(blockCounter)
@@ -71,5 +73,8 @@ object HorizontalScan extends App {
       blockCounter += 1
       rowGroup = fileReader.readNextRowGroup()
     }
+
+    val consumed = System.currentTimeMillis() - start
+    println(consumed)
   }
 }
