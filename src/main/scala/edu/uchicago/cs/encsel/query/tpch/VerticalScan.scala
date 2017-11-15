@@ -3,6 +3,7 @@ package edu.uchicago.cs.encsel.query.tpch
 import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
+import edu.uchicago.cs.encsel.query.Bitmap
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.VersionParser
@@ -10,6 +11,9 @@ import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.{DataPage, PageReadStore}
 import org.apache.parquet.hadoop.ParquetFileReader
 import org.apache.parquet.hadoop.util.HiddenFileFilter
+
+import scala.collection.JavaConversions._
+
 
 object VerticalScan extends App {
 
@@ -37,6 +41,8 @@ object VerticalScan extends App {
     var rowGroup: PageReadStore = null;
     var dataPage: DataPage = null
 
+    val start = System.currentTimeMillis()
+
     rowGroup = fileReader.readNextRowGroup()
     while (rowGroup != null) {
       val blockMeta = footer.getParquetMetadata.getBlocks.get(blockCounter)
@@ -47,10 +53,18 @@ object VerticalScan extends App {
       val priceReader = readers(5)
       var counter = 0;
 
+      val bitmap = new Bitmap(rowGroup.getRowCount)
+
+
       while (counter < blockMeta.getRowCount) {
         val predicateOn = priceReader.getDouble;
+        bitmap.set(counter, predicateOn < 5000)
+        counter += 1
+      }
 
-        if (predicateOn < 5000) {
+      counter = 0
+      while (counter < blockMeta.getRowCount) {
+        if (bitmap.test(counter)) {
           recorder.start()
           readers.filter(_ != priceReader).foreach(reader => {
             reader.writeCurrentValueToConverter()
@@ -63,14 +77,15 @@ object VerticalScan extends App {
             reader.consume()
           })
         }
-        priceReader.consume()
         counter += 1
       }
 
       blockCounter += 1
       rowGroup = fileReader.readNextRowGroup()
     }
-  }
 
+    val consumed = System.currentTimeMillis() - start
+    println(consumed)
+  }
 
 }
