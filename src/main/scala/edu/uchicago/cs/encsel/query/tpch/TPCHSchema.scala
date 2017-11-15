@@ -57,7 +57,7 @@ object TPCHSchema {
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT32, "supp_key"),
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT32, "avail_qty"),
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.DOUBLE, "supply_cost"),
-    new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "comment"),
+    new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "comment")
   )
 
   val lineitemSchema = new MessageType("lineitem",
@@ -79,7 +79,7 @@ object TPCHSchema {
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "comment")
   )
 
-  val orderSchema = new MessageType("order",
+  val orderSchema = new MessageType("orders",
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT32, "order_key"),
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.INT32, "cust_key"),
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "order_status"),
@@ -90,4 +90,8 @@ object TPCHSchema {
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "ship_priority"),
     new PrimitiveType(Repetition.REQUIRED, PrimitiveTypeName.BINARY, "comment")
   )
+
+  val schemas = Array(customerSchema, nationSchema,
+    regionSchema, supplierSchema, partSchema,
+    partsuppSchema, lineitemSchema, orderSchema)
 }
