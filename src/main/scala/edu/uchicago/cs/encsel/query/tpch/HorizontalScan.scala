@@ -14,8 +14,8 @@ import org.apache.parquet.hadoop.util.HiddenFileFilter
 import scala.collection.JavaConversions._
 
 object HorizontalScan extends App {
-  val schema = TPCHSchema.customerSchema
-  val inputFolder = "/Users/harper/TPCH/"
+  val schema = TPCHSchema.lineitemSchema
+  val inputFolder = "/home/harper/TPCH/"
   val suffix = ".parquet"
 
   val file = new File("%s%s%s".format(inputFolder, schema.getName, suffix)).toURI
