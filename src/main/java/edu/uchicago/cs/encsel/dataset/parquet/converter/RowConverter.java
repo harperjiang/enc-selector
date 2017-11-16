@@ -44,4 +44,12 @@ public class RowConverter extends GroupConverter {
     public Row getCurrentRecord() {
         return current;
     }
+
+    public void setCurrentRecord(int index) {
+        current = records.get(index);
+    }
+
+    public List<Row> getRecords() {
+        return records;
+    }
 }

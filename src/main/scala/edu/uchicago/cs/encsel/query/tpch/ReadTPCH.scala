@@ -10,7 +10,9 @@ import org.apache.parquet.hadoop.util.HiddenFileFilter
 import scala.collection.JavaConversions._
 
 object ReadTPCH extends App {
-  val file = "/Users/harper/TPCH/customer.parquet"
+  val folder = args(0)
+  val schema = TPCHSchema.customerSchema
+  val file = "%s%s.parquet".format(folder,schema.getName)
   val conf = new Configuration
   val path = new Path(file)
   val fs = path.getFileSystem(conf)
