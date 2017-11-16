@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ParquetReaderHelper {
-    public static void read(URI file) throws IOException, VersionParser.VersionParseException {
+    public static void read(URI file, ReaderProcessor processor) throws IOException, VersionParser.VersionParseException {
         Configuration conf = new Configuration();
         Path path = new Path(file);
         FileSystem fs = path.getFileSystem(conf);
@@ -40,19 +40,13 @@ public class ParquetReaderHelper {
             List<ColumnDescriptor> cols = footer.getParquetMetadata().getFileMetaData().getSchema().getColumns();
             while ((rowGroup = fileReader.readNextRowGroup()) != null) {
                 BlockMetaData blockMeta = footer.getParquetMetadata().getBlocks().get(blockCounter);
-                // Read each column
-                int index = 0;
-                for (ColumnChunkMetaData ccMeta : blockMeta.getColumns()) {
-                    for (ColumnDescriptor cd : cols) {
-                        PageReader pageReader = rowGroup.getPageReader(cd);
-
-
-                    }
-                }
-
-
+                processor.processRowGroup(version, blockMeta, rowGroup);
                 blockCounter++;
             }
         }
+    }
+
+    public static interface ReaderProcessor {
+        public void processRowGroup(VersionParser.ParsedVersion version, BlockMetaData meta, PageReadStore rowGroup);
     }
 }
