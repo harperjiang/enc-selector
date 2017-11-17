@@ -2,14 +2,18 @@ package edu.uchicago.cs.encsel.query.tpch
 
 import java.io.File
 
+import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
+import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
 import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
-import edu.uchicago.cs.encsel.query.Bitmap
+import edu.uchicago.cs.encsel.query.{Bitmap, ColumnPredicate}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.VersionParser
+import org.apache.parquet.VersionParser.ParsedVersion
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.{DataPage, PageReadStore}
 import org.apache.parquet.hadoop.ParquetFileReader
+import org.apache.parquet.hadoop.metadata.BlockMetaData
 import org.apache.parquet.hadoop.util.HiddenFileFilter
 
 import scala.collection.JavaConversions._
@@ -17,75 +21,40 @@ import scala.collection.JavaConversions._
 
 object VerticalScan extends App {
 
-  val schema = TPCHSchema.customerSchema
-  val inputFolder = "/Users/harper/TPCH/"
+  val schema = TPCHSchema.lineitemSchema
+//  val inputFolder = "/Users/harper/TPCH/"
+  val inputFolder = args(0)
   val suffix = ".parquet"
 
   val file = new File("%s%s%s".format(inputFolder, schema.getName, suffix)).toURI
-  val conf = new Configuration
-  val path = new Path(file)
-  val fs = path.getFileSystem(conf)
-  val statuses = fs.listStatus(path, HiddenFileFilter.INSTANCE).toIterator.toList
-  val footers = ParquetFileReader.readAllFootersInParallelUsingSummaryFiles(conf, statuses, false)
-  if (footers.isEmpty)
-    throw new IllegalArgumentException();
+  val predicate = new ColumnPredicate[Double]((value: Double) => value < 5000)
+  val recorder = new RowConverter(schema)
 
-  for (footer <- footers) {
-    val version = VersionParser.parse(footer.getParquetMetadata.getFileMetaData.getCreatedBy)
-    val fileReader = ParquetFileReader.open(conf, footer.getFile, footer.getParquetMetadata)
-    var blockCounter = 0
-    val schema = footer.getParquetMetadata.getFileMetaData.getSchema
-    val cols = schema.getColumns
+  val start = System.currentTimeMillis()
 
-    val recorder = new RowConverter(schema);
-    var rowGroup: PageReadStore = null;
-    var dataPage: DataPage = null
-
-    val start = System.currentTimeMillis()
-
-    rowGroup = fileReader.readNextRowGroup()
-    while (rowGroup != null) {
-      val blockMeta = footer.getParquetMetadata.getBlocks.get(blockCounter)
-      val readers = cols.zipWithIndex.map(col => {
-        new ColumnReaderImpl(col._1, rowGroup.getPageReader(col._1), recorder.getConverter(col._2).asPrimitiveConverter(), version)
-      })
-      // Predicate on one column
-      val priceReader = readers(5)
-      var counter = 0;
-
+  ParquetReaderHelper.read(file, new ReaderProcessor {
+    override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
+      val columns = schema.getColumns.zipWithIndex.map(col => new ColumnReaderImpl(col._1,
+        rowGroup.getPageReader(col._1), recorder.getConverter(col._2).asPrimitiveConverter(), version))
+      predicate.setColumn(columns(5))
       val bitmap = new Bitmap(rowGroup.getRowCount)
 
-
-      while (counter < blockMeta.getRowCount) {
-        val predicateOn = priceReader.getDouble;
-        bitmap.set(counter, predicateOn < 5000)
-        counter += 1
+      for (count <- 0 until rowGroup.getRowCount) {
+        bitmap.set(count, predicate.test())
       }
-
-      counter = 0
-      while (counter < blockMeta.getRowCount) {
-        if (bitmap.test(counter)) {
-          recorder.start()
-          readers.filter(_ != priceReader).foreach(reader => {
-            reader.writeCurrentValueToConverter()
-            reader.consume()
-          })
-          recorder.end()
-        } else {
-          readers.filter(_ != priceReader).foreach(reader => {
-            reader.skip()
-            reader.consume()
-          })
+      columns.filter(_ != columns(5)).foreach(col => {
+        for (count <- 0 until rowGroup.getRowCount) {
+          if(bitmap.test(count)) {
+            col.writeCurrentValueToConverter()
+          } else {
+            col.skip()
+          }
+          col.consume()
         }
-        counter += 1
-      }
-
-      blockCounter += 1
-      rowGroup = fileReader.readNextRowGroup()
+      })
     }
+  })
 
-    val consumed = System.currentTimeMillis() - start
-    println(consumed)
-  }
-
+  val consumed = System.currentTimeMillis() - start
+  println(consumed)
 }
