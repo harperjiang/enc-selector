@@ -15,12 +15,10 @@ public class Row {
     }
 
     public void add(int index, boolean value) {
-
         data[index] = value;
     }
 
     public void add(int index, double value) {
-
         data[index] = value;
     }
 

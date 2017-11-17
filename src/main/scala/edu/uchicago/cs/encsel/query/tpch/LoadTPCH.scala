@@ -6,7 +6,8 @@ import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 
 object LoadTPCH extends App {
 
-  val folder = "/home/harper/TPCH/"
+//  val folder = "/home/harper/TPCH/"
+  val folder = args(0)
   val inputsuffix = ".tbl"
   val outputsuffix = ".parquet"
 
