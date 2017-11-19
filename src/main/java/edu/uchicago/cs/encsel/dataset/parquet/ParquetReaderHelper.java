@@ -32,6 +32,7 @@ public class ParquetReaderHelper {
             return;
         }
         for (Footer footer : footers) {
+            processor.processFooter(footer);
             VersionParser.ParsedVersion version = VersionParser.parse(footer.getParquetMetadata().getFileMetaData().getCreatedBy());
 
             ParquetFileReader fileReader = ParquetFileReader.open(conf, footer.getFile(), footer.getParquetMetadata());
@@ -47,6 +48,7 @@ public class ParquetReaderHelper {
     }
 
     public static interface ReaderProcessor {
+        public void processFooter(Footer footer);
         public void processRowGroup(VersionParser.ParsedVersion version, BlockMetaData meta, PageReadStore rowGroup);
     }
 }
