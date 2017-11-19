@@ -9,7 +9,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.parquet.VersionParser
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.{DataPage, PageReadStore}
-import org.apache.parquet.hadoop.ParquetFileReader
+import org.apache.parquet.hadoop.{Footer, ParquetFileReader}
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
 import edu.uchicago.cs.encsel.query.{ColumnPredicate, Predicate}
 import org.apache.parquet.VersionParser.ParsedVersion
@@ -34,6 +34,8 @@ object HorizontalScan extends App {
   val start = System.currentTimeMillis()
 
   ParquetReaderHelper.read(file, new ReaderProcessor() {
+    override def processFooter(footer: Footer): Unit = { }
+
     override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
       recorder.getRecords.clear()
       val cols = schema.getColumns
