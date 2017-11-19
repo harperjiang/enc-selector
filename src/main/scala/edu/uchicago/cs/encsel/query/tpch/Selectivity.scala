@@ -133,7 +133,7 @@ object Selectivity extends App {
           val thresUpper = selCounts(i)
           if (current < thres) {
             if (thresCount < thresUpper) {
-              thres = current
+              thres = Math.max(thres, current)
             } else {
               // Already used up, now need to shrink the size
               val subtract = step
