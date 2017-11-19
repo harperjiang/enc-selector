@@ -1,7 +1,7 @@
 package edu.uchicago.cs.encsel.query
 
 import org.apache.parquet.column.ColumnReader
-import org.apache.parquet.schema.MessageType
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 
 trait Predicate {
   def test(): Boolean
@@ -13,14 +13,14 @@ class ColumnPredicate[T](predicate: (T) => Boolean) extends Predicate {
 
   def setColumn(column: ColumnReader) = this.column = column
 
-  override def test(): Boolean = {
-    Class[T] match {
-      case Double => predicate(column.getDouble)
-      case String => predicate(column.getBinary)
-      case Int => predicate(column.getInteger)
-      case Long => predicate(column.getLong)
-      case Float => predicate(column.getFloat)
-      case Boolean => predicate(column.getBoolean)
+  def test(): Boolean = {
+    column.getDescriptor.getType match {
+      case PrimitiveTypeName.DOUBLE => predicate(column.getDouble.asInstanceOf[T])
+      case PrimitiveTypeName.BINARY => predicate(column.getBinary.asInstanceOf[T])
+      case PrimitiveTypeName.INT32 => predicate(column.getInteger.asInstanceOf[T])
+      case PrimitiveTypeName.INT64 => predicate(column.getLong.asInstanceOf[T])
+      case PrimitiveTypeName.FLOAT => predicate(column.getFloat.asInstanceOf[T])
+      case PrimitiveTypeName.BOOLEAN => predicate(column.getBoolean.asInstanceOf[T])
       case _ => throw new IllegalArgumentException
     }
   }
