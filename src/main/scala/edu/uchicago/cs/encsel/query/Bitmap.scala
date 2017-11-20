@@ -23,22 +23,43 @@
 
 package edu.uchicago.cs.encsel.query
 
-class Bitmap(val length:Long) {
+import edu.uchicago.cs.encsel.query.BitwiseOpr.BitwiseOpr
 
-  val data = new Array[Long](Math.ceil(length.toDouble/64).toInt)
+object BitwiseOpr extends Enumeration {
+  type BitwiseOpr = Value
+  val AND, OR, NOT, XOR = Value
+}
+
+class Bitmap(val length: Long) {
+
+  val data = new Array[Long](Math.ceil(length.toDouble / 64).toInt)
 
 
-  def set(index:Long, value:Boolean) ={
+  def set(index: Long, value: Boolean) = {
 
-    val li = (index/64).toInt;
+    val li = (index / 64).toInt;
     val offset = index % 64;
 
-    data.update(li, data(li)| (1L<<offset));
+    data.update(li, data(li) | (1L << offset));
   }
 
-  def test(index:Long) = {
+  def test(index: Long) = {
     val li = (index / 64).toInt
     val offset = index % 64
-    (data(li) & (1L << offset))!=0
+    (data(li) & (1L << offset)) != 0
+  }
+
+  def compute(opr: BitwiseOpr, other: Bitmap): Bitmap = {
+    val bitmap = new Bitmap(length)
+    for (i <- 0 until data.length) {
+      bitmap.data(i) = opr match {
+        case BitwiseOpr.AND => this.data(i) & other.data(i)
+        case BitwiseOpr.OR => this.data(i) | other.data(i)
+        case BitwiseOpr.XOR => this.data(i) ^ other.data(i)
+        case BitwiseOpr.NOT => ~this.data(i)
+        case _ => throw new IllegalArgumentException
+      }
+    }
+    bitmap
   }
 }
