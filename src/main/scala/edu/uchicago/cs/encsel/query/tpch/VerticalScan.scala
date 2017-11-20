@@ -2,17 +2,8 @@ package edu.uchicago.cs.encsel.query.tpch
 
 import java.io.File
 
-import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
-import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
 import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
-import edu.uchicago.cs.encsel.query.{Bitmap, ColumnPredicate}
-import org.apache.parquet.VersionParser.ParsedVersion
-import org.apache.parquet.column.impl.ColumnReaderImpl
-import org.apache.parquet.column.page.PageReadStore
-import org.apache.parquet.hadoop.Footer
-import org.apache.parquet.hadoop.metadata.BlockMetaData
-
-import scala.collection.JavaConversions._
+import edu.uchicago.cs.encsel.query.{VColumnPredicate, VerticalScan}
 
 
 object VerticalScan extends App {
@@ -29,34 +20,10 @@ object VerticalScan extends App {
   println(thresholds.map(scan(_)).mkString("\n"))
 
   def scan(threshold: Long): Long = {
-    val predicate = new ColumnPredicate[Double]((value: Double) => value < threshold)
+    val predicate = new VColumnPredicate((value: Any) => value.asInstanceOf[Double] < threshold, colIndex)
     val start = System.currentTimeMillis()
 
-    ParquetReaderHelper.read(file, new ReaderProcessor {
-      override def processFooter(footer: Footer): Unit = {}
-
-      override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
-        val columns = schema.getColumns.zipWithIndex.map(col => new ColumnReaderImpl(col._1,
-          rowGroup.getPageReader(col._1), recorder.getConverter(col._2).asPrimitiveConverter(), version))
-        val predicateReader = columns(colIndex)
-        predicate.setColumn(predicateReader)
-        val bitmap = new Bitmap(rowGroup.getRowCount)
-
-        for (count <- 0L until rowGroup.getRowCount) {
-          bitmap.set(count, predicate.test())
-        }
-        columns.filter(_ != predicateReader).foreach(col => {
-          for (count <- 0L until rowGroup.getRowCount) {
-            if (bitmap.test(count)) {
-              col.readValue()
-            } else {
-              col.skip()
-            }
-            col.consume()
-          }
-        })
-      }
-    })
+    new VerticalScan().scan(file, predicate, schema, Array(0, 1, 2, 3, 4), (Any, Int) => {})
 
     System.currentTimeMillis() - start
   }
