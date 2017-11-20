@@ -6,6 +6,8 @@ public class Row {
 
     private Object[] data;
 
+    public Object[] getData() { return data; }
+
     public Row(int colCount) {
         this.data = new Object[colCount];
     }

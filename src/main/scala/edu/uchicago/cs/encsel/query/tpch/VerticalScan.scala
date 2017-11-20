@@ -20,39 +20,44 @@ object VerticalScan extends App {
   val schema = TPCHSchema.lineitemSchema
   //  val inputFolder = "/Users/harper/TPCH/"
   val inputFolder = args(0)
+  val colIndex = 5
   val suffix = ".parquet"
-
   val file = new File("%s%s%s".format(inputFolder, schema.getName, suffix)).toURI
-  val predicate = new ColumnPredicate[Double]((value: Double) => value < 5000)
   val recorder = new RowConverter(schema)
 
-  val start = System.currentTimeMillis()
+  val thresholds = Array(6000, 8000, 17000, 36000, 50000, 53000, 63000, 69000)
+  println(thresholds.map(scan(_)).mkString("\n"))
 
-  ParquetReaderHelper.read(file, new ReaderProcessor {
-    override def processFooter(footer: Footer): Unit = {}
+  def scan(threshold: Long): Long = {
+    val predicate = new ColumnPredicate[Double]((value: Double) => value < threshold)
+    val start = System.currentTimeMillis()
 
-    override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
-      val columns = schema.getColumns.zipWithIndex.map(col => new ColumnReaderImpl(col._1,
-        rowGroup.getPageReader(col._1), recorder.getConverter(col._2).asPrimitiveConverter(), version))
-      predicate.setColumn(columns(5))
-      val bitmap = new Bitmap(rowGroup.getRowCount)
+    ParquetReaderHelper.read(file, new ReaderProcessor {
+      override def processFooter(footer: Footer): Unit = {}
 
-      for (count <- 0L until rowGroup.getRowCount) {
-        bitmap.set(count, predicate.test())
-      }
-      columns.filter(_ != columns(5)).foreach(col => {
+      override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
+        val columns = schema.getColumns.zipWithIndex.map(col => new ColumnReaderImpl(col._1,
+          rowGroup.getPageReader(col._1), recorder.getConverter(col._2).asPrimitiveConverter(), version))
+        val predicateReader = columns(colIndex)
+        predicate.setColumn(predicateReader)
+        val bitmap = new Bitmap(rowGroup.getRowCount)
+
         for (count <- 0L until rowGroup.getRowCount) {
-          if (bitmap.test(count)) {
-            col.writeCurrentValueToConverter()
-          } else {
-            col.skip()
-          }
-          col.consume()
+          bitmap.set(count, predicate.test())
         }
-      })
-    }
-  })
+        columns.filter(_ != predicateReader).foreach(col => {
+          for (count <- 0L until rowGroup.getRowCount) {
+            if (bitmap.test(count)) {
+              col.readValue()
+            } else {
+              col.skip()
+            }
+            col.consume()
+          }
+        })
+      }
+    })
 
-  val consumed = System.currentTimeMillis() - start
-  println(consumed)
+    System.currentTimeMillis() - start
+  }
 }
