@@ -27,7 +27,7 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.query.tpch.VerticalScan.{file, recorder}
+import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
 import org.apache.parquet.VersionParser.ParsedVersion
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -38,13 +38,13 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 
 import scala.collection.JavaConversions._
 
-trait Scan {
+trait Select {
 
-  def scan(input: URI, p: Predicate, schema: MessageType,
+  def select(input: URI, p: Predicate, schema: MessageType,
            projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit
 }
 
-object Scan {
+object Select {
   def readValue(column: ColumnReaderImpl): Any = {
     column.getDescriptor.getType match {
       case PrimitiveTypeName.DOUBLE => column.getDouble
@@ -58,13 +58,14 @@ object Scan {
   }
 }
 
-class VerticalScan extends Scan {
-  override def scan(input: URI, p: Predicate, schema: MessageType,
+class VerticalSelect extends Select {
+  override def select(input: URI, p: Predicate, schema: MessageType,
                     projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
 
     val vp = p.asInstanceOf[VPredicate]
+    val recorder = new RowConverter(schema)
 
-    ParquetReaderHelper.read(file, new ReaderProcessor {
+    ParquetReaderHelper.read(input, new ReaderProcessor {
       override def processFooter(footer: Footer): Unit = {}
 
       override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
@@ -80,7 +81,7 @@ class VerticalScan extends Scan {
         projectIndices.map(i => (columns(i), i)).foreach(col => {
           for (count <- 0L until rowGroup.getRowCount) {
             if (bitmap.test(count)) {
-              callback(Scan.readValue(col._1), col._2)
+              callback(Select.readValue(col._1), col._2)
             } else {
               col._1.skip()
             }
@@ -93,13 +94,13 @@ class VerticalScan extends Scan {
   }
 }
 
-class HorizontalScan extends Scan {
-  override def scan(input: URI, p: Predicate, schema: MessageType,
+class HorizontalSelect extends Select {
+  override def select(input: URI, p: Predicate, schema: MessageType,
                     projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
 
     val hp = p.asInstanceOf[HPredicate]
-
-    ParquetReaderHelper.read(file, new ReaderProcessor {
+    val recorder = new RowConverter(schema)
+    ParquetReaderHelper.read(input, new ReaderProcessor {
       override def processFooter(footer: Footer): Unit = {}
 
       override def processRowGroup(version: ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore): Unit = {
@@ -113,7 +114,7 @@ class HorizontalScan extends Scan {
         for (count <- 0L until rowGroup.getRowCount) {
           projectIndices.map(i => (columns(i), i)).foreach(col => {
             if (hp.value) {
-              callback(Scan.readValue(col._1), col._2)
+              callback(Select.readValue(col._1), col._2)
             } else {
               col._1.skip()
             }

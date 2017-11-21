@@ -3,7 +3,7 @@ package edu.uchicago.cs.encsel.query.tpch
 import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
-import edu.uchicago.cs.encsel.query.{HColumnPredicate, HorizontalScan}
+import edu.uchicago.cs.encsel.query.{HColumnPredicate, HorizontalSelect}
 
 object HorizontalScan extends App {
   val schema = TPCHSchema.lineitemSchema
@@ -22,7 +22,7 @@ object HorizontalScan extends App {
     val predicate = new HColumnPredicate((value: Any) => value.asInstanceOf[Double] < threshold, colIndex)
     val start = System.currentTimeMillis()
 
-    new HorizontalScan().scan(file, predicate, schema, Array(0, 1, 2, 3, 4), (Any, Int) => {})
+    new HorizontalSelect().select(file, predicate, schema, Array(0, 1, 2, 3, 4), (Any, Int) => {})
 
     System.currentTimeMillis() - start
   }
