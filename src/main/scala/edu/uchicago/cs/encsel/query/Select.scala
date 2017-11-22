@@ -27,7 +27,7 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
+import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
 import org.apache.parquet.VersionParser.ParsedVersion
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -49,7 +49,7 @@ class VerticalSelect extends Select {
                       projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
 
     val vp = p.asInstanceOf[VPredicate]
-    val recorder = new RowConverter(schema)
+    val recorder = new RowTempTable(schema)
 
     ParquetReaderHelper.read(input, new ReaderProcessor {
       override def processFooter(footer: Footer): Unit = {}
@@ -85,7 +85,7 @@ class HorizontalSelect extends Select {
                       projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
 
     val hp = p.asInstanceOf[HPredicate]
-    val recorder = new RowConverter(schema)
+    val recorder = new RowTempTable(schema)
     ParquetReaderHelper.read(input, new ReaderProcessor {
       override def processFooter(footer: Footer): Unit = {}
 

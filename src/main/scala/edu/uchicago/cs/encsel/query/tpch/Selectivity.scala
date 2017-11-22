@@ -27,7 +27,7 @@ import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
+import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
 import org.apache.parquet.VersionParser.ParsedVersion
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -50,7 +50,7 @@ object Selectivity extends App {
 
   val colIndex = args(1).toInt
 
-  val recorder = new RowConverter(schema);
+  val recorder = new RowTempTable(schema);
 
   val minimal = 0L
 

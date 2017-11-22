@@ -2,7 +2,7 @@ package edu.uchicago.cs.encsel.query.tpch
 
 import java.io.File
 
-import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
+import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
 import edu.uchicago.cs.encsel.query.{HColumnPredicate, HorizontalSelect}
 
 object HorizontalScan extends App {
@@ -13,7 +13,7 @@ object HorizontalScan extends App {
   val suffix = ".parquet"
   val file = new File("%s%s%s".format(inputFolder, schema.getName, suffix)).toURI
 
-  val recorder = new RowConverter(schema);
+  val recorder = new RowTempTable(schema);
 
   val thresholds = Array(6000, 8000, 17000, 36000, 50000, 53000, 63000, 69000)
   println(thresholds.map(scan(_)).mkString("\n"))

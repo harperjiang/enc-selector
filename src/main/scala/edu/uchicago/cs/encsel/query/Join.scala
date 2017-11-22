@@ -27,7 +27,7 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.RowConverter
+import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
 import org.apache.parquet.VersionParser
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -49,8 +49,8 @@ class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Jo
     val leftBlocks = Array()
     val rightBlocks = Array()
 
-    val leftRecorder = new RowConverter(leftSchema)
-    val rightRecorder = new RowConverter(rightSchema)
+    val leftRecorder = new RowTempTable(leftSchema)
+    val rightRecorder = new RowTempTable(rightSchema)
 
     ParquetReaderHelper.read(left, new ReaderProcessor() {
       override def processFooter(footer: Footer) = {
@@ -61,7 +61,7 @@ class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Jo
         val readers = leftSchema.getColumns.map(col => new ColumnReaderImpl(col, rowGroup.getPageReader(col),
           leftRecorder.getConverter(col.getPath).asPrimitiveConverter(), version))
 
-//        forreaders(joinKey._1)
+        //        forreaders(joinKey._1)
       }
     })
 
@@ -80,7 +80,22 @@ class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Jo
 }
 
 class HashJoin extends Join {
-  def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int)) = {
+  def join(hashFile: URI, hashSchema: MessageType, probeFile: URI, probeSchema: MessageType, joinKey: (Int, Int)) = {
 
+    val hashRecorder = new RowTempTable(hashSchema)
+    val probeRecorder = new RowTempTable(probeSchema)
+
+    ParquetReaderHelper.read(hashFile, new ReaderProcessor() {
+      override def processFooter(footer: Footer) = {
+
+      }
+
+      override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
+        val readers = hashSchema.getColumns.map(col => new ColumnReaderImpl(col, rowGroup.getPageReader(col),
+          hashRecorder.getConverter(col.getPath).asPrimitiveConverter(), version))
+
+        //        forreaders(joinKey._1)
+      }
+    })
   }
 }
