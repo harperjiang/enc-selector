@@ -34,33 +34,19 @@ import org.apache.parquet.column.page.PageReadStore
 import org.apache.parquet.hadoop.Footer
 import org.apache.parquet.hadoop.metadata.BlockMetaData
 import org.apache.parquet.schema.MessageType
-import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 
 import scala.collection.JavaConversions._
 
 trait Select {
 
   def select(input: URI, p: Predicate, schema: MessageType,
-           projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit
+             projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit
 }
 
-object Select {
-  def readValue(column: ColumnReaderImpl): Any = {
-    column.getDescriptor.getType match {
-      case PrimitiveTypeName.DOUBLE => column.getDouble
-      case PrimitiveTypeName.BINARY => column.getBinary
-      case PrimitiveTypeName.INT32 => column.getInteger
-      case PrimitiveTypeName.INT64 => column.getLong
-      case PrimitiveTypeName.FLOAT => column.getFloat
-      case PrimitiveTypeName.BOOLEAN => column.getBoolean
-      case _ => throw new IllegalArgumentException
-    }
-  }
-}
 
 class VerticalSelect extends Select {
   override def select(input: URI, p: Predicate, schema: MessageType,
-                    projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
+                      projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
 
     val vp = p.asInstanceOf[VPredicate]
     val recorder = new RowConverter(schema)
@@ -81,7 +67,7 @@ class VerticalSelect extends Select {
         projectIndices.map(i => (columns(i), i)).foreach(col => {
           for (count <- 0L until rowGroup.getRowCount) {
             if (bitmap.test(count)) {
-              callback(Select.readValue(col._1), col._2)
+              callback(DataUtils.readValue(col._1), col._2)
             } else {
               col._1.skip()
             }
@@ -96,7 +82,7 @@ class VerticalSelect extends Select {
 
 class HorizontalSelect extends Select {
   override def select(input: URI, p: Predicate, schema: MessageType,
-                    projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
+                      projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
 
     val hp = p.asInstanceOf[HPredicate]
     val recorder = new RowConverter(schema)
@@ -114,7 +100,7 @@ class HorizontalSelect extends Select {
         for (count <- 0L until rowGroup.getRowCount) {
           projectIndices.map(i => (columns(i), i)).foreach(col => {
             if (hp.value) {
-              callback(Select.readValue(col._1), col._2)
+              callback(DataUtils.readValue(col._1), col._2)
             } else {
               col._1.skip()
             }
