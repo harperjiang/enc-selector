@@ -60,6 +60,8 @@ class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Jo
       override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
         val readers = leftSchema.getColumns.map(col => new ColumnReaderImpl(col, rowGroup.getPageReader(col),
           leftRecorder.getConverter(col.getPath).asPrimitiveConverter(), version))
+
+//        forreaders(joinKey._1)
       }
     })
 
