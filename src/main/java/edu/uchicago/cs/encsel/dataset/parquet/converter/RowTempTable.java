@@ -10,14 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RowConverter extends GroupConverter {
+public class RowTempTable extends GroupConverter {
     protected Row current;
     private Converter[] converters;
 
     private Map<String[], Integer> index = new HashMap<>();
     private List<Row> records = new ArrayList<>();
 
-    public RowConverter(MessageType schema) {
+    public RowTempTable(MessageType schema) {
 
         converters = new Converter[schema.getFieldCount()];
 
