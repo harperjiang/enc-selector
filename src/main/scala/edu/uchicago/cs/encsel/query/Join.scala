@@ -93,7 +93,7 @@ class HashJoin extends Join {
 
     val hashtable = new mutable.HashMap[Any, Row]()
 
-    val joinedSchema = SchemaUtils.join(hashSchema, probeSchema, joinKey, hashProject, probeProject)
+    val joinedSchema = SchemaUtils.join(hashSchema, probeSchema, hashProject, probeProject)
     val outputRecorder = new ColumnTempTable(joinedSchema)
 
     // Build Hash Table
@@ -130,7 +130,7 @@ class HashJoin extends Join {
       override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
         val probeReaders = probeProjectSchema.getColumns.zipWithIndex
           .map(col => new ColumnReaderImpl(col._1, rowGroup.getPageReader(col._1),
-            outputRecorder.getConverter(1 + hashProject.length + col._2).asPrimitiveConverter(), version))
+            outputRecorder.getConverter(hashProject.length + col._2).asPrimitiveConverter(), version))
 
         val hashKeyCol = probeSchema.getColumns()(joinKey._2)
         val hashKeyReader = new ColumnReaderImpl(hashKeyCol, rowGroup.getPageReader(hashKeyCol),
@@ -144,11 +144,9 @@ class HashJoin extends Join {
             case Some(row) => {
               // Record match in bitmap
               bitmap.set(i, true)
-              // Write hash key to output
-              DataUtils.writeValue(outputRecorder.getConverter(0).asPrimitiveConverter(), hashKey)
               // Write remaining field to output
               for (j <- 0 until hashProjectSchema.getColumns.size) {
-                DataUtils.writeValue(outputRecorder.getConverter(1 + j).asPrimitiveConverter(), row.getData()(j))
+                DataUtils.writeValue(outputRecorder.getConverter(j).asPrimitiveConverter(), row.getData()(j))
               }
             }
             case None => {}
@@ -158,7 +156,7 @@ class HashJoin extends Join {
         // Based on bitmap, write remaining columns
         for (j <- 0 until probeProjectSchema.getColumns.size) {
           val source = probeReaders(j)
-          val target = outputRecorder.getConverter(1 + hashProject.length + j).asPrimitiveConverter()
+          val target = outputRecorder.getConverter(hashProject.length + j).asPrimitiveConverter()
           for (i <- 0L until rowGroup.getRowCount) {
             // Write probe
             bitmap.test(i) match {

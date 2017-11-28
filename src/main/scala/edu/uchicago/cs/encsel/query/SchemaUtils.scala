@@ -35,11 +35,10 @@ object SchemaUtils {
    }).toList)
   }
 
-  def join(left: MessageType, right: MessageType, joinKey: (Int, Int),
+  def join(left: MessageType, right: MessageType,
            leftProject: Array[Int], rightProject: Array[Int]): MessageType = {
     val types = new util.ArrayList[Type](leftProject.length + rightProject.length + 1)
 
-    types.add(left.getType(joinKey._1).withId(0))
     leftProject.foreach(i => {
       types.add(left.getType(i).withId(types.size()))
     })
