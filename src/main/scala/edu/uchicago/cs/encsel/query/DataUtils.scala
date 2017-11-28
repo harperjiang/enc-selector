@@ -24,6 +24,7 @@
 package edu.uchicago.cs.encsel.query
 
 import org.apache.parquet.column.impl.ColumnReaderImpl
+import org.apache.parquet.io.api.{Binary, PrimitiveConverter}
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 
 object DataUtils {
@@ -36,6 +37,22 @@ object DataUtils {
       case PrimitiveTypeName.FLOAT => column.getFloat
       case PrimitiveTypeName.BOOLEAN => column.getBoolean
       case _ => throw new IllegalArgumentException
+    }
+  }
+
+  def writeValue(target: PrimitiveConverter, data: Any): Unit = {
+    if (target.hasDictionarySupport) {
+      target.addValueFromDictionary(data.asInstanceOf[Int])
+    } else {
+      data match {
+        case d: Double => target.addDouble(d)
+        case b: Binary => target.addBinary(b)
+        case i: Integer => target.addInt(i)
+        case l: Long => target.addLong(l)
+        case f: Float => target.addFloat(f)
+        case bo: Boolean => target.addBoolean(bo)
+        case _ => throw new IllegalArgumentException
+      }
     }
   }
 }

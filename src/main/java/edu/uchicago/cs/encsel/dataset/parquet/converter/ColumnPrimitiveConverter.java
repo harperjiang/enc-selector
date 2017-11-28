@@ -28,7 +28,8 @@ import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.PrimitiveType;
 
 public class ColumnPrimitiveConverter extends PrimitiveConverter {
-    private int index;
+
+    private int[] index;
 
     private Dictionary dictionary;
 
@@ -36,7 +37,7 @@ public class ColumnPrimitiveConverter extends PrimitiveConverter {
 
     private PrimitiveType type;
 
-    public ColumnPrimitiveConverter(ColumnTempTable parent, int index, PrimitiveType type) {
+    public ColumnPrimitiveConverter(ColumnTempTable parent, int[] index, PrimitiveType type) {
         this.parent = parent;
         this.index = index;
         this.type = type;
