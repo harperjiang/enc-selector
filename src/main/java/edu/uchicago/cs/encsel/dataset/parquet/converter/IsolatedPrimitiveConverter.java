@@ -14,10 +14,11 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License.
+ * under the License,
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
+ *
  */
 
 package edu.uchicago.cs.encsel.dataset.parquet.converter;
@@ -26,21 +27,14 @@ import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.PrimitiveType;
-import scala.Tuple2;
 
-public class ColumnPrimitiveConverter extends PrimitiveConverter {
-
-    private int index;
+public class IsolatedPrimitiveConverter extends PrimitiveConverter {
 
     private Dictionary dictionary;
 
-    private ColumnTempTable parent;
-
     private PrimitiveType type;
 
-    public ColumnPrimitiveConverter(ColumnTempTable parent, int index, PrimitiveType type) {
-        this.parent = parent;
-        this.index = index;
+    public IsolatedPrimitiveConverter(PrimitiveType type) {
         this.type = type;
     }
 
@@ -82,32 +76,25 @@ public class ColumnPrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public void addBinary(Binary value) {
-        parent.add(index, value);
     }
 
     @Override
     public void addBoolean(boolean value) {
-        parent.add(index, value);
     }
 
     @Override
     public void addDouble(double value) {
-        parent.add(index, value);
     }
 
     @Override
     public void addFloat(float value) {
-        parent.add(index, value);
     }
 
     @Override
     public void addInt(int value) {
-        parent.add(index, value);
     }
 
     @Override
     public void addLong(long value) {
-        parent.add(index, value);
     }
-
 }

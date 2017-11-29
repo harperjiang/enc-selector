@@ -26,6 +26,10 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.MessageType;
+import scala.Tuple2;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ColumnTempTable extends GroupConverter {
 
@@ -35,13 +39,19 @@ public class ColumnTempTable extends GroupConverter {
 
     private Column[] columns;
 
+    private Map<String[], Integer> pathMaps;
+
     public ColumnTempTable(MessageType schema) {
         this.schema = schema;
+
         converters = new ColumnPrimitiveConverter[schema.getColumns().size()];
         columns = new Column[converters.length];
+        pathMaps = new HashMap<>();
         for (int i = 0; i < converters.length; i++) {
-            converters[i] = new ColumnPrimitiveConverter(this, i, schema.getType(i).asPrimitiveType());
+            converters[i] = new ColumnPrimitiveConverter(this, i,
+                    schema.getType(i).asPrimitiveType());
             columns[i] = new Column();
+            pathMaps.put(schema.getColumns().get(i).getPath(), i);
         }
     }
 
@@ -49,6 +59,11 @@ public class ColumnTempTable extends GroupConverter {
     public Converter getConverter(int fieldIndex) {
         return converters[fieldIndex];
     }
+
+    public Converter getConverter(String[] path) {
+        return getConverter(pathMaps.get(path));
+    }
+
 
     @Override
     public void start() {
