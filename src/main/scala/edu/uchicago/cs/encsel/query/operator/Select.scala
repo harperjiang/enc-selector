@@ -110,6 +110,5 @@ class HorizontalSelect extends Select {
         }
       }
     })
-
   }
 }
