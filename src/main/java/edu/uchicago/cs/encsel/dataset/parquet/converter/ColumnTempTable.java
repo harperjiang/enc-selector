@@ -64,6 +64,9 @@ public class ColumnTempTable extends GroupConverter {
         return getConverter(pathMaps.get(path));
     }
 
+    public Column[] getColumns() {
+        return columns;
+    }
 
     @Override
     public void start() {
