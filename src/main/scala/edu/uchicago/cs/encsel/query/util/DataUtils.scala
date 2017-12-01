@@ -14,14 +14,13 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.query
+package edu.uchicago.cs.encsel.query.util
 
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.io.api.{Binary, PrimitiveConverter}
@@ -53,6 +52,18 @@ object DataUtils {
         case bo: Boolean => target.addBoolean(bo)
         case _ => throw new IllegalArgumentException
       }
+    }
+  }
+
+  def copy(source:ColumnReaderImpl, dest:PrimitiveConverter):Unit = {
+    source.getDescriptor.getType match {
+      case PrimitiveTypeName.DOUBLE => dest.addDouble(source.getDouble)
+      case PrimitiveTypeName.BINARY => dest.addBinary(source.getBinary)
+      case PrimitiveTypeName.INT32 => dest.addInt(source.getInteger)
+      case PrimitiveTypeName.INT64 => dest.addLong(source.getLong)
+      case PrimitiveTypeName.FLOAT => dest.addFloat(source.getFloat)
+      case PrimitiveTypeName.BOOLEAN => dest.addBoolean(source.getBoolean)
+      case _ => throw new IllegalArgumentException
     }
   }
 }

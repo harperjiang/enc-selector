@@ -14,20 +14,21 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.query
+package edu.uchicago.cs.encsel.query.operator
 
 import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.{ColumnTempTable, IsolatedPrimitiveConverter, Row, RowTempTable}
+import edu.uchicago.cs.encsel.dataset.parquet.converter.{ColumnTempTable, PipePrimitiveConverter, Row, RowTempTable}
+import edu.uchicago.cs.encsel.query.util.{DataUtils, SchemaUtils}
+import edu.uchicago.cs.encsel.query.{Bitmap}
 import org.apache.parquet.VersionParser
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -35,52 +36,8 @@ import org.apache.parquet.hadoop.Footer
 import org.apache.parquet.hadoop.metadata.BlockMetaData
 import org.apache.parquet.schema.MessageType
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable
-
-trait Join {
-
-  def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int),
-           leftProject: Array[Int], rightProject: Array[Int]);
-}
-
-class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Join {
-
-  def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int),
-           leftProject: Array[Int], rightProject: Array[Int]) = {
-
-    val leftBlocks = new Array[ColumnTempTable](numBlock)
-    val rightBlocks = new Array[ColumnTempTable](numBlock)
-    for (i <- 0 until numBlock) {
-      leftBlocks(i) = new ColumnTempTable(leftSchema)
-      rightBlocks(i) = new ColumnTempTable(rightSchema)
-    }
-
-    val leftRecorder = new RowTempTable(leftSchema)
-    val rightRecorder = new RowTempTable(rightSchema)
-
-    ParquetReaderHelper.read(left, new ReaderProcessor() {
-      override def processFooter(footer: Footer) = {}
-
-      override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
-        val readers = leftSchema.getColumns.map(col => new ColumnReaderImpl(col, rowGroup.getPageReader(col),
-          leftRecorder.getConverter(col.getPath).asPrimitiveConverter(), version))
-
-        readers(joinKey._1)
-      }
-    })
-
-    ParquetReaderHelper.read(right, new ReaderProcessor() {
-      override def processFooter(footer: Footer) = {}
-
-      override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
-        val readers = rightSchema.getColumns.map(col => new ColumnReaderImpl(col, rowGroup.getPageReader(col),
-          rightRecorder.getConverter(col.getPath).asPrimitiveConverter(), version))
-      }
-    })
-
-  }
-}
+import scala.collection.JavaConversions._
 
 class HashJoin extends Join {
   def join(hashFile: URI, hashSchema: MessageType, probeFile: URI, probeSchema: MessageType, joinKey: (Int, Int),
@@ -106,7 +63,7 @@ class HashJoin extends Join {
 
         val hashKeyCol = hashSchema.getColumns()(joinKey._1)
         val hashKeyReader = new ColumnReaderImpl(hashKeyCol, rowGroup.getPageReader(hashKeyCol),
-          new IsolatedPrimitiveConverter(hashSchema.getType(joinKey._1).asPrimitiveType()), version)
+          new PipePrimitiveConverter(hashSchema.getType(joinKey._1).asPrimitiveType()), version)
         // Build hash table
         for (i <- 0L until rowGroup.getRowCount) {
           val hashKey = DataUtils.readValue(hashKeyReader)
@@ -128,13 +85,10 @@ class HashJoin extends Join {
       override def processFooter(footer: Footer) = {}
 
       override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
-        val probeReaders = probeProjectSchema.getColumns.zipWithIndex
-          .map(col => new ColumnReaderImpl(col._1, rowGroup.getPageReader(col._1),
-            outputRecorder.getConverter(hashProject.length + col._2).asPrimitiveConverter(), version))
 
         val hashKeyCol = probeSchema.getColumns()(joinKey._2)
         val hashKeyReader = new ColumnReaderImpl(hashKeyCol, rowGroup.getPageReader(hashKeyCol),
-          new IsolatedPrimitiveConverter(probeSchema.getType(joinKey._2).asPrimitiveType()), version)
+          new PipePrimitiveConverter(probeSchema.getType(joinKey._2).asPrimitiveType()), version)
         // Build bitmap
         val bitmap = new Bitmap(rowGroup.getRowCount)
 
@@ -153,15 +107,18 @@ class HashJoin extends Join {
           }
         }
 
+        val probeReaders = probeProjectSchema.getColumns.zipWithIndex
+          .map(col => new ColumnReaderImpl(col._1, rowGroup.getPageReader(col._1),
+            outputRecorder.getConverter(hashProject.length + col._2).asPrimitiveConverter(), version))
+
         // Based on bitmap, write remaining columns
         for (j <- 0 until probeProjectSchema.getColumns.size) {
           val source = probeReaders(j)
-          val target = outputRecorder.getConverter(hashProject.length + j).asPrimitiveConverter()
           for (i <- 0L until rowGroup.getRowCount) {
             // Write probe
             bitmap.test(i) match {
               case true => {
-                DataUtils.writeValue(target, DataUtils.readValue(source))
+                source.writeCurrentValueToConverter()
               }
               case false => {
                 source.skip()

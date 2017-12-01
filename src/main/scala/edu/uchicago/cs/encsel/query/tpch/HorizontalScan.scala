@@ -3,7 +3,8 @@ package edu.uchicago.cs.encsel.query.tpch
 import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
-import edu.uchicago.cs.encsel.query.{HColumnPredicate, HorizontalSelect}
+import edu.uchicago.cs.encsel.query.HColumnPredicate
+import edu.uchicago.cs.encsel.query.operator.HorizontalSelect
 
 object HorizontalScan extends App {
   val schema = TPCHSchema.lineitemSchema

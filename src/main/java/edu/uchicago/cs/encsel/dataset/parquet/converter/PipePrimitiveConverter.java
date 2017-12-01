@@ -28,14 +28,24 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.PrimitiveType;
 
-public class IsolatedPrimitiveConverter extends PrimitiveConverter {
+public class PipePrimitiveConverter extends PrimitiveConverter {
 
     private Dictionary dictionary;
 
     private PrimitiveType type;
 
-    public IsolatedPrimitiveConverter(PrimitiveType type) {
+    private Object value;
+
+    private PrimitiveConverter next = NonePrimitiveConverter.INSTANCE;
+
+    public PipePrimitiveConverter(PrimitiveType type) {
         this.type = type;
+    }
+
+    public void setNext(PrimitiveConverter next) {
+        if(next == null)
+            throw new IllegalArgumentException("Next is null");
+        this.next = next;
     }
 
     @Override
@@ -76,25 +86,37 @@ public class IsolatedPrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public void addBinary(Binary value) {
+        this.value = value;
+        this.next.addBinary(value);
     }
 
     @Override
     public void addBoolean(boolean value) {
+        this.value = value;
+        this.next.addBoolean(value);
     }
 
     @Override
     public void addDouble(double value) {
+        this.value = value;
+        this.next.addDouble(value);
     }
 
     @Override
     public void addFloat(float value) {
+        this.value = value;
+        this.next.addFloat(value);
     }
 
     @Override
     public void addInt(int value) {
+        this.value = value;
+        this.next.addInt(value);
     }
 
     @Override
     public void addLong(long value) {
+        this.value = value;
+        this.next.addLong(value);
     }
 }

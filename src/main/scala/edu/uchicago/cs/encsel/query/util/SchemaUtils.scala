@@ -14,18 +14,19 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.query
+package edu.uchicago.cs.encsel.query.util
 
-import java.util
-import scala.collection.JavaConversions._
+import java.util.ArrayList
+
 import org.apache.parquet.schema.{MessageType, Type}
+
+import scala.collection.JavaConversions._
 
 object SchemaUtils {
 
@@ -37,7 +38,7 @@ object SchemaUtils {
 
   def join(left: MessageType, right: MessageType,
            leftProject: Array[Int], rightProject: Array[Int]): MessageType = {
-    val types = new util.ArrayList[Type](leftProject.length + rightProject.length + 1)
+    val types = new ArrayList[Type](leftProject.length + rightProject.length + 1)
 
     leftProject.foreach(i => {
       types.add(left.getType(i).withId(types.size()))

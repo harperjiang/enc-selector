@@ -3,7 +3,8 @@ package edu.uchicago.cs.encsel.query.tpch
 import java.io.File
 
 import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
-import edu.uchicago.cs.encsel.query.{VColumnPredicate, VerticalSelect}
+import edu.uchicago.cs.encsel.query.VColumnPredicate
+import edu.uchicago.cs.encsel.query.operator.VerticalSelect
 
 
 object VerticalScan extends App {
