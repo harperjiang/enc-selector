@@ -14,14 +14,13 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.dataset.parquet.converter;
+package edu.uchicago.cs.encsel.query;
 
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;

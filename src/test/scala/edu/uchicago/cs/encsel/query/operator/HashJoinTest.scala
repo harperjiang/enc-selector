@@ -22,6 +22,31 @@
 
 package edu.uchicago.cs.encsel.query.operator
 
+import java.io.File
+
+import org.apache.parquet.schema.Type.Repetition
+import org.apache.parquet.schema.{MessageType, PrimitiveType}
+import org.junit.Test
+
 class HashJoinTest {
 
+  @Test
+  def testJoin: Unit = {
+
+    val leftSchema = new MessageType("left",
+      new PrimitiveType(Repetition.REQUIRED, PrimitiveType.PrimitiveTypeName.INT32, "id"),
+      new PrimitiveType(Repetition.REQUIRED, PrimitiveType.PrimitiveTypeName.BINARY, "name"),
+      new PrimitiveType(Repetition.REQUIRED, PrimitiveType.PrimitiveTypeName.INT32, "year")
+    )
+
+    val rightSchema = new MessageType("right",
+      new PrimitiveType(Repetition.REQUIRED, PrimitiveType.PrimitiveTypeName.INT32, "id"),
+      new PrimitiveType(Repetition.REQUIRED, PrimitiveType.PrimitiveTypeName.INT32, "ref_id"),
+      new PrimitiveType(Repetition.REQUIRED, PrimitiveType.PrimitiveTypeName.BINARY, "info")
+    )
+
+    val result = new HashJoin().join(new File("test/resource/query/hashjoin_left").toURI, leftSchema,
+      new File("test/resource/query/hashjoin_right").toURI, rightSchema,
+      (0, 1), Array(0, 1, 2), Array(2))
+  }
 }

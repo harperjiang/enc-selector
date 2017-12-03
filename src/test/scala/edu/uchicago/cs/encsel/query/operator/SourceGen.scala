@@ -24,15 +24,9 @@ package edu.uchicago.cs.encsel.query.operator
 
 import java.net.URI
 
-import edu.uchicago.cs.encsel.query.TempTable
 import org.apache.parquet.schema.MessageType
 
-trait Join {
+object SourceGen extends App {
 
-  def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int),
-           leftProject: Array[Int], rightProject: Array[Int]): TempTable;
+  def gen(source:URI, dest:URI, schema:MessageType)
 }
-
-
-
-

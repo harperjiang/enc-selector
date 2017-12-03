@@ -26,9 +26,9 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.{ColumnTempTable, PipePrimitiveConverter, Row, RowTempTable}
+import edu.uchicago.cs.encsel.dataset.parquet.converter.{PipePrimitiveConverter, Row, RowTempTable}
 import edu.uchicago.cs.encsel.query.util.{DataUtils, SchemaUtils}
-import edu.uchicago.cs.encsel.query.{Bitmap}
+import edu.uchicago.cs.encsel.query._
 import org.apache.parquet.VersionParser
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -41,7 +41,7 @@ import scala.collection.JavaConversions._
 
 class HashJoin extends Join {
   def join(hashFile: URI, hashSchema: MessageType, probeFile: URI, probeSchema: MessageType, joinKey: (Int, Int),
-           hashProject: Array[Int], probeProject: Array[Int]) = {
+           hashProject: Array[Int], probeProject: Array[Int]):TempTable = {
 
     val hashProjectSchema = SchemaUtils.project(hashSchema, hashProject)
     val hashRecorder = new RowTempTable(hashProjectSchema)
@@ -129,5 +129,6 @@ class HashJoin extends Join {
         }
       }
     })
+    return outputRecorder
   }
 }

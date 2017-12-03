@@ -2,8 +2,7 @@ package edu.uchicago.cs.encsel.query.tpch
 
 import java.io.File
 
-import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
-import edu.uchicago.cs.encsel.query.VColumnPredicate
+import edu.uchicago.cs.encsel.query.{RowTempTable, VColumnPredicate}
 import edu.uchicago.cs.encsel.query.operator.VerticalSelect
 
 

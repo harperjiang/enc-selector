@@ -26,8 +26,7 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.RowTempTable
-import edu.uchicago.cs.encsel.query._
+import edu.uchicago.cs.encsel.query.{RowTempTable, _}
 import edu.uchicago.cs.encsel.query.util.DataUtils
 import org.apache.parquet.VersionParser.ParsedVersion
 import org.apache.parquet.column.impl.ColumnReaderImpl
@@ -41,16 +40,16 @@ import scala.collection.JavaConversions._
 trait Select {
 
   def select(input: URI, p: Predicate, schema: MessageType,
-             projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit
+             projectIndices: Array[Int]): TempTable
 }
 
 
 class VerticalSelect extends Select {
   override def select(input: URI, p: Predicate, schema: MessageType,
-                      projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
+                      projectIndices: Array[Int]): TempTable = {
 
     val vp = p.asInstanceOf[VPredicate]
-    val recorder = new RowTempTable(schema)
+    val recorder = new ColumnTempTable(schema)
 
     ParquetReaderHelper.read(input, new ReaderProcessor {
       override def processFooter(footer: Footer): Unit = {}
@@ -65,25 +64,26 @@ class VerticalSelect extends Select {
 
         val bitmap = vp.bitmap
 
-        projectIndices.map(i => (columns(i), i)).foreach(col => {
+        projectIndices.map(columns(_)).foreach(col => {
           for (count <- 0L until rowGroup.getRowCount) {
             if (bitmap.test(count)) {
-              callback(DataUtils.readValue(col._1), col._2)
+              col.writeCurrentValueToConverter()
             } else {
-              col._1.skip()
+              col.skip()
             }
-            col._1.consume()
+            col.consume()
           }
         })
       }
     })
 
+    return recorder
   }
 }
 
 class HorizontalSelect extends Select {
   override def select(input: URI, p: Predicate, schema: MessageType,
-                      projectIndices: Array[Int], callback: (Any, Int) => Unit): Unit = {
+                      projectIndices: Array[Int]): TempTable = {
 
     val hp = p.asInstanceOf[HPredicate]
     val recorder = new RowTempTable(schema)
@@ -99,16 +99,19 @@ class HorizontalSelect extends Select {
         })
 
         for (count <- 0L until rowGroup.getRowCount) {
-          projectIndices.map(i => (columns(i), i)).foreach(col => {
+          recorder.start()
+          projectIndices.map(columns(_)).foreach(col => {
             if (hp.value) {
-              callback(DataUtils.readValue(col._1), col._2)
+              col.writeCurrentValueToConverter()
             } else {
-              col._1.skip()
+              col.skip()
             }
-            col._1.consume()
+            col.consume()
           })
+          recorder.end()
         }
       }
     })
+    return recorder
   }
 }

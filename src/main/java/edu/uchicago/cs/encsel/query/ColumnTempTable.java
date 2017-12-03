@@ -20,18 +20,17 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.dataset.parquet.converter;
+package edu.uchicago.cs.encsel.query;
 
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.MessageType;
-import scala.Tuple2;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ColumnTempTable extends GroupConverter {
+public class ColumnTempTable extends GroupConverter implements TempTable {
 
     private MessageType schema;
 

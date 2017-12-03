@@ -20,43 +20,41 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.dataset.parquet.converter;
+package edu.uchicago.cs.encsel.query;
 
-import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
-import org.apache.parquet.io.api.PrimitiveConverter;
-import org.apache.parquet.schema.PrimitiveType;
 
-public class NonePrimitiveConverter extends PrimitiveConverter {
+public class Row {
 
-    public static NonePrimitiveConverter INSTANCE = new NonePrimitiveConverter();
+    private Object[] data;
 
-    private Dictionary dictionary;
+    public Object[] getData() { return data; }
 
-    public NonePrimitiveConverter() {
+    public Row(int colCount) {
+        this.data = new Object[colCount];
     }
 
-    @Override
-    public void addBinary(Binary value) {
+    public void add(int index, Binary value) {
+        data[index] = value;
     }
 
-    @Override
-    public void addBoolean(boolean value) {
+    public void add(int index, boolean value) {
+        data[index] = value;
     }
 
-    @Override
-    public void addDouble(double value) {
+    public void add(int index, double value) {
+        data[index] = value;
     }
 
-    @Override
-    public void addFloat(float value) {
+    public void add(int index, float value) {
+        data[index] = value;
     }
 
-    @Override
-    public void addInt(int value) {
+    public void add(int index, int value) {
+        data[index] = value;
     }
 
-    @Override
-    public void addLong(long value) {
+    public void add(int index, long value) {
+        data[index] = value;
     }
 }
