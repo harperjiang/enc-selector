@@ -28,5 +28,7 @@ import org.apache.parquet.schema.MessageType
 
 object SourceGen extends App {
 
-  def gen(source:URI, dest:URI, schema:MessageType)
+  def gen(source:URI, dest:URI, schema:MessageType):Unit = {
+
+  }
 }
