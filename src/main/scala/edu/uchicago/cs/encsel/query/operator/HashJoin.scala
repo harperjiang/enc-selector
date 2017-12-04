@@ -26,7 +26,6 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.{PipePrimitiveConverter, Row, RowTempTable}
 import edu.uchicago.cs.encsel.query.util.{DataUtils, SchemaUtils}
 import edu.uchicago.cs.encsel.query._
 import org.apache.parquet.VersionParser

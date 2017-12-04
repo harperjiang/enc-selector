@@ -22,7 +22,7 @@ object HorizontalScan extends App {
     val predicate = new HColumnPredicate((value: Any) => value.asInstanceOf[Double] < threshold, colIndex)
     val start = System.currentTimeMillis()
 
-    new HorizontalSelect().select(file, predicate, schema, Array(0, 1, 2, 3, 4), (Any, Int) => {})
+    new HorizontalSelect().select(file, predicate, schema, Array(0, 1, 2, 3, 4))
 
     System.currentTimeMillis() - start
   }

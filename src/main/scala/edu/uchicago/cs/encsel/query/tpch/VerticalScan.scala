@@ -23,7 +23,7 @@ object VerticalScan extends App {
     val predicate = new VColumnPredicate((value: Any) => value.asInstanceOf[Double] < threshold, colIndex)
     val start = System.currentTimeMillis()
 
-    new VerticalSelect().select(file, predicate, schema, Array(0, 1, 2, 3, 4), (Any, Int) => {})
+    new VerticalSelect().select(file, predicate, schema, Array(0, 1, 2, 3, 4))
 
     System.currentTimeMillis() - start
   }
