@@ -22,13 +22,15 @@
 
 package edu.uchicago.cs.encsel.query.operator
 
-import java.net.URI
+import java.io.File
 
-import org.apache.parquet.schema.MessageType
+import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 
 object SourceGen extends App {
 
-  def gen(source:URI, dest:URI, schema:MessageType):Unit = {
+  ParquetWriterHelper.write(new File("test/resource/query/contact_source").toURI,
+    TestSchemas.contactSchema, new File("test/resource/query/contact").toURI, false, ",")
 
-  }
+  ParquetWriterHelper.write(new File("test/resource/query/person_source").toURI,
+    TestSchemas.personSchema, new File("test/resource/query/person").toURI, false, ",")
 }
