@@ -35,8 +35,8 @@ class HashJoinTest {
 
 
 
-    val result = new HashJoin().join(new File("test/resource/query/hashjoin_left").toURI, leftSchema,
-      new File("test/resource/query/hashjoin_right").toURI, rightSchema,
+    val result = new HashJoin().join(new File("test/resource/query/person").toURI, TestSchemas.personSchema,
+      new File("test/resource/query/contact").toURI, TestSchemas.contactSchema,
       (0, 1), Array(0, 1, 2), Array(2))
   }
 }
