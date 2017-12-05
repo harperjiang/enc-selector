@@ -45,7 +45,7 @@ public class ColumnPrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public boolean hasDictionarySupport() {
-        return true;
+        return dictionary != null;
     }
 
     @Override

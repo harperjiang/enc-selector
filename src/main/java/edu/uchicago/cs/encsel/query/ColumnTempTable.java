@@ -38,7 +38,7 @@ public class ColumnTempTable extends GroupConverter implements TempTable {
 
     private Column[] columns;
 
-    private Map<String[], Integer> pathMaps;
+    private Map<ColumnKey, Integer> pathMaps;
 
     public ColumnTempTable(MessageType schema) {
         this.schema = schema;
@@ -50,7 +50,7 @@ public class ColumnTempTable extends GroupConverter implements TempTable {
             converters[i] = new ColumnPrimitiveConverter(this, i,
                     schema.getType(i).asPrimitiveType());
             columns[i] = new Column();
-            pathMaps.put(schema.getColumns().get(i).getPath(), i);
+            pathMaps.put(new ColumnKey(schema.getColumns().get(i).getPath()), i);
         }
     }
 
@@ -60,7 +60,7 @@ public class ColumnTempTable extends GroupConverter implements TempTable {
     }
 
     public Converter getConverter(String[] path) {
-        return getConverter(pathMaps.get(path));
+        return getConverter(pathMaps.get(new ColumnKey(path)));
     }
 
     public Column[] getColumns() {

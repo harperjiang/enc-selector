@@ -49,7 +49,7 @@ public class PipePrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public boolean hasDictionarySupport() {
-        return true;
+        return dictionary != null;
     }
 
     @Override

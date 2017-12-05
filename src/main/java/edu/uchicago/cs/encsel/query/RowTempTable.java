@@ -27,27 +27,25 @@ import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class RowTempTable extends GroupConverter implements TempTable {
+
     protected Row current;
     private Converter[] converters;
 
-    private Map<String[], Integer> index = new HashMap<>();
+    private Map<ColumnKey, Integer> index = new HashMap<>();
     private List<Row> records = new ArrayList<>();
 
     public RowTempTable(MessageType schema) {
-
         converters = new Converter[schema.getFieldCount()];
 
         for (int i = 0; i < converters.length; i++) {
             final Type type = schema.getType(i);
             if (type.isPrimitive()) {
                 converters[i] = new RowFieldPrimitiveConverter(this, i, schema.getType(i).asPrimitiveType());
-                index.put(schema.getColumns().get(i).getPath(), i);
+                index.put(new ColumnKey(schema.getColumns().get(i).getPath()), i);
             }
         }
     }
@@ -64,7 +62,7 @@ public class RowTempTable extends GroupConverter implements TempTable {
     }
 
     public Converter getConverter(String[] path) {
-        return converters[index.get(path)];
+        return converters[index.get(new ColumnKey(path))];
     }
 
     @Override
