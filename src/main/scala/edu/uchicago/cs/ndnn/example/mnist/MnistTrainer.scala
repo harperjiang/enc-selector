@@ -24,8 +24,8 @@ package edu.uchicago.cs.ndnn.example.mnist
 
 import edu.uchicago.cs.ndnn.{Batch, SimpleTrainer}
 
-class MnistTrainer(trainset: MnistDataset, testset: MnistDataset)
-  extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph()) {
+class MnistTrainer(trainset: MnistDataset, testset: MnistDataset, modelName: String = "mnist_model")
+  extends SimpleTrainer[MnistDataset, MnistGraph](trainset, testset, new MnistGraph(), modelName) {
 
   protected override def setupGraph(graph: MnistGraph, batch: Batch): Unit = {
     graph.pixelInput.set(batch.feature(0))
