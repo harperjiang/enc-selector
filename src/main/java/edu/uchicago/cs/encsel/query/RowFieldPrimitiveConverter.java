@@ -14,43 +14,38 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
- * under the License,
+ * under the License.
  *
  * Contributors:
  *     Hao Jiang - initial API and implementation
- *
  */
 
-package edu.uchicago.cs.encsel.dataset.parquet.converter;
+package edu.uchicago.cs.encsel.query;
 
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.PrimitiveType;
 
-public class PipePrimitiveConverter extends PrimitiveConverter {
+public class RowFieldPrimitiveConverter extends PrimitiveConverter {
+
+    private int index;
 
     private Dictionary dictionary;
 
+    private RowTempTable parent;
+
     private PrimitiveType type;
 
-    private Object value;
-
-    private PrimitiveConverter next = NonePrimitiveConverter.INSTANCE;
-
-    public PipePrimitiveConverter(PrimitiveType type) {
+    public RowFieldPrimitiveConverter(RowTempTable parent, int index, PrimitiveType type) {
+        this.parent = parent;
+        this.index = index;
         this.type = type;
-    }
-
-    public void setNext(PrimitiveConverter next) {
-        if(next == null)
-            throw new IllegalArgumentException("Next is null");
-        this.next = next;
     }
 
     @Override
     public boolean hasDictionarySupport() {
-        return true;
+        return dictionary != null;
     }
 
     @Override
@@ -86,37 +81,32 @@ public class PipePrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public void addBinary(Binary value) {
-        this.value = value;
-        this.next.addBinary(value);
+        parent.getCurrentRecord().add(index, value);
     }
 
     @Override
     public void addBoolean(boolean value) {
-        this.value = value;
-        this.next.addBoolean(value);
+        parent.getCurrentRecord().add(index, value);
     }
 
     @Override
     public void addDouble(double value) {
-        this.value = value;
-        this.next.addDouble(value);
+        parent.getCurrentRecord().add(index, value);
     }
 
     @Override
     public void addFloat(float value) {
-        this.value = value;
-        this.next.addFloat(value);
+        parent.getCurrentRecord().add(index, value);
     }
 
     @Override
     public void addInt(int value) {
-        this.value = value;
-        this.next.addInt(value);
+        parent.getCurrentRecord().add(index, value);
     }
 
     @Override
     public void addLong(long value) {
-        this.value = value;
-        this.next.addLong(value);
+        parent.getCurrentRecord().add(index, value);
     }
+
 }

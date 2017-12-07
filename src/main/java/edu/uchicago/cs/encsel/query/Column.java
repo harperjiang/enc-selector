@@ -20,19 +20,19 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.query.operator
+package edu.uchicago.cs.encsel.query;
 
-import java.net.URI
+import java.util.ArrayList;
+import java.util.List;
 
-import edu.uchicago.cs.encsel.query.TempTable
-import org.apache.parquet.schema.MessageType
+public class Column {
+    private List<Object> data = new ArrayList<>();
 
-trait Join {
+    public void add(Object data) {
+        this.data.add(data);
+    }
 
-  def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int),
-           leftProject: Array[Int], rightProject: Array[Int]): TempTable;
+    public List<Object> getData() {
+        return data;
+    }
 }
-
-
-
-

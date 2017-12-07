@@ -26,7 +26,7 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.{ColumnTempTable, PipePrimitiveConverter, RowTempTable}
+import edu.uchicago.cs.encsel.query.{ColumnTempTable, PipePrimitiveConverter, TempTable}
 import edu.uchicago.cs.encsel.query.util.{DataUtils, SchemaUtils}
 import org.apache.parquet.VersionParser
 import org.apache.parquet.column.impl.ColumnReaderImpl
@@ -41,7 +41,7 @@ import scala.collection.mutable.ArrayBuffer
 class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Join {
 
   def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int),
-           leftProject: Array[Int], rightProject: Array[Int]) = {
+           leftProject: Array[Int], rightProject: Array[Int]):TempTable = {
 
     val leftKeySchema = SchemaUtils.project(leftSchema, Array(joinKey._1))
     val rightKeySchema = SchemaUtils.project(rightSchema, Array(joinKey._2))
@@ -178,6 +178,6 @@ class BlockNestedLoopJoin(val hash: (Any) => Long, val numBlock: Int) extends Jo
         })
       })
     }
-
+    return output
   }
 }

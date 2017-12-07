@@ -22,17 +22,15 @@
 
 package edu.uchicago.cs.encsel.query.operator
 
-import java.net.URI
+import java.io.File
 
-import edu.uchicago.cs.encsel.query.TempTable
-import org.apache.parquet.schema.MessageType
+import edu.uchicago.cs.encsel.dataset.parquet.ParquetWriterHelper
 
-trait Join {
+object SourceGen extends App {
 
-  def join(left: URI, leftSchema: MessageType, right: URI, rightSchema: MessageType, joinKey: (Int, Int),
-           leftProject: Array[Int], rightProject: Array[Int]): TempTable;
+  ParquetWriterHelper.write(new File("src/test/resource/query/contact_source").toURI,
+    TestSchemas.contactSchema, new File("src/test/resource/query/contact").toURI, false, ",")
+
+  ParquetWriterHelper.write(new File("src/test/resource/query/person_source").toURI,
+    TestSchemas.personSchema, new File("src/test/resource/query/person").toURI, false, ",")
 }
-
-
-
-

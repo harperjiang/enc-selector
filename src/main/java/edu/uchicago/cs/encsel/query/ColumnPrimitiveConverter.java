@@ -20,13 +20,12 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.dataset.parquet.converter;
+package edu.uchicago.cs.encsel.query;
 
 import org.apache.parquet.column.Dictionary;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.PrimitiveType;
-import scala.Tuple2;
 
 public class ColumnPrimitiveConverter extends PrimitiveConverter {
 
@@ -46,7 +45,7 @@ public class ColumnPrimitiveConverter extends PrimitiveConverter {
 
     @Override
     public boolean hasDictionarySupport() {
-        return true;
+        return dictionary != null;
     }
 
     @Override

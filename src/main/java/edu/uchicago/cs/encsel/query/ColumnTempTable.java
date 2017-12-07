@@ -20,18 +20,17 @@
  *     Hao Jiang - initial API and implementation
  */
 
-package edu.uchicago.cs.encsel.dataset.parquet.converter;
+package edu.uchicago.cs.encsel.query;
 
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.schema.MessageType;
-import scala.Tuple2;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ColumnTempTable extends GroupConverter {
+public class ColumnTempTable extends GroupConverter implements TempTable {
 
     private MessageType schema;
 
@@ -39,7 +38,7 @@ public class ColumnTempTable extends GroupConverter {
 
     private Column[] columns;
 
-    private Map<String[], Integer> pathMaps;
+    private Map<ColumnKey, Integer> pathMaps;
 
     public ColumnTempTable(MessageType schema) {
         this.schema = schema;
@@ -51,7 +50,7 @@ public class ColumnTempTable extends GroupConverter {
             converters[i] = new ColumnPrimitiveConverter(this, i,
                     schema.getType(i).asPrimitiveType());
             columns[i] = new Column();
-            pathMaps.put(schema.getColumns().get(i).getPath(), i);
+            pathMaps.put(new ColumnKey(schema.getColumns().get(i).getPath()), i);
         }
     }
 
@@ -61,7 +60,7 @@ public class ColumnTempTable extends GroupConverter {
     }
 
     public Converter getConverter(String[] path) {
-        return getConverter(pathMaps.get(path));
+        return getConverter(pathMaps.get(new ColumnKey(path)));
     }
 
     public Column[] getColumns() {

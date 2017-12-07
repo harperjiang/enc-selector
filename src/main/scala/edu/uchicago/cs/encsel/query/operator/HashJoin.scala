@@ -26,9 +26,8 @@ import java.net.URI
 
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper
 import edu.uchicago.cs.encsel.dataset.parquet.ParquetReaderHelper.ReaderProcessor
-import edu.uchicago.cs.encsel.dataset.parquet.converter.{ColumnTempTable, PipePrimitiveConverter, Row, RowTempTable}
+import edu.uchicago.cs.encsel.query._
 import edu.uchicago.cs.encsel.query.util.{DataUtils, SchemaUtils}
-import edu.uchicago.cs.encsel.query.{Bitmap}
 import org.apache.parquet.VersionParser
 import org.apache.parquet.column.impl.ColumnReaderImpl
 import org.apache.parquet.column.page.PageReadStore
@@ -36,12 +35,12 @@ import org.apache.parquet.hadoop.Footer
 import org.apache.parquet.hadoop.metadata.BlockMetaData
 import org.apache.parquet.schema.MessageType
 
-import scala.collection.mutable
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 class HashJoin extends Join {
   def join(hashFile: URI, hashSchema: MessageType, probeFile: URI, probeSchema: MessageType, joinKey: (Int, Int),
-           hashProject: Array[Int], probeProject: Array[Int]) = {
+           hashProject: Array[Int], probeProject: Array[Int]): TempTable = {
 
     val hashProjectSchema = SchemaUtils.project(hashSchema, hashProject)
     val hashRecorder = new RowTempTable(hashProjectSchema)
@@ -61,9 +60,18 @@ class HashJoin extends Join {
         val hashRowReaders = hashProjectSchema.getColumns.map(col => new ColumnReaderImpl(col, rowGroup.getPageReader(col),
           hashRecorder.getConverter(col.getPath).asPrimitiveConverter(), version))
 
-        val hashKeyCol = hashSchema.getColumns()(joinKey._1)
-        val hashKeyReader = new ColumnReaderImpl(hashKeyCol, rowGroup.getPageReader(hashKeyCol),
-          new PipePrimitiveConverter(hashSchema.getType(joinKey._1).asPrimitiveType()), version)
+        val hashIndex = hashProject.indexOf(joinKey._1)
+
+        val hashKeyReader = hashIndex match {
+          case -1 => {
+            val hashKeyCol = hashSchema.getColumns()(joinKey._1)
+            new ColumnReaderImpl(hashKeyCol, rowGroup.getPageReader(hashKeyCol),
+              new PipePrimitiveConverter(hashSchema.getType(joinKey._1).asPrimitiveType()), version)
+          }
+          case i => {
+            hashRowReaders(i)
+          }
+        }
         // Build hash table
         for (i <- 0L until rowGroup.getRowCount) {
           val hashKey = DataUtils.readValue(hashKeyReader)
@@ -85,8 +93,12 @@ class HashJoin extends Join {
       override def processFooter(footer: Footer) = {}
 
       override def processRowGroup(version: VersionParser.ParsedVersion, meta: BlockMetaData, rowGroup: PageReadStore) = {
-
+        val probeReaders = probeProjectSchema.getColumns.zipWithIndex
+          .map(col => new ColumnReaderImpl(col._1, rowGroup.getPageReader(col._1),
+            outputRecorder.getConverter(hashProject.length + col._2).asPrimitiveConverter(), version))
         val hashKeyCol = probeSchema.getColumns()(joinKey._2)
+        // As an assumption, the probe readers will not contain hash key as if the key is included in the result,
+        // it will be maintained in the hash table, not here
         val hashKeyReader = new ColumnReaderImpl(hashKeyCol, rowGroup.getPageReader(hashKeyCol),
           new PipePrimitiveConverter(probeSchema.getType(joinKey._2).asPrimitiveType()), version)
         // Build bitmap
@@ -107,10 +119,6 @@ class HashJoin extends Join {
           }
         }
 
-        val probeReaders = probeProjectSchema.getColumns.zipWithIndex
-          .map(col => new ColumnReaderImpl(col._1, rowGroup.getPageReader(col._1),
-            outputRecorder.getConverter(hashProject.length + col._2).asPrimitiveConverter(), version))
-
         // Based on bitmap, write remaining columns
         for (j <- 0 until probeProjectSchema.getColumns.size) {
           val source = probeReaders(j)
@@ -129,5 +137,6 @@ class HashJoin extends Join {
         }
       }
     })
+    return outputRecorder
   }
 }
