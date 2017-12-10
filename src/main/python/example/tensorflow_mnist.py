@@ -1,11 +1,58 @@
+import io
+
+import numpy as np
 import tensorflow as tf
+import collections
 
 hidden_dim = 200
 input_size = 28 * 28
 output_size = 10
 
-def read_dataset():
-    return None
+train_data_file = "/home/harper/dataset/mnist/"
+train_label_file = "/home/harper/dataset/mnist/"
+test_data_file = "/home/harper/dataset/mnist/"
+test_label_file = "/home/harper/dataset/mnist/"
+
+Datasets = collections.namedtuple("Datasets", ['train','test'])
+
+class Dataset(object):
+
+    def __init__(self, data, label):
+        pass
+
+    def next_batch(self, batch_size):
+        return None
+
+
+def read_data(file):
+    with io.open(file, 'r') as stream:
+        magic = stream.read(4)
+
+        num_record = stream.read(4)
+
+        raw = stream.read(input_size * num_record)
+        plain = np.frombuffer(raw, np.uint8)
+        return plain.astype(np.float32) / 255
+
+
+def read_label(file):
+    with io.open(file, 'r') as stream:
+        magic = stream.read(4)
+        num_record = stream.read(4)
+        raw = stream.read(num_record)
+        return np.frombuffer(raw, np.uint8)
+
+
+def read_datasets():
+
+    train_data = read_data(train_data_file)
+    train_label = read_label(train_label_file)
+    test_data = read_data(test_data_file)
+    test_label = read_data(test_label_file)
+
+
+    return Datasets(train = Dataset(train_data,train_label), test = Dataset(test_data,test_label))
+
 
 x = tf.placeholder(tf.float32, [None, input_size], name="x")
 label = tf.placeholder(tf.float32, [None, 1], name="label")
@@ -34,7 +81,7 @@ with tf.name_scope("accuracy"):
 train_writer = tf.summary.FileWriter("/home/harper/tftemp")
 train_writer.add_graph(tf.get_default_graph())
 
-mnist = read_dataset()
+mnist = read_datasets()
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
