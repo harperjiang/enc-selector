@@ -4,6 +4,9 @@ hidden_dim = 200
 input_size = 28 * 28
 output_size = 10
 
+def read_dataset():
+    return None
+
 x = tf.placeholder(tf.float32, [None, input_size], name="x")
 label = tf.placeholder(tf.float32, [None, 1], name="label")
 
@@ -30,6 +33,8 @@ with tf.name_scope("accuracy"):
 
 train_writer = tf.summary.FileWriter("/home/harper/tftemp")
 train_writer.add_graph(tf.get_default_graph())
+
+mnist = read_dataset()
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
