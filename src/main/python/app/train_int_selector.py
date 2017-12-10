@@ -13,6 +13,7 @@ with tf.Session() as sess:
 
     train_writer.add_graph(sess.graph)
 
+    sess.close()
 # for _ in range(1000):
 
     # train.run(feed_dict = {input:})
